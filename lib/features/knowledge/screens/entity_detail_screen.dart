@@ -12,7 +12,8 @@ class EntityDetailScreen extends StatelessWidget {
   }
 }
 
-class _EntityDetailAppBar extends StatelessWidget implements PreferredSizeWidget {
+class _EntityDetailAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   const _EntityDetailAppBar({required this.title});
 
   final String title;

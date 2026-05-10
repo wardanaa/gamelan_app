@@ -9,9 +9,6 @@ class AuthInterceptor {
       return headers;
     }
 
-    return {
-      ...headers,
-      'Authorization': 'Bearer $token',
-    };
+    return {...headers, 'Authorization': 'Bearer $token'};
   }
 }

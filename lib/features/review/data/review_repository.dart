@@ -3,7 +3,8 @@ import '../../../core/utils/result.dart';
 import 'review_model.dart';
 
 class ReviewRepository {
-  const ReviewRepository({required ApiClient apiClient}) : _apiClient = apiClient;
+  const ReviewRepository({required ApiClient apiClient})
+    : _apiClient = apiClient;
 
   final ApiClient _apiClient;
 

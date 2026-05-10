@@ -1,10 +1,8 @@
 import 'auth_interceptor.dart';
 
 class ApiClient {
-  ApiClient({
-    required this.baseUrl,
-    AuthInterceptor? authInterceptor,
-  }) : authInterceptor = authInterceptor ?? AuthInterceptor();
+  ApiClient({required this.baseUrl, AuthInterceptor? authInterceptor})
+    : authInterceptor = authInterceptor ?? AuthInterceptor();
 
   final String baseUrl;
   final AuthInterceptor authInterceptor;

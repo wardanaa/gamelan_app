@@ -1,10 +1,4 @@
-enum ContributionStatus {
-  draft,
-  submitted,
-  underReview,
-  approved,
-  rejected,
-}
+enum ContributionStatus { draft, submitted, underReview, approved, rejected }
 
 class ContributionModel {
   const ContributionModel({

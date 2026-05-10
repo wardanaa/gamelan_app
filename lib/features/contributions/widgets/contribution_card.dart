@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/contribution_model.dart';
 
 class ContributionCard extends StatelessWidget {
-  const ContributionCard({
-    required this.contribution,
-    super.key,
-  });
+  const ContributionCard({required this.contribution, super.key});
 
   final ContributionModel contribution;
 

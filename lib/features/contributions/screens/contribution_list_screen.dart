@@ -12,7 +12,8 @@ class ContributionListScreen extends StatelessWidget {
   }
 }
 
-class _ContributionAppBar extends StatelessWidget implements PreferredSizeWidget {
+class _ContributionAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   const _ContributionAppBar({required this.title});
 
   final String title;

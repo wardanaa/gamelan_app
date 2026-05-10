@@ -1,9 +1,4 @@
-enum ReviewDecision {
-  pending,
-  approved,
-  rejected,
-  needsChanges,
-}
+enum ReviewDecision { pending, approved, rejected, needsChanges }
 
 class ReviewModel {
   const ReviewModel({
