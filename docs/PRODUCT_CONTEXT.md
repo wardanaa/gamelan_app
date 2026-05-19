@@ -26,19 +26,22 @@ A normal database can store records, but it is weak at representing rich semanti
 
 ## Current Product State
 
-The current repository is the Flutter mobile scaffold for this product. It
-contains placeholder screens and simple data contracts for the main product
+The current repository is a local Flutter MVP for this product. It implements a
+Material 3 mobile shell with local, in-memory workflows for the main product
 areas:
 
-- authentication
+- Home, Search, Contribute, Review, and Profile tabs
+- seeded knowledge browsing for Gong Kebyar and Gong Gede
+- keyword search over local knowledge records and relation labels
 - contribution listing, details, form, and status
-- knowledge entity listing and details
-- review queue, details, and decision
-- admin user management and audit logs
+- curator-style local review queue, details, and decisions
+- approved local contributions appearing in Search as community approved demo
+  content
 
 The current app does not yet provide real registration/login, backend
-communication, semantic search, media upload, offline draft persistence, RDF
-generation, SPARQL querying, or AI triage. Those remain target capabilities.
+communication, role authorization, semantic SPARQL search, media upload,
+offline draft persistence, RDF generation, SPARQL querying, expert validation,
+or AI triage. Those remain target capabilities.
 
 ## Goals
 
@@ -77,7 +80,7 @@ This project does not aim to:
 
 ## Target MVP Features
 
-The target MVP must include:
+The full target MVP must include:
 
 - User registration/login
 - Knowledge browsing
@@ -93,8 +96,9 @@ The target MVP must include:
 - Basic offline draft support
 - SUS and task-based usability evaluation readiness
 
-The current Flutter scaffold is an early step toward this MVP. Documentation
-should distinguish implemented scaffold behavior from the target MVP behavior.
+The current local Flutter MVP implements only a safe subset of this target. It
+demonstrates contribution, review, and knowledge-browsing workflows without
+claiming backend persistence, semantic publication, or cultural authority.
 
 ## Success Criteria
 

@@ -4,7 +4,7 @@ This document defines the relational data model used for workflow and operationa
 
 ## Current Implementation
 
-The current Flutter app has only minimal Dart models:
+The current Flutter app has local Dart models for the in-memory MVP:
 
 ```txt
 ContributionModel
@@ -12,16 +12,36 @@ ContributionModel
 - title
 - description
 - status
+- knowledgeType
+- gamelanType
+- sourceNote
+- contributorNote
+- culturalSensitivity
+- consentGiven
+- createdAt
+- reviewNote
 
 ReviewModel
 - id
 - contributionId
 - decision
 - notes
+
+KnowledgeItem
+- id
+- title
+- description
+- knowledgeType
+- gamelanType
+- relations
+- sourceSummary
+- provenanceSummary
+- isCommunityApproved
 ```
 
 There is no relational database, migration set, backend model, or persisted
-schema in this repository yet. The model below is the target backend data model.
+schema in this repository yet. `GamelanMvpStore` holds local in-memory records
+only. The model below is the target backend data model.
 
 ## Core Tables
 

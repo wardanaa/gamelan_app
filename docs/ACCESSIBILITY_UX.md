@@ -4,11 +4,17 @@ This document defines mobile UX and accessibility standards.
 
 ## Current Implementation
 
-The current UI is a placeholder scaffold using Material widgets. Existing
-screens mostly contain an `AppBar` and centered text for the feature area.
+The current UI is a local Material 3 MVP using a bottom-navigation shell.
+Implemented tabs are:
 
-The standards below define the target UX as the app moves from scaffold screens
-to real contribution, browsing, review, and admin workflows.
+- Home
+- Search
+- Contribute
+- Review
+- Profile
+
+The Search, Contribute, and Review tabs now provide working local workflows.
+Authentication and admin screens remain scaffold-level placeholders.
 
 ## UX Principles
 
@@ -25,43 +31,57 @@ The app should feel respectful, clear, and calm.
 
 ## Navigation
 
-Target main tabs:
+Current MVP tabs:
 
 ```txt
 Home
 Search
 Contribute
-Saved
+Review
 Profile
 ```
 
-Curator/expert roles may see:
+Target future tabs may add:
 
 ```txt
-Review Queue
+Saved
 Validation
+Settings
 ```
 
 ## Core Screens
 
-Current screens exist as placeholders for contribution list/detail/form/status,
-knowledge entity list/detail, review queue/detail/decision, authentication, user
-management, and audit logs.
+Current MVP screens include working local contribution list/detail/form/status,
+knowledge list/detail, and review queue/detail/decision screens.
+Authentication, user management, and audit logs are still placeholders.
 
 | Screen | Purpose |
 |---|---|
 | Home | Highlight knowledge, recently added items, categories |
-| Search | Keyword and semantic search |
-| Knowledge Detail | Entity details, relations, media, sources |
-| Contribution Form | Submit or edit knowledge |
-| Review Queue | Curator/expert review list |
-| Review Detail | Review contribution, media, AI suggestion |
-| Profile | User info and contribution status |
+| Search | Local keyword search over seeded and approved demo knowledge |
+| Knowledge Detail | Entity details, relations, source summary, provenance summary |
+| Contribution Form | Save local draft or submit for local review |
+| Review Queue | Curator-style local review list |
+| Review Detail | Review contribution, source note, sensitivity, and decision actions |
+| Profile | Demo role, privacy boundary, and ontology boundary |
 | Settings | Language, accessibility, account |
 
 ## Contribution UX
 
-Contribution form should be broken into steps:
+The current MVP contribution form is a single scrolling form. It includes:
+
+- title
+- description
+- knowledge type
+- gamelan type
+- source note
+- contributor note
+- cultural sensitivity flag
+- contributor consent checkbox
+- save draft
+- submit for review
+
+As the form grows, it should be broken into steps:
 
 1. Basic information
 2. Knowledge classification

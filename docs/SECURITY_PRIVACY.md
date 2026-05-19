@@ -4,10 +4,20 @@ This document defines security, privacy, and cultural sensitivity rules.
 
 ## Current Implementation
 
-The current Flutter scaffold has an in-memory `TokenStorage` placeholder and an
-`AuthInterceptor` helper for attaching bearer tokens. It does not yet implement
-real login, secure token storage, backend authorization, media access control,
-SPARQL restrictions, or AI prompt logging controls.
+The current Flutter MVP uses in-memory state only:
+
+- `GamelanMvpStore` holds seeded knowledge and local contributions.
+- `TokenStorage` remains an in-memory placeholder.
+- The contribution form requires a consent checkbox before saving or submitting.
+- Contributions can be marked culturally sensitive.
+- Draft, submitted, under-review, request-changes, and rejected contributions do
+  not appear in public knowledge browsing.
+- Approved local contributions appear in Search as community approved demo
+  content only.
+
+The app does not yet implement real login, secure token storage, backend
+authorization, media access control, SPARQL restrictions, or AI prompt logging
+controls.
 
 The requirements below apply as target security and privacy rules when those
 capabilities are implemented.
@@ -37,6 +47,9 @@ Recommended:
 The current in-memory token storage must be replaced before real authentication
 or production builds use access tokens.
 
+The current MVP profile and role labels are demo-only. They do not enforce
+authorization.
+
 ## Authorization
 
 Every sensitive endpoint must check:
@@ -61,6 +74,10 @@ Protect:
 - private notes
 
 ## Cultural Sensitivity
+
+In the current MVP, cultural sensitivity is a local UI and review marker only.
+It is not backed by durable authorization, encrypted storage, media access
+control, or backend policy checks.
 
 Restricted content must not be exposed through:
 

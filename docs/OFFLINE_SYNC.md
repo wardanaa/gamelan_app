@@ -4,9 +4,10 @@ This document defines offline and synchronization behavior for the mobile app.
 
 ## Current Implementation
 
-Offline sync is not implemented yet. The current app has no local draft
-persistence package, no sync queue, no media upload queue, and no conflict
-resolution UI.
+Offline sync is not implemented yet. The current app can create in-memory local
+drafts, but it has no local draft persistence package, no sync queue, no media
+upload queue, and no conflict resolution UI. All local MVP contribution data
+resets when the app restarts.
 
 This guide defines the target behavior for future offline work.
 

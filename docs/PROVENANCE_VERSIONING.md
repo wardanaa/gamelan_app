@@ -4,10 +4,17 @@ This document defines provenance and versioning rules.
 
 ## Current Implementation
 
-The current Flutter scaffold does not persist contribution versions,
-provenance records, review history, RDF publication status, or ontology mapping
-history. These concepts are target requirements for the future backend and
-semantic publication workflow.
+The current Flutter MVP displays lightweight provenance-like text in local
+knowledge detail screens:
+
+- seeded knowledge includes a source summary and provenance summary
+- approved local contributions include contributor note and source note text
+- approved local contributions are labeled as community approved demo content
+
+The current app does not persist contribution versions, provenance records,
+review history, RDF publication status, or ontology mapping history. These
+concepts are target requirements for the future backend and semantic publication
+workflow.
 
 ## Why Provenance Matters
 

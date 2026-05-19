@@ -2,9 +2,9 @@
 
 ## Architecture Overview
 
-The current repository contains the Flutter mobile app scaffold at the project
-root. It does not yet contain a Laravel backend, database schema, ontology
-files, RDF publication jobs, media storage, or SPARQL integration.
+The current repository contains a local Flutter MVP at the project root. It
+does not yet contain a Laravel backend, database schema, ontology files, RDF
+publication jobs, media storage, or SPARQL integration.
 
 The target system consists of five major layers:
 
@@ -37,9 +37,15 @@ Current implementation:
 
 - Flutter app entrypoint in `lib/main.dart`.
 - Material 3 app shell in `lib/app.dart`.
-- Home screen is `ContributionListScreen`.
+- Home screen is `GamelanHomeShell`, with Home, Search, Contribute, Review, and
+  Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
 - API helper classes exist under `lib/core/api`.
+- Local MVP state is held in `GamelanMvpStore` and exposed through
+  `GamelanScope`.
+- Seeded knowledge records and approved local contributions appear in Search.
+- Draft, submitted, under-review, approved, and rejected contribution states are
+  simulated in memory.
 - Repositories are placeholders and do not perform real network requests yet.
 
 Target responsibilities:
@@ -54,6 +60,26 @@ Target responsibilities:
 - Notifications and status tracking
 
 The mobile app must not contain authoritative business rules. It may mirror validation for UX, but backend validation remains mandatory once the backend exists.
+
+### Current Local MVP Flow
+
+The current mobile MVP runs this in-memory flow only:
+
+```txt
+Seeded Gong Kebyar/Gong Gede knowledge
+    +
+Local contribution form
+    ↓
+Draft or submitted contribution in GamelanMvpStore
+    ↓
+Local curator review action
+    ↓
+Approved local contribution appears in Search
+```
+
+Draft, submitted, under-review, request-changes, and rejected contributions do
+not appear in public knowledge browsing. Approved local content is labeled as
+community approved demo content and is not RDF publication.
 
 ### Laravel REST API
 
@@ -173,8 +199,7 @@ repository-root/
 
 ## Critical Flow
 
-The current Flutter scaffold names screens and models for this flow, but the
-workflow is not executed end to end yet.
+The target production flow remains:
 
 ```txt
 Contributor submits draft
@@ -195,6 +220,11 @@ RDF triples inserted into triplestore
     ↓
 Published knowledge appears in semantic search
 ```
+
+The current local MVP demonstrates only the mobile-facing contribution, review,
+and approved-search portions of this flow. Backend validation, AI suggestions,
+expert validation, ontology mapping, RDF insertion, and SPARQL-backed semantic
+search are not implemented yet.
 
 ## Do Not
 

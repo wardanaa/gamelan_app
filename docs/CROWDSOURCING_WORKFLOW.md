@@ -4,16 +4,29 @@ This document defines the contribution, review, curation, and validation workflo
 
 ## Current Implementation
 
-The Flutter app currently contains placeholders for contribution and review
-screens, plus minimal Dart enums:
+The Flutter app currently implements a local in-memory contribution and review
+simulation. It uses the following Dart contribution statuses:
 
 ```txt
 ContributionStatus: draft, submitted, underReview, approved, rejected
-ReviewDecision: pending, approved, rejected, needsChanges
 ```
 
-No backend workflow, role authorization, curation decision persistence, expert
-validation, RDF publication, or provenance storage is implemented yet.
+Implemented local behavior:
+
+- contributors can save a local draft or submit a local contribution
+- contribution fields include title, description, knowledge type, gamelan type,
+  source note, contributor note, consent, and cultural sensitivity
+- submitted and under-review contributions appear in the local Review tab
+- curator-style actions can mark under review, approve, request changes, or
+  reject with a note
+- approved local contributions appear in Search as community approved demo
+  content
+- draft, submitted, under-review, request-changes, and rejected contributions do
+  not appear in public knowledge browsing
+
+No backend workflow, role authorization, durable curation decision persistence,
+expert validation, RDF publication, or durable provenance storage is implemented
+yet.
 
 The workflow below is the target application workflow.
 
@@ -29,6 +42,22 @@ The workflow must:
 - Produce traceable RDF publication
 
 ## Contribution Lifecycle
+
+Current local MVP lifecycle:
+
+```txt
+draft
+  ↓
+submitted
+  ↓
+underReview
+  ↓
+approved OR rejected
+```
+
+In the current MVP, request changes is represented as `rejected` with a review
+note prefixed by `Changes requested:`. This should be replaced by a dedicated
+`needs_revision` state when backend workflow support is added.
 
 Target lifecycle:
 
@@ -57,7 +86,10 @@ not expose target statuses in the UI until backend support exists.
 |---|---|
 | `draft` | Contribution saved but not submitted |
 | `submitted` | Contribution submitted by contributor |
-| `under_review` | Being reviewed by peer reviewer or curator |
+| `underReview` | Being reviewed by peer reviewer or curator in the local MVP |
+| `approved` | Approved in the local MVP; appears in Search as demo content |
+| `rejected` | Rejected or changes requested in the local MVP |
+| `under_review` | Target backend status for active review |
 | `needs_revision` | Contributor must revise |
 | `curator_approved` | Curator accepts normalized content |
 | `expert_required` | Requires expert validation |

@@ -4,9 +4,37 @@ This document defines the core Balinese gamelan knowledge concepts used by the a
 
 ## Current Implementation
 
-The current Flutter app has placeholder knowledge entity list and detail
-screens. It does not yet include knowledge entity models, ontology mappings,
-semantic relations, local datasets, RDF files, or SPARQL-backed browsing.
+The current Flutter app includes a local `KnowledgeItem` model and seeded
+knowledge records for Gong Kebyar and Gong Gede. The Search tab browses these
+records and any approved local contributions.
+
+Current local `KnowledgeItem` fields:
+
+```txt
+id
+title
+description
+knowledgeType
+gamelanType
+relations
+sourceSummary
+provenanceSummary
+isCommunityApproved
+```
+
+Seeded local records currently include:
+
+- Gong Kebyar
+- Gong Gede
+- Gangsa
+- Reyong
+- Kendang
+- Ceng-ceng
+
+The current app does not yet include ontology mappings, RDF files,
+SPARQL-backed browsing, or true semantic reasoning. Relation labels such as
+`hasInstrument`, `usedInEnsemble`, and `validatedBy` are display-oriented,
+ontology-aligned labels only.
 
 The concepts below define the target knowledge model that future app, backend,
 and ontology work should follow.

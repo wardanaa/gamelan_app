@@ -4,9 +4,22 @@ This folder contains documentation for the mobile-based Balinese gamelan knowled
 
 ## Current Implementation Status
 
-The repository currently contains the Flutter mobile app scaffold at the project
-root. The implemented code has placeholder screens and lightweight data/API
-contracts for auth, contributions, knowledge, review, and admin features.
+The repository currently contains a local Flutter MVP at the project root. The
+implemented mobile app has a Material 3 bottom-navigation shell with Home,
+Search, Contribute, Review, and Profile tabs.
+
+Implemented local MVP behavior includes:
+
+- seeded Gong Kebyar and Gong Gede knowledge browsing
+- keyword search over local knowledge records and relation labels
+- an in-memory contribution form with consent and cultural sensitivity fields
+- local draft, submitted, under review, approved, and rejected statuses
+- a curator-style local review queue
+- approval flow that exposes approved local contributions in Search as
+  community approved demo content
+
+This MVP uses `GamelanMvpStore` and `GamelanScope` for in-memory state. Data
+resets when the app restarts.
 
 The Laravel backend, relational database, RDF/OWL ontology files, Fuseki/SPARQL
 integration, media storage, offline sync persistence, and AI triage pipeline are
@@ -36,6 +49,7 @@ the repository.
 | `EVALUATION_QA.md` | Research and software evaluation plan |
 | `CODE_STYLE.md` | Naming, formatting, and coding standards |
 | `DEPLOYMENT.md` | Deployment, environment, and release workflow |
+| `FURTHER_DEVELOPMENT.md` | Suggested next development steps after the local MVP |
 
 ## Main Principle
 
@@ -61,8 +75,8 @@ Current implemented stack:
 
 | Layer | Current State |
 |---|---|
-| Mobile | Flutter / Dart scaffold at repository root |
-| State Management | Stateless placeholder screens; no external state package |
+| Mobile | Flutter / Dart local MVP at repository root |
+| State Management | In-memory `ChangeNotifier` store through `GamelanMvpStore` and `GamelanScope` |
 | API Client | Lightweight helper classes; no real HTTP dependency yet |
 | Token Storage | In-memory development placeholder |
 | Backend | Not present in this repository |

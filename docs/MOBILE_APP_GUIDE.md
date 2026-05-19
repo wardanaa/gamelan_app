@@ -4,16 +4,25 @@ This document defines standards for the Flutter mobile application.
 
 ## Current Implementation
 
-The current app is a lightweight Flutter scaffold:
+The current app is a local Flutter MVP:
 
 - `lib/main.dart` runs `GamelanApp`.
-- `lib/app.dart` configures a Material 3 `MaterialApp`.
-- The app currently opens `ContributionListScreen`.
+- `lib/app.dart` configures a Material 3 `MaterialApp` and bottom-navigation
+  shell.
+- The app opens `GamelanHomeShell` with Home, Search, Contribute, Review, and
+  Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
-- Most screens are placeholders with an app bar and centered text.
-- `ContributionModel` and `ReviewModel` define minimal data shapes.
-- `ContributionRepository`, `ReviewRepository`, and `AuthRepository` are placeholders.
+- `GamelanMvpStore` and `GamelanScope` provide in-memory local MVP state.
+- Search uses seeded Gong Kebyar and Gong Gede knowledge plus approved local
+  contributions.
+- Contribution list, detail, form, and status screens are implemented for local
+  data.
+- Review queue, detail, and decision screens are implemented for local curator
+  simulation.
+- `ContributionRepository`, `ReviewRepository`, and `AuthRepository` remain
+  placeholders and do not perform real network requests.
 - `TokenStorage` stores a token in memory only and is not production-ready.
+- Admin and authentication screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
 in `lib/`.
@@ -47,6 +56,7 @@ lib/
 ├── core/
 │   ├── api/
 │   ├── constants/
+│   ├── state/
 │   ├── storage/
 │   └── utils/
 ├── features/
@@ -74,20 +84,21 @@ lib/
 
 ## Contribution Form Requirements
 
-The contribution form should support:
+The current local MVP contribution form supports:
 
 - Title
 - Description
 - Knowledge type
 - Related gamelan type
-- Related instrument/ensemble/composition/person/place
 - Source note
 - Contributor note
-- Media attachments
 - Consent checkbox
 - Cultural sensitivity flag
 - Save as draft
 - Submit for review
+
+Target future additions include related entity selection, media attachments, and
+backend-backed validation.
 
 ## Status Display
 
@@ -118,8 +129,9 @@ archived
 
 ## Offline Draft
 
-Offline draft support is a target capability. The current app does not persist
-drafts locally.
+Offline draft persistence is a target capability. The current app can create
+local in-memory drafts, but it does not persist drafts across app restarts and
+does not sync with a backend.
 
 Rules:
 
@@ -147,8 +159,15 @@ Do not show raw backend stack traces.
 
 ## Search UI
 
-Semantic search is a target capability. The current app only has placeholder
-knowledge entity list and detail screens.
+SPARQL-backed semantic search is a target capability. The current app implements
+local keyword search over seeded knowledge and approved local contributions.
+
+Current local search supports:
+
+- keyword search over title, description, and relation labels
+- filter by gamelan type
+- filter by knowledge type
+- detail view with relations, source summary, and provenance summary
 
 The target search interface should support:
 
@@ -163,7 +182,14 @@ The target search interface should support:
 
 ## Review UI
 
-Current review screens are placeholders for review queue, detail, and decision.
+Current review screens support a local curator simulation:
+
+- submitted and under-review contributions appear in the review queue
+- reviewer can mark an item under review
+- reviewer can approve, request changes, or reject with a note
+- approved contributions appear in local Search as community approved demo
+  content
+- request-changes and rejected contributions do not appear in public browsing
 
 Target curator/expert screens should show:
 

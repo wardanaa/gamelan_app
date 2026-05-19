@@ -4,7 +4,7 @@ This document defines SPARQL query rules and examples.
 
 ## Current Implementation
 
-SPARQL is not implemented in the current Flutter scaffold. There is no
+SPARQL is not implemented in the current local Flutter MVP. There is no
 triplestore configuration, SPARQL client, semantic search screen, RDF dataset,
 or ontology file in the repository yet.
 
