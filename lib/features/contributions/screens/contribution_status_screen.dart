@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/state/gamelan_scope.dart';
+import '../data/contribution_model.dart';
+
 class ContributionStatusScreen extends StatelessWidget {
   const ContributionStatusScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: _ContributionStatusAppBar(title: 'Contribution status'),
-      body: Center(child: Text('Contribution status')),
+    final counts = GamelanScope.of(context).contributionStatusCounts;
+
+    return Scaffold(
+      appBar: const _ContributionStatusAppBar(title: 'Contribution status'),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final status in ContributionStatus.values)
+            ListTile(
+              title: Text(status.label),
+              trailing: Text('${counts[status] ?? 0}'),
+            ),
+        ],
+      ),
     );
   }
 }
