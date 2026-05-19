@@ -1,17 +1,22 @@
-# gamelan_app
+# Mobile-Based Balinese Gamelan Knowledge Management Application
 
-A new Flutter project.
+This repository contains a mobile-based knowledge management application for Balinese gamelan.
 
-## Getting Started
+The application supports:
 
-This project is a starting point for a Flutter application.
+- Community-based knowledge contribution
+- Curator and expert validation
+- Semantic ontology enrichment using RDF/OWL
+- Mobile access through Flutter
+- REST API backend through Laravel
+- SPARQL-based semantic search through Apache Jena Fuseki or compatible triplestore
 
-A few resources to get you started if this is your first Flutter project:
+Start with:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `AGENTS.md`
+- `docs/README.md`
+- `docs/PRODUCT_CONTEXT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/KNOWLEDGE_MODEL.md`
+- `docs/ONTOLOGY_GUIDE.md`
+- `docs/CROWDSOURCING_WORKFLOW.md`
