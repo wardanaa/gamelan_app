@@ -2,6 +2,17 @@
 
 This folder contains documentation for the mobile-based Balinese gamelan knowledge management application.
 
+## Current Implementation Status
+
+The repository currently contains the Flutter mobile app scaffold at the project
+root. The implemented code has placeholder screens and lightweight data/API
+contracts for auth, contributions, knowledge, review, and admin features.
+
+The Laravel backend, relational database, RDF/OWL ontology files, Fuseki/SPARQL
+integration, media storage, offline sync persistence, and AI triage pipeline are
+documented as target architecture unless corresponding implementation appears in
+the repository.
+
 ## Documentation Map
 
 | File | Purpose |
@@ -32,7 +43,7 @@ This project is not just a mobile CRUD app.
 
 It is a cultural knowledge management system with a semantic layer, validation workflow, and community participation. Code changes must protect cultural accuracy, provenance, and long-term knowledge usability.
 
-## Default Stack
+## Target Stack
 
 | Layer | Recommended Stack |
 |---|---|
@@ -45,6 +56,17 @@ It is a cultural knowledge management system with a semantic layer, validation w
 | Semantic Query | SPARQL |
 | Media Storage | Local storage, S3-compatible storage, or institutional server |
 | AI Assistance | External LLM for triage only |
+
+Current implemented stack:
+
+| Layer | Current State |
+|---|---|
+| Mobile | Flutter / Dart scaffold at repository root |
+| State Management | Stateless placeholder screens; no external state package |
+| API Client | Lightweight helper classes; no real HTTP dependency yet |
+| Token Storage | In-memory development placeholder |
+| Backend | Not present in this repository |
+| Ontology/SPARQL | Not present in this repository |
 
 ## Primary Knowledge Scope
 

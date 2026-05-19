@@ -24,6 +24,22 @@ Much of this knowledge is contextual and relationship-based:
 
 A normal database can store records, but it is weak at representing rich semantic relationships. This project therefore combines a mobile application, a backend curation workflow, and an RDF/OWL ontology.
 
+## Current Product State
+
+The current repository is the Flutter mobile scaffold for this product. It
+contains placeholder screens and simple data contracts for the main product
+areas:
+
+- authentication
+- contribution listing, details, form, and status
+- knowledge entity listing and details
+- review queue, details, and decision
+- admin user management and audit logs
+
+The current app does not yet provide real registration/login, backend
+communication, semantic search, media upload, offline draft persistence, RDF
+generation, SPARQL querying, or AI triage. Those remain target capabilities.
+
 ## Goals
 
 The application aims to:
@@ -59,9 +75,9 @@ This project does not aim to:
 | Experts | Cultural or academic validators |
 | Admins | System managers |
 
-## MVP Features
+## Target MVP Features
 
-The MVP must include:
+The target MVP must include:
 
 - User registration/login
 - Knowledge browsing
@@ -76,6 +92,9 @@ The MVP must include:
 - Provenance tracking
 - Basic offline draft support
 - SUS and task-based usability evaluation readiness
+
+The current Flutter scaffold is an early step toward this MVP. Documentation
+should distinguish implemented scaffold behavior from the target MVP behavior.
 
 ## Success Criteria
 

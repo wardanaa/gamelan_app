@@ -2,6 +2,12 @@
 
 This document defines deployment and environment rules.
 
+## Current Implementation
+
+The current repository can be treated as a Flutter app repository. Backend,
+database, queue worker, media storage, ontology deployment, and triplestore
+deployment are target-system concerns and are not present here yet.
+
 ## Environments
 
 Recommended:
@@ -14,7 +20,7 @@ Recommended:
 
 ## Services
 
-The full system may require:
+The target full system may require:
 
 - mobile app build pipeline
 - Laravel API server

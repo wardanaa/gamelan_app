@@ -2,6 +2,16 @@
 
 This document defines security, privacy, and cultural sensitivity rules.
 
+## Current Implementation
+
+The current Flutter scaffold has an in-memory `TokenStorage` placeholder and an
+`AuthInterceptor` helper for attaching bearer tokens. It does not yet implement
+real login, secure token storage, backend authorization, media access control,
+SPARQL restrictions, or AI prompt logging controls.
+
+The requirements below apply as target security and privacy rules when those
+capabilities are implemented.
+
 ## Security Principles
 
 1. Validate all input.
@@ -23,6 +33,9 @@ Recommended:
 - short-lived access token if supported
 - secure storage on device
 - logout token revocation
+
+The current in-memory token storage must be replaced before real authentication
+or production builds use access tokens.
 
 ## Authorization
 

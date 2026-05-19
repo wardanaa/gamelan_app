@@ -2,6 +2,14 @@
 
 This document defines rules for audio, video, image, and document assets.
 
+## Current Implementation
+
+Media upload and media metadata management are not implemented in the current
+Flutter scaffold. There are no media models, upload screens, upload queues,
+storage configuration, or backend validation endpoints yet.
+
+This guide defines target media behavior for future mobile and backend work.
+
 ## Supported Media Types
 
 | Type | Examples |

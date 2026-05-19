@@ -2,6 +2,12 @@
 
 This document defines software, ontology, and research evaluation rules.
 
+## Current Implementation
+
+The current test suite contains a Flutter widget test that verifies the app shell
+renders the contribution screen. Backend, ontology, SPARQL, offline sync, media,
+and AI triage tests are not applicable until those capabilities are implemented.
+
 ## Evaluation Dimensions
 
 The project should be evaluated across:
@@ -16,7 +22,11 @@ The project should be evaluated across:
 
 ## Functional Testing
 
-Test scenarios:
+Current implemented scenario:
+
+- app shell renders `Contributions` and `Contribution list`
+
+Target scenarios:
 
 - user registration
 - login/logout

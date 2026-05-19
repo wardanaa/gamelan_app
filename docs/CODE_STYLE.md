@@ -2,6 +2,16 @@
 
 This document defines general code style rules.
 
+## Current Implementation Notes
+
+The current Flutter code uses simple feature folders under `lib/features` and
+core helpers under `lib/core`. Keep documentation and future code aligned with
+the current plural feature names where they already exist, such as
+`contributions`.
+
+Do not introduce backend, ontology, SPARQL, or storage naming as implemented
+code unless those modules are added.
+
 ## General Principles
 
 1. Use clear names.
@@ -41,7 +51,18 @@ stuff
 
 ## Flutter
 
-Recommended file names:
+Current file naming examples:
+
+```txt
+contribution_model.dart
+contribution_repository.dart
+contribution_list_screen.dart
+review_queue_screen.dart
+api_endpoints.dart
+token_storage.dart
+```
+
+Target file names as features grow:
 
 ```txt
 knowledge_item_model.dart

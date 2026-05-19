@@ -2,13 +2,22 @@
 
 This document defines offline and synchronization behavior for the mobile app.
 
+## Current Implementation
+
+Offline sync is not implemented yet. The current app has no local draft
+persistence package, no sync queue, no media upload queue, and no conflict
+resolution UI.
+
+This guide defines the target behavior for future offline work.
+
 ## Goal
 
-The mobile app should support community contribution even with unstable connectivity.
+The target mobile app should support community contribution even with unstable
+connectivity.
 
 ## Offline-Supported Features
 
-MVP offline support:
+Target MVP offline support:
 
 - save contribution draft
 - edit draft

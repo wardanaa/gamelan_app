@@ -2,6 +2,15 @@
 
 This document defines the core Balinese gamelan knowledge concepts used by the application.
 
+## Current Implementation
+
+The current Flutter app has placeholder knowledge entity list and detail
+screens. It does not yet include knowledge entity models, ontology mappings,
+semantic relations, local datasets, RDF files, or SPARQL-backed browsing.
+
+The concepts below define the target knowledge model that future app, backend,
+and ontology work should follow.
+
 ## Initial Domain Scope
 
 Initial scope:

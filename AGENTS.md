@@ -2,7 +2,13 @@
 
 This repository contains a mobile-based Balinese gamelan knowledge management application.
 
-The system combines:
+The current repository is a Flutter application scaffold. It already contains
+feature folders and placeholder screens for authentication, contributions,
+knowledge browsing, review, and administration. Backend, database, RDF/OWL,
+SPARQL, offline sync, media upload, and AI triage capabilities are target
+architecture unless corresponding code or infrastructure is added later.
+
+The target system combines:
 
 - Flutter/Dart mobile frontend
 - Laravel REST API backend
@@ -59,6 +65,21 @@ Initial domain focus:
 - Gong Gede
 
 The system may later support other Balinese gamelan types, but new domains must not be added casually without extending the ontology, validation workflow, and content taxonomy.
+
+## Current Implementation Snapshot
+
+Current Flutter implementation:
+
+- `GamelanApp` uses Material 3.
+- The app starts at `ContributionListScreen`.
+- Feature folders exist under `lib/features/` for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
+- `lib/core/api/` contains a lightweight API client and auth header helper.
+- `lib/core/constants/api_endpoints.dart` defines endpoint constants for auth, contributions, reviews, knowledge, audit logs, and users.
+- Repositories are placeholders and do not perform real network requests yet.
+- `TokenStorage` is in-memory development scaffolding and is not production secure storage.
+
+When updating documentation, keep this current state separate from target
+architecture requirements.
 
 ## Main Roles
 

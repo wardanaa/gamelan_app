@@ -2,6 +2,14 @@
 
 This document defines RDF/OWL ontology modeling rules.
 
+## Current Implementation
+
+No ontology files or ontology editing workflow are present in the current
+repository. There is no `ontology/` directory, RDF generation code, or
+triplestore integration yet.
+
+This guide defines the target ontology approach for future semantic work.
+
 ## Ontology Method
 
 Use Methontology as the ontology development method.

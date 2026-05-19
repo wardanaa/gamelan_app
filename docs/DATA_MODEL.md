@@ -2,6 +2,27 @@
 
 This document defines the relational data model used for workflow and operational data.
 
+## Current Implementation
+
+The current Flutter app has only minimal Dart models:
+
+```txt
+ContributionModel
+- id
+- title
+- description
+- status
+
+ReviewModel
+- id
+- contributionId
+- decision
+- notes
+```
+
+There is no relational database, migration set, backend model, or persisted
+schema in this repository yet. The model below is the target backend data model.
+
 ## Core Tables
 
 Recommended tables:
@@ -27,7 +48,17 @@ audit_logs
 
 ## Contribution Status
 
-Recommended status enum:
+Current Dart enum:
+
+```txt
+draft
+submitted
+underReview
+approved
+rejected
+```
+
+Target backend status enum:
 
 ```txt
 draft
@@ -105,6 +136,17 @@ updated_at
 ```
 
 Possible decisions:
+
+Current Dart review decisions:
+
+```txt
+pending
+approved
+rejected
+needsChanges
+```
+
+Target backend review decisions:
 
 ```txt
 approve

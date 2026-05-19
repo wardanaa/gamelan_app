@@ -2,12 +2,33 @@
 
 This document defines standards for the Flutter mobile application.
 
+## Current Implementation
+
+The current app is a lightweight Flutter scaffold:
+
+- `lib/main.dart` runs `GamelanApp`.
+- `lib/app.dart` configures a Material 3 `MaterialApp`.
+- The app currently opens `ContributionListScreen`.
+- Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
+- Most screens are placeholders with an app bar and centered text.
+- `ContributionModel` and `ReviewModel` define minimal data shapes.
+- `ContributionRepository`, `ReviewRepository`, and `AuthRepository` are placeholders.
+- `TokenStorage` stores a token in memory only and is not production-ready.
+
+Do not document a mobile capability as implemented unless it is backed by code
+in `lib/`.
+
 ## Mobile Stack
 
-Recommended:
+Current:
 
 - Flutter
 - Dart
+- Material 3
+- Flutter test
+
+Target additions when needed:
+
 - Riverpod, Bloc, or Provider for state management
 - Dio or http for API requests
 - Hive, Isar, Drift, or SQLite for offline draft storage
@@ -17,33 +38,38 @@ Do not mix multiple state management systems without a clear reason.
 
 ## App Modules
 
-Recommended structure:
+Current structure:
 
 ```txt
 lib/
-├── app/
-│   ├── app.dart
-│   ├── router.dart
-│   └── theme.dart
+├── app.dart
+├── main.dart
 ├── core/
 │   ├── api/
-│   ├── auth/
-│   ├── errors/
+│   ├── constants/
 │   ├── storage/
 │   └── utils/
 ├── features/
+│   ├── admin/
 │   ├── auth/
-│   ├── home/
+│   ├── contributions/
 │   ├── knowledge/
-│   ├── search/
-│   ├── contribution/
 │   ├── review/
-│   ├── profile/
-│   └── settings/
+└── ...
+```
+
+Target structure may add routing, theme extraction, shared widgets, profile,
+settings, search, and dedicated state-management layers when the app grows.
+
+```txt
+lib/
+├── app.dart
+├── main.dart
+├── router.dart
+├── theme.dart
+├── core/
+├── features/
 └── shared/
-    ├── widgets/
-    ├── models/
-    └── constants/
 ```
 
 ## Contribution Form Requirements
@@ -65,7 +91,17 @@ The contribution form should support:
 
 ## Status Display
 
-Contributors should see contribution status:
+Current Dart contribution statuses:
+
+```txt
+draft
+submitted
+underReview
+approved
+rejected
+```
+
+Target backend workflow statuses:
 
 ```txt
 draft
@@ -82,7 +118,8 @@ archived
 
 ## Offline Draft
 
-The mobile app should support local drafts.
+Offline draft support is a target capability. The current app does not persist
+drafts locally.
 
 Rules:
 
@@ -94,7 +131,8 @@ Rules:
 
 ## API Error Handling
 
-Mobile app must handle:
+Current repositories do not make real HTTP requests. Once API calls are
+implemented, the mobile app must handle:
 
 - 401 unauthenticated
 - 403 unauthorized
@@ -109,7 +147,10 @@ Do not show raw backend stack traces.
 
 ## Search UI
 
-The search interface should support:
+Semantic search is a target capability. The current app only has placeholder
+knowledge entity list and detail screens.
+
+The target search interface should support:
 
 - keyword search
 - semantic search suggestions
@@ -122,7 +163,9 @@ The search interface should support:
 
 ## Review UI
 
-Curator/expert screens should show:
+Current review screens are placeholders for review queue, detail, and decision.
+
+Target curator/expert screens should show:
 
 - submitted content
 - contributor identity if permitted
@@ -137,7 +180,10 @@ Curator/expert screens should show:
 
 ## Localization
 
-The mobile app should support at least:
+Localization is a target capability. The current app uses hard-coded English UI
+strings.
+
+The target mobile app should support at least:
 
 - Indonesian
 - English

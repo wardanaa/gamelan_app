@@ -1,6 +1,14 @@
 # Backend Guide
 
-This document defines backend development rules for the Laravel API.
+This document defines backend development rules for the target Laravel API.
+
+## Current Implementation
+
+No Laravel backend exists in this repository yet. The current codebase contains
+only the Flutter app scaffold and lightweight mobile endpoint constants.
+
+Use this guide when adding a backend service or when aligning the mobile API
+client with the future backend contract.
 
 ## Backend Stack
 

@@ -2,6 +2,26 @@
 
 This document defines REST API standards.
 
+## Current Implementation
+
+The current Flutter app has endpoint constants but does not perform real HTTP
+requests yet. Existing mobile constants are:
+
+```txt
+/auth/login
+/auth/register
+/contributions
+/reviews
+/knowledge
+/admin/audit-logs
+/admin/users
+```
+
+`ApiClient.endpoint(path)` currently builds a `Uri` from a configured base URL
+and path. Repository methods call this helper but return placeholder results.
+
+The contract below is the target REST API contract for the future backend.
+
 ## Base URL
 
 ```txt
@@ -58,6 +78,9 @@ GET  /me
 
 ### Knowledge Browsing
 
+The current Flutter constant is `/knowledge`. The target backend should expose
+resource-oriented knowledge endpoints:
+
 ```txt
 GET /knowledge-items
 GET /knowledge-items/{id}
@@ -76,6 +99,9 @@ GET /search/suggestions
 
 ### Contributions
 
+The current Flutter constant is `/contributions`. The target backend should
+support:
+
 ```txt
 GET    /contributions
 POST   /contributions
@@ -87,6 +113,8 @@ POST   /contributions/{id}/media
 ```
 
 ### Review
+
+The current Flutter constant is `/reviews`. The target backend should support:
 
 ```txt
 GET  /reviews/queue

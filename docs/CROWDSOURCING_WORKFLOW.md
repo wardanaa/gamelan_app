@@ -2,6 +2,21 @@
 
 This document defines the contribution, review, curation, and validation workflow.
 
+## Current Implementation
+
+The Flutter app currently contains placeholders for contribution and review
+screens, plus minimal Dart enums:
+
+```txt
+ContributionStatus: draft, submitted, underReview, approved, rejected
+ReviewDecision: pending, approved, rejected, needsChanges
+```
+
+No backend workflow, role authorization, curation decision persistence, expert
+validation, RDF publication, or provenance storage is implemented yet.
+
+The workflow below is the target application workflow.
+
 ## Workflow Goals
 
 The workflow must:
@@ -14,6 +29,8 @@ The workflow must:
 - Produce traceable RDF publication
 
 ## Contribution Lifecycle
+
+Target lifecycle:
 
 ```txt
 draft
@@ -32,6 +49,9 @@ published
 ```
 
 ## Status Definitions
+
+Current mobile statuses are intentionally simpler than the target workflow. Do
+not expose target statuses in the UI until backend support exists.
 
 | Status | Meaning |
 |---|---|

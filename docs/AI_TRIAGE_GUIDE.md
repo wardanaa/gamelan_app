@@ -2,6 +2,14 @@
 
 This document defines safe AI-assisted preprocessing rules.
 
+## Current Implementation
+
+AI triage is not implemented in the current Flutter scaffold. There is no AI
+provider configuration, prompt workflow, triage result model, or curator UI for
+AI suggestions yet.
+
+This guide defines boundaries for future AI-assisted preprocessing.
+
 ## Purpose
 
 AI can assist curators by reducing repetitive work.

@@ -2,6 +2,14 @@
 
 This document defines mobile UX and accessibility standards.
 
+## Current Implementation
+
+The current UI is a placeholder scaffold using Material widgets. Existing
+screens mostly contain an `AppBar` and centered text for the feature area.
+
+The standards below define the target UX as the app moves from scaffold screens
+to real contribution, browsing, review, and admin workflows.
+
 ## UX Principles
 
 The app must be usable by:
@@ -17,7 +25,7 @@ The app should feel respectful, clear, and calm.
 
 ## Navigation
 
-Recommended main tabs:
+Target main tabs:
 
 ```txt
 Home
@@ -35,6 +43,10 @@ Validation
 ```
 
 ## Core Screens
+
+Current screens exist as placeholders for contribution list/detail/form/status,
+knowledge entity list/detail, review queue/detail/decision, authentication, user
+management, and audit logs.
 
 | Screen | Purpose |
 |---|---|

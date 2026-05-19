@@ -2,6 +2,13 @@
 
 This document defines provenance and versioning rules.
 
+## Current Implementation
+
+The current Flutter scaffold does not persist contribution versions,
+provenance records, review history, RDF publication status, or ontology mapping
+history. These concepts are target requirements for the future backend and
+semantic publication workflow.
+
 ## Why Provenance Matters
 
 Balinese gamelan knowledge may come from practitioners, elders, literature, observation, recordings, community memory, or institutional archives.
