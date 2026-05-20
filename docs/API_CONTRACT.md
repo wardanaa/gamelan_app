@@ -6,8 +6,8 @@ This document defines REST API standards.
 
 The current Flutter app performs real HTTP requests for authentication only.
 `ApiClient` builds JSON requests from the configured API base URL and
-`AuthRepository` calls backend login/logout endpoints. The base URL is read
-from:
+`AuthRepository` calls backend registration, login, logout, and `/me` profile
+endpoints. The base URL is read from:
 
 ```txt
 --dart-define=API_BASE_URL=https://your-api.example.com/api/v1
@@ -33,9 +33,11 @@ Existing mobile constants are:
 /admin/users
 ```
 
-Authentication expects the standard response envelope and a token at
-`data.access_token`. The app stores that token in secure device storage and
-sends it as a bearer token for authenticated API requests.
+Registration and login expect the standard response envelope and a token at
+`data.access_token`. The app validates new and restored tokens by calling
+`GET /me`, stores only the token in secure device storage, and sends it as a
+bearer token for authenticated API requests. If `/me` returns `401`, the mobile
+app clears the stored token and returns to the auth screen.
 
 The local MVP still uses `GamelanMvpStore` for contribution, review, and
 knowledge data instead of calling those API helpers. Only non-sensitive draft
@@ -97,6 +99,26 @@ POST /auth/login
 POST /auth/logout
 GET  /me
 ```
+
+Expected auth data:
+
+```json
+{
+  "access_token": "opaque-token",
+  "token_expires_at": "2026-05-20T12:00:00Z",
+  "user": {
+    "name": "Curator User",
+    "email": "curator@example.com",
+    "roles": ["curator"],
+    "permissions": ["review.contributions"]
+  }
+}
+```
+
+`GET /me` should return the authenticated user profile with the same `user`
+shape. Mobile role checks are only UX gates; Laravel policies must still enforce
+authorization on every protected endpoint and return `403` when the user is
+authenticated but not allowed.
 
 ### Knowledge Browsing
 

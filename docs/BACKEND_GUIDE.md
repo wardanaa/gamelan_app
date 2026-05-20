@@ -105,6 +105,13 @@ Examples:
 - expert can validate assigned expert review
 - admin can manage users and roles
 
+The Flutter app uses `/me` roles and permissions only to hide or show local
+workflows. Laravel policies must remain authoritative for protected endpoints,
+including contribution ownership, review decisions, admin operations, workflow
+status transitions, media visibility, and culturally sensitive data. Return
+`401` for unauthenticated requests and `403` for authenticated users who are not
+allowed to perform an action.
+
 ## Queue Jobs
 
 Use queue jobs for:

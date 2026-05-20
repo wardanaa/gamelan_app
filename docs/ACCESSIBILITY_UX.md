@@ -13,9 +13,12 @@ Implemented tabs are:
 - Review
 - Profile
 
-The app now gates the local shell behind a backend login screen. The Search,
-Contribute, and Review tabs provide working local workflows after sign-in.
-Admin screens remain scaffold-level placeholders.
+The app now gates the local shell behind backend authentication. Registration,
+login, `/me` profile loading, and logout are wired to the configured API. The
+Search and Contribute tabs provide working local workflows after sign-in. The
+Review tab shows the local review workflow only when the backend profile has a
+reviewer, curator, expert validator, or admin role. Admin screens remain
+scaffold-level placeholders.
 
 ## UX Principles
 
@@ -64,9 +67,9 @@ Authentication, user management, and audit logs are still placeholders.
 | Contribution Form | Save local draft or submit for local review |
 | Review Queue | Curator-style local review list |
 | Review Detail | Review contribution, source note, sensitivity, and decision actions |
-| Profile | Demo role, privacy boundary, and ontology boundary |
+| Profile | Backend profile label, backend roles, privacy boundary, and ontology boundary |
 | Settings | Language, accessibility, account |
-| Login | Backend email/password sign-in with clear validation and error messaging |
+| Login | Backend sign-in and registration with clear validation and error messaging |
 
 ## Contribution UX
 

@@ -72,6 +72,7 @@ void main() {
   testWidgets('successful login stores token and opens app shell', (
     WidgetTester tester,
   ) async {
+    var profileCalled = false;
     final backend = await pumpMvpApp(
       tester,
       authenticated: false,
@@ -85,6 +86,15 @@ void main() {
               'user': {'name': 'Curator User', 'email': 'curator@example.com'},
             },
           });
+        }
+        if (request.url.path.endsWith('/me')) {
+          profileCalled = true;
+          expect(request.headers['authorization'], 'Bearer new-access-token');
+          return profileResponse(
+            name: 'Curator Profile',
+            email: 'curator@example.com',
+            roles: ['curator'],
+          );
         }
         return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
       }),
@@ -103,6 +113,68 @@ void main() {
     expect(
       await TokenStorage(backend: backend).readToken(),
       'new-access-token',
+    );
+    expect(profileCalled, isTrue);
+    expect(find.text('Gamelan Knowledge MVP'), findsOneWidget);
+    expect(find.text('Curator Profile'), findsNothing);
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Curator Profile'), findsOneWidget);
+    expect(find.text('curator'), findsOneWidget);
+  });
+
+  testWidgets('successful registration stores token after profile loading', (
+    WidgetTester tester,
+  ) async {
+    var registerCalled = false;
+    var profileCalled = false;
+    final backend = await pumpMvpApp(
+      tester,
+      authenticated: false,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/auth/register')) {
+          registerCalled = true;
+          final body = jsonDecode(request.body) as Map<String, Object?>;
+          expect(body['name'], 'New Contributor');
+          expect(body['email'], 'new@example.com');
+          return jsonResponse({
+            'success': true,
+            'message': 'Registered.',
+            'data': {'access_token': 'registered-access-token'},
+          });
+        }
+        if (request.url.path.endsWith('/me')) {
+          profileCalled = true;
+          expect(
+            request.headers['authorization'],
+            'Bearer registered-access-token',
+          );
+          return profileResponse(
+            name: 'New Contributor',
+            email: 'new@example.com',
+            roles: ['contributor'],
+          );
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
+
+    await tester.tap(find.text('Need an account? Create one'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText).at(0), 'New Contributor');
+    await tester.enterText(find.byType(EditableText).at(1), 'new@example.com');
+    await tester.enterText(find.byType(EditableText).at(2), 'secret-password');
+    await tester.enterText(find.byType(EditableText).at(3), 'secret-password');
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await tester.pumpAndSettle();
+
+    expect(registerCalled, isTrue);
+    expect(profileCalled, isTrue);
+    expect(
+      await TokenStorage(backend: backend).readToken(),
+      'registered-access-token',
     );
     expect(find.text('Gamelan Knowledge MVP'), findsOneWidget);
   });
@@ -140,6 +212,9 @@ void main() {
     final backend = await pumpMvpApp(
       tester,
       httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/me')) {
+          return profileResponse(roles: ['curator']);
+        }
         if (request.url.path.endsWith('/auth/logout')) {
           logoutCalled = true;
           expect(request.headers['authorization'], 'Bearer saved-test-token');
@@ -162,10 +237,79 @@ void main() {
   testWidgets('stored token skips login on startup', (
     WidgetTester tester,
   ) async {
-    await pumpMvpApp(tester);
+    var profileCalled = false;
+    await pumpMvpApp(
+      tester,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/me')) {
+          profileCalled = true;
+          expect(request.headers['authorization'], 'Bearer saved-test-token');
+          return profileResponse(
+            name: 'Saved Curator',
+            email: 'saved@example.com',
+            roles: ['curator'],
+          );
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
 
+    expect(profileCalled, isTrue);
     expect(find.widgetWithText(FilledButton, 'Sign in'), findsNothing);
     expect(find.text('Gamelan Knowledge MVP'), findsOneWidget);
+  });
+
+  testWidgets(
+    'expired stored token is cleared when profile loading returns 401',
+    (WidgetTester tester) async {
+      final backend = await pumpMvpApp(
+        tester,
+        httpClient: MockClient((request) async {
+          if (request.url.path.endsWith('/me')) {
+            return jsonResponse({
+              'success': false,
+              'message': 'Unauthenticated.',
+            }, 401);
+          }
+          return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+        }),
+      );
+
+      expect(await TokenStorage(backend: backend).readToken(), isNull);
+      expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+    },
+  );
+
+  testWidgets('non-reviewer profile cannot access local review queue', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(
+      tester,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/me')) {
+          return profileResponse(roles: ['contributor']);
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
+
+    await tester.tap(find.text('Review'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review access is protected'), findsOneWidget);
+    expect(find.text('Review queue'), findsNothing);
+  });
+
+  testWidgets('curator profile can access local review queue', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(tester);
+
+    await tester.tap(find.text('Review'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review queue'), findsOneWidget);
+    expect(find.text('Review access is protected'), findsNothing);
   });
 
   testWidgets('renders the MVP app shell and seeded knowledge', (
@@ -401,7 +545,30 @@ class MemoryTokenStorageBackend implements TokenStorageBackend {
 
 MockClient successClient() {
   return MockClient((request) async {
+    if (request.url.path.endsWith('/me')) {
+      return profileResponse(roles: ['curator']);
+    }
     return jsonResponse({'success': true, 'message': 'OK.', 'data': {}});
+  });
+}
+
+http.Response profileResponse({
+  String name = 'Curator User',
+  String email = 'curator@example.com',
+  List<String> roles = const ['curator'],
+  List<String> permissions = const [],
+}) {
+  return jsonResponse({
+    'success': true,
+    'message': 'Profile loaded.',
+    'data': {
+      'user': {
+        'name': name,
+        'email': email,
+        'roles': roles,
+        'permissions': permissions,
+      },
+    },
   });
 }
 

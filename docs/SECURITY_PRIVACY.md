@@ -10,8 +10,13 @@ The current Flutter MVP uses local state with limited draft persistence:
 - `ContributionDraftStorage` uses `shared_preferences` to persist only
   non-sensitive local drafts.
 - `TokenStorage` uses `flutter_secure_storage` for access-token persistence.
-- `AuthRepository` performs backend login and logout requests. The app gates the
-  local MVP shell behind a saved or newly issued access token.
+- `AuthRepository` performs backend registration, login, logout, and `/me`
+  profile requests. The app gates the local MVP shell behind a saved or newly
+  issued access token that can load an authenticated backend profile.
+- Saved tokens are cleared when `/me` returns unauthenticated.
+- The local Review workflow is hidden unless the backend profile includes a
+  reviewer, curator, expert validator, or admin role, or a
+  `review.contributions` permission.
 - The contribution form requires a consent checkbox before saving or submitting.
 - Contributions can be marked culturally sensitive.
 - Culturally sensitive drafts are kept in memory only and are not written to
@@ -21,10 +26,10 @@ The current Flutter MVP uses local state with limited draft persistence:
 - Approved local contributions appear in Search as community approved demo
   content only.
 
-The app does not yet implement registration, role-aware backend authorization in
-feature screens, media access control, SPARQL restrictions, or AI prompt logging
-controls. Backend authorization must remain authoritative for all protected
-actions and data.
+The app does not yet implement backend persistence for contribution/review data,
+media access control, SPARQL restrictions, or AI prompt logging controls. Mobile
+role checks are convenience-only UX gates. Backend authorization must remain
+authoritative for all protected actions and data.
 
 The requirements below apply as target security and privacy rules when those
 capabilities are implemented.
@@ -52,7 +57,9 @@ Recommended:
 - logout token revocation
 
 The current mobile app stores access tokens in secure device storage and clears
-them on logout. Login requires a backend token response at `data.access_token`.
+them on logout or when `/me` reports an unauthenticated session. Registration
+and login require a backend token response at `data.access_token`, followed by a
+successful `/me` profile load before entering the app shell.
 
 The current MVP profile labels and local UI gating are convenience only. They do
 not enforce authorization.

@@ -22,11 +22,14 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
+  AuthFormMode _mode = AuthFormMode.signIn;
 
   @override
   Widget build(BuildContext context) {
+    final isRegistering = _mode == AuthFormMode.register;
+
     return Scaffold(
-      appBar: const _AuthAppBar(title: 'Sign in'),
+      appBar: _AuthAppBar(title: isRegistering ? 'Create account' : 'Sign in'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -41,14 +44,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Sign in with a backend account. The app stores only the access token in secure device storage; backend policies decide what this account can access.',
+                  Text(
+                    isRegistering
+                        ? 'Create a backend account. The app stores only the access token in secure device storage after the backend confirms the profile.'
+                        : 'Sign in with a backend account. The app stores only the access token in secure device storage; backend policies decide what this account can access.',
                   ),
                   const SizedBox(height: 24),
                   AuthForm(
+                    mode: _mode,
                     isLoading: _isLoading,
                     errorMessage: _errorMessage,
-                    onSubmit: _signIn,
+                    onSubmit: _submitAuth,
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _isLoading ? null : _toggleMode,
+                    child: Text(
+                      isRegistering
+                          ? 'Already have an account? Sign in'
+                          : 'Need an account? Create one',
+                    ),
                   ),
                 ],
               ),
@@ -59,19 +74,27 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> _signIn({
+  Future<void> _submitAuth({
     required String email,
     required String password,
+    String? name,
   }) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    final result = await widget.authRepository.signIn(
-      email: email,
-      password: password,
-    );
+    final result = switch (_mode) {
+      AuthFormMode.signIn => await widget.authRepository.signIn(
+        email: email,
+        password: password,
+      ),
+      AuthFormMode.register => await widget.authRepository.register(
+        name: name ?? '',
+        email: email,
+        password: password,
+      ),
+    };
     if (!mounted) {
       return;
     }
@@ -85,6 +108,16 @@ class _LoginScreenState extends State<LoginScreen> {
           _errorMessage = message;
         });
     }
+  }
+
+  void _toggleMode() {
+    setState(() {
+      _mode = switch (_mode) {
+        AuthFormMode.signIn => AuthFormMode.register,
+        AuthFormMode.register => AuthFormMode.signIn,
+      };
+      _errorMessage = null;
+    });
   }
 }
 

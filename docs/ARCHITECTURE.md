@@ -39,10 +39,14 @@ Current implementation:
 - Material 3 app shell in `lib/app.dart`.
 - `GamelanApp` restores secure authentication state before showing
   `GamelanHomeShell`, with Home, Search, Contribute, Review, and Profile tabs.
+  Restore validates the saved token through `/me`.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
 - API helper classes exist under `lib/core/api`; authentication uses real JSON
-  login/logout requests.
+  registration, login, logout, and `/me` profile requests.
 - Access tokens are stored through `flutter_secure_storage`.
+- The local Review workflow is UX-gated by backend profile roles or the
+  `review.contributions` permission. Backend policies remain the source of
+  truth for protected actions.
 - Local MVP state is held in `GamelanMvpStore` and exposed through
   `GamelanScope`.
 - Non-sensitive local drafts are persisted through `ContributionDraftStorage`
@@ -55,7 +59,7 @@ Current implementation:
 
 Target responsibilities:
 
-- Registration and account management UI
+- Account management UI
 - Knowledge browsing
 - Semantic search interface
 - Contribution forms

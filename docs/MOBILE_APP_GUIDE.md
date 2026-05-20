@@ -8,8 +8,8 @@ The current app is a local Flutter MVP:
 
 - `lib/main.dart` runs `GamelanApp`.
 - `lib/app.dart` configures a Material 3 `MaterialApp`, restores the saved
-  authentication token from secure storage, and gates the bottom-navigation
-  shell behind `LoginScreen`.
+  authentication token from secure storage, loads `/me`, and gates the
+  bottom-navigation shell behind `LoginScreen`.
 - Authenticated sessions open `GamelanHomeShell` with Home, Search, Contribute,
   Review, and Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
@@ -22,14 +22,19 @@ The current app is a local Flutter MVP:
   data and non-sensitive draft persistence.
 - Review queue, detail, and decision screens are implemented for local curator
   simulation.
-- `AuthRepository` performs real JSON login/logout requests against the
-  configured Laravel API base URL.
+- `AuthRepository` performs real JSON registration, login, logout, and `/me`
+  profile requests against the configured Laravel API base URL.
 - `TokenStorage` stores the access token through `flutter_secure_storage`.
+- Expired or invalid saved tokens are cleared when `/me` returns
+  unauthenticated.
+- The local Review tab is hidden behind backend profile roles for reviewer,
+  curator, expert validator, or admin users. This is only UX gating; backend
+  policies remain authoritative.
 - `ContributionRepository` and `ReviewRepository` remain placeholders and do
   not perform real network requests.
 - Culturally sensitive drafts, submitted items, review decisions, and approved
   demo knowledge remain session-only.
-- Admin screens and registration remain scaffold-level placeholders.
+- Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
 in `lib/`.
@@ -161,9 +166,9 @@ Current MVP limits:
 
 ## API Error Handling
 
-Current authentication uses real HTTP requests for login and logout. Other
-repositories do not make real HTTP requests yet. API-backed mobile code must
-handle:
+Current authentication uses real HTTP requests for registration, login, logout,
+and `/me` profile loading. Other repositories do not make real HTTP requests
+yet. API-backed mobile code must handle:
 
 - 401 unauthenticated
 - 403 unauthorized
@@ -203,6 +208,9 @@ The target search interface should support:
 
 Current review screens support a local curator simulation:
 
+- the Review tab only shows the local queue when the `/me` profile includes a
+  reviewer, curator, expert validator, or admin role, or a
+  `review.contributions` permission
 - submitted and under-review contributions appear in the review queue
 - reviewer can mark an item under review
 - reviewer can approve, request changes, or reject with a note

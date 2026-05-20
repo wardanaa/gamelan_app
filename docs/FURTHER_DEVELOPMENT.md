@@ -14,20 +14,25 @@ The current app is a local Flutter MVP. It demonstrates:
 - local curator-style review decisions
 - approved local contributions appearing in Search as community approved demo
   content
-- backend login/logout client wiring
+- backend login/logout/registration client wiring
+- `/me` profile loading for new and restored sessions
+- expired or invalid saved-token handling when `/me` returns unauthenticated
+- mobile UX gating for the local Review workflow based on backend profile roles
 - secure device storage for the access token
 
 The current app does not include backend persistence for contribution/review
-data, registration, encrypted sensitive draft storage, media upload, RDF/OWL
-generation, SPARQL-backed search, expert validation, or AI triage.
+data, encrypted sensitive draft storage, media upload, RDF/OWL generation,
+SPARQL-backed search, expert validation, or AI triage.
 
 ## Recommended Next Steps
 
-1. Complete authentication hardening.
-   Mobile login/logout and secure access-token storage are implemented. Next,
-   add registration, `/me` profile loading, token expiry handling, and backend
-   role/policy checks for protected workflows. Keep backend authorization as the
-   source of truth.
+1. Continue backend authorization integration.
+   Mobile login/logout/registration, secure access-token storage, `/me` profile
+   loading, invalid-token clearing, and role-aware Review UX gating are
+   implemented. Next, enforce the matching Laravel policies on the backend for
+   contribution ownership, review actions, admin operations, workflow status,
+   and culturally sensitive data. Keep backend authorization as the source of
+   truth.
 
 2. Replace the in-memory store with repository-backed state.
    Keep the current UI flow, but move data access behind repositories that can

@@ -149,7 +149,9 @@ class _GamelanHomeShellState extends State<GamelanHomeShell> {
       const _HomeTab(),
       const EntityListScreen(),
       const ContributionListScreen(),
-      const ReviewQueueScreen(),
+      widget.authSession.canAccessReviewWorkflow
+          ? const ReviewQueueScreen()
+          : const _ProtectedReviewTab(),
       _ProfileTab(authSession: widget.authSession, onSignOut: widget.onSignOut),
     ];
 
@@ -165,6 +167,50 @@ class _GamelanHomeShellState extends State<GamelanHomeShell> {
         },
       ),
     );
+  }
+}
+
+class _ProtectedReviewTab extends StatelessWidget {
+  const _ProtectedReviewTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      appBar: _ReviewAccessAppBar(),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lock_outline, size: 40),
+              SizedBox(height: 16),
+              Text(
+                'Review access is protected',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Your backend profile does not include a reviewer, curator, expert validator, or admin role. The mobile app hides this local workflow for clarity, but backend policies remain the source of truth for every protected action.',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewAccessAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  const _ReviewAccessAppBar();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(title: const Text('Review'));
   }
 }
 
@@ -259,6 +305,11 @@ class _ProfileTabState extends State<_ProfileTab> {
             subtitle: const Text(
               'Signed in through the backend API. Role labels are not trusted for authorization on the device.',
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title: const Text('Backend roles'),
+            subtitle: Text(widget.authSession.roleLabel),
           ),
           const Divider(),
           const ListTile(

@@ -24,6 +24,9 @@ The project should be evaluated across:
 
 Current implemented scenario:
 
+- user registration, login, `/me` profile loading, logout, and expired-token
+  clearing
+- reviewer role gating for the local Review workflow
 - app shell renders the Material 3 bottom navigation
 - Search shows seeded Gong Kebyar and Gong Gede knowledge
 - contribution form validates title, description, source note, and consent
@@ -33,8 +36,6 @@ Current implemented scenario:
 
 Target scenarios:
 
-- user registration
-- login/logout
 - browse knowledge items
 - semantic search
 - create draft
