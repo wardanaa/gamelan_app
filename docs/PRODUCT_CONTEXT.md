@@ -30,6 +30,7 @@ The current repository is a local Flutter MVP for this product. It implements a
 Material 3 mobile shell with local workflows for the main product areas:
 
 - Home, Search, Contribute, Review, and Profile tabs
+- backend login/logout wiring with secure access-token storage
 - seeded knowledge browsing for Gong Kebyar and Gong Gede
 - keyword search over local knowledge records and relation labels
 - contribution listing, details, form, and status
@@ -38,10 +39,11 @@ Material 3 mobile shell with local workflows for the main product areas:
 - approved local contributions appearing in Search as community approved demo
   content
 
-The current app does not yet provide real registration/login, backend
-communication, role authorization, semantic SPARQL search, media upload,
-full offline sync, encrypted sensitive draft storage, RDF generation, SPARQL
-querying, expert validation, or AI triage. Those remain target capabilities.
+The current app does not yet provide registration, backend persistence for
+contribution/review/knowledge workflows, role authorization in feature screens,
+semantic SPARQL search, media upload, full offline sync, encrypted sensitive
+draft storage, RDF generation, SPARQL querying, expert validation, or AI
+triage. Those remain target capabilities.
 
 ## Goals
 

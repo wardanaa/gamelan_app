@@ -13,8 +13,9 @@ Implemented tabs are:
 - Review
 - Profile
 
-The Search, Contribute, and Review tabs now provide working local workflows.
-Authentication and admin screens remain scaffold-level placeholders.
+The app now gates the local shell behind a backend login screen. The Search,
+Contribute, and Review tabs provide working local workflows after sign-in.
+Admin screens remain scaffold-level placeholders.
 
 ## UX Principles
 
@@ -65,6 +66,7 @@ Authentication, user management, and audit logs are still placeholders.
 | Review Detail | Review contribution, source note, sensitivity, and decision actions |
 | Profile | Demo role, privacy boundary, and ontology boundary |
 | Settings | Language, accessibility, account |
+| Login | Backend email/password sign-in with clear validation and error messaging |
 
 ## Contribution UX
 

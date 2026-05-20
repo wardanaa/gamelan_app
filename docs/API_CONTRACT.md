@@ -4,12 +4,28 @@ This document defines REST API standards.
 
 ## Current Implementation
 
-The current Flutter app has endpoint constants but does not perform real HTTP
-requests yet. Existing mobile constants are:
+The current Flutter app performs real HTTP requests for authentication only.
+`ApiClient` builds JSON requests from the configured API base URL and
+`AuthRepository` calls backend login/logout endpoints. The base URL is read
+from:
+
+```txt
+--dart-define=API_BASE_URL=https://your-api.example.com/api/v1
+```
+
+If no value is provided, local development defaults to:
+
+```txt
+http://127.0.0.1:8000/api/v1
+```
+
+Existing mobile constants are:
 
 ```txt
 /auth/login
 /auth/register
+/auth/logout
+/me
 /contributions
 /reviews
 /knowledge
@@ -17,11 +33,14 @@ requests yet. Existing mobile constants are:
 /admin/users
 ```
 
-`ApiClient.endpoint(path)` currently builds a `Uri` from a configured base URL
-and path. Repository methods call this helper but return placeholder results.
-The local MVP uses `GamelanMvpStore` for local data instead of calling these API
-helpers. Only non-sensitive draft contributions are persisted locally; API
-integration remains target architecture.
+Authentication expects the standard response envelope and a token at
+`data.access_token`. The app stores that token in secure device storage and
+sends it as a bearer token for authenticated API requests.
+
+The local MVP still uses `GamelanMvpStore` for contribution, review, and
+knowledge data instead of calling those API helpers. Only non-sensitive draft
+contributions are persisted locally; broader API integration remains target
+architecture.
 
 The contract below is the target REST API contract for the future backend.
 

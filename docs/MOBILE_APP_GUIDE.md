@@ -7,10 +7,11 @@ This document defines standards for the Flutter mobile application.
 The current app is a local Flutter MVP:
 
 - `lib/main.dart` runs `GamelanApp`.
-- `lib/app.dart` configures a Material 3 `MaterialApp` and bottom-navigation
-  shell.
-- The app opens `GamelanHomeShell` with Home, Search, Contribute, Review, and
-  Profile tabs.
+- `lib/app.dart` configures a Material 3 `MaterialApp`, restores the saved
+  authentication token from secure storage, and gates the bottom-navigation
+  shell behind `LoginScreen`.
+- Authenticated sessions open `GamelanHomeShell` with Home, Search, Contribute,
+  Review, and Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
 - `GamelanMvpStore` and `GamelanScope` provide local MVP state.
 - Non-sensitive contribution drafts are persisted locally with
@@ -21,12 +22,14 @@ The current app is a local Flutter MVP:
   data and non-sensitive draft persistence.
 - Review queue, detail, and decision screens are implemented for local curator
   simulation.
-- `ContributionRepository`, `ReviewRepository`, and `AuthRepository` remain
-  placeholders and do not perform real network requests.
-- `TokenStorage` stores a token in memory only and is not production-ready.
+- `AuthRepository` performs real JSON login/logout requests against the
+  configured Laravel API base URL.
+- `TokenStorage` stores the access token through `flutter_secure_storage`.
+- `ContributionRepository` and `ReviewRepository` remain placeholders and do
+  not perform real network requests.
 - Culturally sensitive drafts, submitted items, review decisions, and approved
   demo knowledge remain session-only.
-- Admin and authentication screens remain scaffold-level placeholders.
+- Admin screens and registration remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
 in `lib/`.
@@ -39,13 +42,14 @@ Current:
 - Dart
 - Material 3
 - Flutter test
+- `http` for current authentication API requests
+- `flutter_secure_storage` for access-token storage
 
 Target additions when needed:
 
 - Riverpod, Bloc, or Provider for state management
 - Dio or http for API requests
 - Hive, Isar, Drift, or SQLite for richer offline draft storage
-- Secure storage for authentication token
 - Encrypted storage for culturally sensitive drafts if product rules allow it
 
 Do not mix multiple state management systems without a clear reason.
@@ -157,8 +161,9 @@ Current MVP limits:
 
 ## API Error Handling
 
-Current repositories do not make real HTTP requests. Once API calls are
-implemented, the mobile app must handle:
+Current authentication uses real HTTP requests for login and logout. Other
+repositories do not make real HTTP requests yet. API-backed mobile code must
+handle:
 
 - 401 unauthenticated
 - 403 unauthorized

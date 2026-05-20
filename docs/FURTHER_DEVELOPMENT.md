@@ -14,16 +14,20 @@ The current app is a local Flutter MVP. It demonstrates:
 - local curator-style review decisions
 - approved local contributions appearing in Search as community approved demo
   content
+- backend login/logout client wiring
+- secure device storage for the access token
 
-The current app does not include backend persistence, secure authentication,
-encrypted sensitive draft storage, media upload, RDF/OWL generation,
-SPARQL-backed search, expert validation, or AI triage.
+The current app does not include backend persistence for contribution/review
+data, registration, encrypted sensitive draft storage, media upload, RDF/OWL
+generation, SPARQL-backed search, expert validation, or AI triage.
 
 ## Recommended Next Steps
 
-1. Add real authentication and secure storage.
-   Replace the in-memory token scaffold with secure device storage before using
-   real access tokens. Keep backend authorization as the source of truth.
+1. Complete authentication hardening.
+   Mobile login/logout and secure access-token storage are implemented. Next,
+   add registration, `/me` profile loading, token expiry handling, and backend
+   role/policy checks for protected workflows. Keep backend authorization as the
+   source of truth.
 
 2. Replace the in-memory store with repository-backed state.
    Keep the current UI flow, but move data access behind repositories that can

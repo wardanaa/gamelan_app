@@ -37,10 +37,12 @@ Current implementation:
 
 - Flutter app entrypoint in `lib/main.dart`.
 - Material 3 app shell in `lib/app.dart`.
-- Home screen is `GamelanHomeShell`, with Home, Search, Contribute, Review, and
-  Profile tabs.
+- `GamelanApp` restores secure authentication state before showing
+  `GamelanHomeShell`, with Home, Search, Contribute, Review, and Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
-- API helper classes exist under `lib/core/api`.
+- API helper classes exist under `lib/core/api`; authentication uses real JSON
+  login/logout requests.
+- Access tokens are stored through `flutter_secure_storage`.
 - Local MVP state is held in `GamelanMvpStore` and exposed through
   `GamelanScope`.
 - Non-sensitive local drafts are persisted through `ContributionDraftStorage`
@@ -48,11 +50,12 @@ Current implementation:
 - Seeded knowledge records and approved local contributions appear in Search.
 - Draft, submitted, under-review, approved, and rejected contribution states are
   simulated locally. Only non-sensitive drafts persist across app restart.
-- Repositories are placeholders and do not perform real network requests yet.
+- Contribution and review repositories are placeholders and do not perform real
+  network requests yet.
 
 Target responsibilities:
 
-- Authentication UI
+- Registration and account management UI
 - Knowledge browsing
 - Semantic search interface
 - Contribution forms
@@ -65,7 +68,8 @@ The mobile app must not contain authoritative business rules. It may mirror vali
 
 ### Current Local MVP Flow
 
-The current mobile MVP runs this local flow only:
+After backend sign-in, the current mobile MVP runs this local contribution and
+review flow:
 
 ```txt
 Seeded Gong Kebyar/Gong Gede knowledge

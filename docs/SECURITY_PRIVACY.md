@@ -9,7 +9,9 @@ The current Flutter MVP uses local state with limited draft persistence:
 - `GamelanMvpStore` holds seeded knowledge and local contributions.
 - `ContributionDraftStorage` uses `shared_preferences` to persist only
   non-sensitive local drafts.
-- `TokenStorage` remains an in-memory placeholder.
+- `TokenStorage` uses `flutter_secure_storage` for access-token persistence.
+- `AuthRepository` performs backend login and logout requests. The app gates the
+  local MVP shell behind a saved or newly issued access token.
 - The contribution form requires a consent checkbox before saving or submitting.
 - Contributions can be marked culturally sensitive.
 - Culturally sensitive drafts are kept in memory only and are not written to
@@ -19,9 +21,10 @@ The current Flutter MVP uses local state with limited draft persistence:
 - Approved local contributions appear in Search as community approved demo
   content only.
 
-The app does not yet implement real login, secure token storage, backend
-authorization, media access control, SPARQL restrictions, or AI prompt logging
-controls.
+The app does not yet implement registration, role-aware backend authorization in
+feature screens, media access control, SPARQL restrictions, or AI prompt logging
+controls. Backend authorization must remain authoritative for all protected
+actions and data.
 
 The requirements below apply as target security and privacy rules when those
 capabilities are implemented.
@@ -48,11 +51,11 @@ Recommended:
 - secure storage on device
 - logout token revocation
 
-The current in-memory token storage must be replaced before real authentication
-or production builds use access tokens.
+The current mobile app stores access tokens in secure device storage and clears
+them on logout. Login requires a backend token response at `data.access_token`.
 
-The current MVP profile and role labels are demo-only. They do not enforce
-authorization.
+The current MVP profile labels and local UI gating are convenience only. They do
+not enforce authorization.
 
 ## Authorization
 

@@ -6,7 +6,7 @@ This repository contains a mobile-based knowledge management application for Bal
 
 This repository currently contains a local Flutter MVP at the repository root.
 The app uses Material 3 and starts on a bottom-navigation shell with these
-implemented tabs:
+implemented tabs after backend sign-in:
 
 - Home
 - Search
@@ -26,18 +26,20 @@ Implemented local MVP behavior includes:
 - Local draft and submitted contribution states
 - Local persistence for non-sensitive contribution drafts through
   `shared_preferences`
+- Backend login/logout client wiring through the configured Laravel API base URL
+- Secure access-token persistence through `flutter_secure_storage`
 - Curator-style local review queue with mark-under-review, approve, request
   changes, and reject actions
 - Approved local contributions appear in Search as community approved demo
   content
 - Lightweight API endpoint constants and API client helpers
 - Placeholder contribution and review repositories that do not make HTTP calls
-- In-memory token storage for development scaffolding only
 
 Non-sensitive local drafts can survive app restart on the same device.
-Culturally sensitive drafts, submitted contributions, review decisions, and
-approved demo knowledge remain session-only. Approved local content is demo
-knowledge, not RDF publication.
+Culturally sensitive drafts, submitted contributions, review decisions,
+approved demo knowledge, and backend-protected workflow data remain outside
+local persistence. Approved local content is demo knowledge, not RDF
+publication. Backend authorization remains the source of truth.
 
 ## Target Capability
 
@@ -58,6 +60,7 @@ MVP yet.
 ## Run And Test
 
 ```sh
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000/api/v1
 flutter run
 flutter analyze
 flutter test
@@ -66,6 +69,10 @@ flutter test
 The current widget tests cover:
 
 - app shell and bottom navigation rendering
+- secure token storage abstraction
+- successful and failed login
+- startup with a saved token
+- logout token clearing
 - seeded Gong Kebyar and Gong Gede knowledge visibility
 - contribution form validation and submission
 - review queue visibility
@@ -73,8 +80,8 @@ The current widget tests cover:
 
 ## Development Roadmap
 
-See `docs/FURTHER_DEVELOPMENT.md` for suggested next steps, including draft
-persistence, real authentication, Laravel API integration, media handling,
+See `docs/FURTHER_DEVELOPMENT.md` for suggested next steps, including
+authentication hardening, Laravel API integration, media handling,
 provenance/versioning, ontology mapping, RDF publication, SPARQL-backed search,
 and safe AI triage.
 

@@ -1,22 +1,44 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gamelan_app/core/api/api_client.dart';
+import 'package:gamelan_app/core/storage/token_storage.dart';
 import 'package:gamelan_app/app.dart';
+import 'package:gamelan_app/features/auth/data/auth_repository.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  Future<void> pumpMvpApp(
+  Future<MemoryTokenStorageBackend> pumpMvpApp(
     WidgetTester tester, {
     bool resetPreferences = true,
+    bool authenticated = true,
+    http.Client? httpClient,
   }) async {
     if (resetPreferences) {
       SharedPreferences.setMockInitialValues({});
     }
+    final tokenBackend = MemoryTokenStorageBackend();
+    final tokenStorage = TokenStorage(backend: tokenBackend);
+    if (authenticated) {
+      await tokenStorage.saveToken('saved-test-token');
+    }
+    final authRepository = AuthRepository(
+      apiClient: ApiClient(
+        baseUrl: 'http://localhost/api/v1',
+        httpClient: httpClient ?? successClient(),
+      ),
+      tokenStorage: tokenStorage,
+    );
     tester.view.physicalSize = const Size(1000, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const GamelanApp());
-    await tester.pump();
+    await tester.pumpWidget(GamelanApp(authRepository: authRepository));
+    await tester.pumpAndSettle();
+    return tokenBackend;
   }
 
   Future<void> fillRequiredContributionFields(
@@ -35,6 +57,116 @@ void main() {
     await tester.tap(find.text('Contributor consent confirmed'));
     await tester.pumpAndSettle();
   }
+
+  test('token storage saves, reads, and clears through its backend', () async {
+    final backend = MemoryTokenStorageBackend();
+    final storage = TokenStorage(backend: backend);
+
+    await storage.saveToken('secure-test-token');
+    expect(await storage.readToken(), 'secure-test-token');
+
+    await storage.clearToken();
+    expect(await storage.readToken(), isNull);
+  });
+
+  testWidgets('successful login stores token and opens app shell', (
+    WidgetTester tester,
+  ) async {
+    final backend = await pumpMvpApp(
+      tester,
+      authenticated: false,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/auth/login')) {
+          return jsonResponse({
+            'success': true,
+            'message': 'Logged in.',
+            'data': {
+              'access_token': 'new-access-token',
+              'user': {'name': 'Curator User', 'email': 'curator@example.com'},
+            },
+          });
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
+
+    expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(EditableText).at(0),
+      'curator@example.com',
+    );
+    await tester.enterText(find.byType(EditableText).at(1), 'secret-password');
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(
+      await TokenStorage(backend: backend).readToken(),
+      'new-access-token',
+    );
+    expect(find.text('Gamelan Knowledge MVP'), findsOneWidget);
+  });
+
+  testWidgets('failed login does not store token', (WidgetTester tester) async {
+    final backend = await pumpMvpApp(
+      tester,
+      authenticated: false,
+      httpClient: MockClient((request) async {
+        return jsonResponse({
+          'success': false,
+          'message': 'Invalid credentials.',
+          'errors': {},
+        }, 401);
+      }),
+    );
+
+    await tester.enterText(
+      find.byType(EditableText).at(0),
+      'curator@example.com',
+    );
+    await tester.enterText(find.byType(EditableText).at(1), 'wrong-password');
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(await TokenStorage(backend: backend).readToken(), isNull);
+    expect(find.text('The email or password is incorrect.'), findsOneWidget);
+    expect(find.text('Gamelan Knowledge MVP'), findsNothing);
+  });
+
+  testWidgets('logout clears stored token and returns to login', (
+    WidgetTester tester,
+  ) async {
+    var logoutCalled = false;
+    final backend = await pumpMvpApp(
+      tester,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/auth/logout')) {
+          logoutCalled = true;
+          expect(request.headers['authorization'], 'Bearer saved-test-token');
+          return jsonResponse({'success': true, 'message': 'Logged out.'});
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign out'));
+    await tester.pumpAndSettle();
+
+    expect(logoutCalled, isTrue);
+    expect(await TokenStorage(backend: backend).readToken(), isNull);
+    expect(find.widgetWithText(FilledButton, 'Sign in'), findsOneWidget);
+  });
+
+  testWidgets('stored token skips login on startup', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(tester);
+
+    expect(find.widgetWithText(FilledButton, 'Sign in'), findsNothing);
+    expect(find.text('Gamelan Knowledge MVP'), findsOneWidget);
+  });
 
   testWidgets('renders the MVP app shell and seeded knowledge', (
     WidgetTester tester,
@@ -243,4 +375,40 @@ void main() {
     expect(find.text('Kempli pulse'), findsOneWidget);
     expect(find.byIcon(Icons.verified_outlined), findsWidgets);
   });
+}
+
+class MemoryTokenStorageBackend implements TokenStorageBackend {
+  MemoryTokenStorageBackend([Map<String, String>? initialValues])
+    : _values = {...?initialValues};
+
+  final Map<String, String> _values;
+
+  @override
+  Future<void> write({required String key, required String value}) async {
+    _values[key] = value;
+  }
+
+  @override
+  Future<String?> read({required String key}) async {
+    return _values[key];
+  }
+
+  @override
+  Future<void> delete({required String key}) async {
+    _values.remove(key);
+  }
+}
+
+MockClient successClient() {
+  return MockClient((request) async {
+    return jsonResponse({'success': true, 'message': 'OK.', 'data': {}});
+  });
+}
+
+http.Response jsonResponse(Map<String, Object?> body, [int statusCode = 200]) {
+  return http.Response(
+    jsonEncode(body),
+    statusCode,
+    headers: {'content-type': 'application/json'},
+  );
 }

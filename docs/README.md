@@ -5,8 +5,9 @@ This folder contains documentation for the mobile-based Balinese gamelan knowled
 ## Current Implementation Status
 
 The repository currently contains a local Flutter MVP at the project root. The
-implemented mobile app has a Material 3 bottom-navigation shell with Home,
-Search, Contribute, Review, and Profile tabs.
+implemented mobile app has backend login/logout wiring, secure access-token
+storage, and a Material 3 bottom-navigation shell with Home, Search,
+Contribute, Review, and Profile tabs after sign-in.
 
 Implemented local MVP behavior includes:
 
@@ -15,14 +16,17 @@ Implemented local MVP behavior includes:
 - a local contribution form with consent and cultural sensitivity fields
 - local draft, submitted, under review, approved, and rejected statuses
 - local persistence for non-sensitive contribution drafts
+- backend email/password login and logout requests
+- secure device storage for the backend access token
 - a curator-style local review queue
 - approval flow that exposes approved local contributions in Search as
   community approved demo content
 
 This MVP uses `GamelanMvpStore` and `GamelanScope` for local state.
 Non-sensitive draft contributions are persisted with `shared_preferences` so
-they can survive app restart on the same device. Sensitive drafts, submitted
-items, review decisions, and approved demo content remain in memory only.
+they can survive app restart on the same device. Access tokens are stored
+separately with `flutter_secure_storage`. Sensitive drafts, submitted items,
+review decisions, and approved demo content remain in memory only.
 
 The Laravel backend, relational database, RDF/OWL ontology files, Fuseki/SPARQL
 integration, media storage, full offline sync, encrypted sensitive draft
@@ -81,8 +85,8 @@ Current implemented stack:
 | Mobile | Flutter / Dart local MVP at repository root |
 | State Management | Local `ChangeNotifier` store through `GamelanMvpStore` and `GamelanScope` |
 | Local Draft Storage | `shared_preferences` for non-sensitive drafts only |
-| API Client | Lightweight helper classes; no real HTTP dependency yet |
-| Token Storage | In-memory development placeholder |
+| API Client | `http` JSON client used for authentication; other repositories remain local/placeholders |
+| Token Storage | `flutter_secure_storage` for access tokens |
 | Backend | Not present in this repository |
 | Ontology/SPARQL | Not present in this repository |
 

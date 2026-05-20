@@ -2,15 +2,24 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'core/api/api_client.dart';
 import 'core/state/gamelan_mvp_store.dart';
 import 'core/state/gamelan_scope.dart';
+import 'core/storage/token_storage.dart';
+import 'core/utils/result.dart';
+import 'features/auth/data/auth_repository.dart';
+import 'features/auth/data/auth_session.dart';
+import 'features/auth/screens/login_screen.dart';
 import 'features/contributions/data/contribution_model.dart';
 import 'features/contributions/screens/contribution_list_screen.dart';
 import 'features/knowledge/screens/entity_list_screen.dart';
 import 'features/review/screens/review_queue_screen.dart';
 
 class GamelanApp extends StatefulWidget {
-  const GamelanApp({super.key});
+  const GamelanApp({super.key, AuthRepository? authRepository})
+    : _authRepository = authRepository;
+
+  final AuthRepository? _authRepository;
 
   @override
   State<GamelanApp> createState() => _GamelanAppState();
@@ -18,11 +27,21 @@ class GamelanApp extends StatefulWidget {
 
 class _GamelanAppState extends State<GamelanApp> {
   late final GamelanMvpStore _store = GamelanMvpStore();
+  late final AuthRepository _authRepository =
+      widget._authRepository ??
+      AuthRepository(
+        apiClient: ApiClient.fromEnvironment(),
+        tokenStorage: const TokenStorage(),
+      );
+
+  AuthSession? _authSession;
+  bool _isRestoringSession = true;
 
   @override
   void initState() {
     super.initState();
     unawaited(_store.loadPersistedDrafts());
+    unawaited(_restoreAuthSession());
   }
 
   @override
@@ -35,14 +54,76 @@ class _GamelanAppState extends State<GamelanApp> {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
           useMaterial3: true,
         ),
-        home: const GamelanHomeShell(),
+        home: _buildHome(),
       ),
     );
+  }
+
+  Widget _buildHome() {
+    if (_isRestoringSession) {
+      return const _AuthLoadingScreen();
+    }
+
+    final authSession = _authSession;
+    if (authSession == null) {
+      return LoginScreen(
+        authRepository: _authRepository,
+        onSignedIn: (session) {
+          setState(() {
+            _authSession = session;
+          });
+        },
+      );
+    }
+
+    return GamelanHomeShell(authSession: authSession, onSignOut: _signOut);
+  }
+
+  Future<void> _restoreAuthSession() async {
+    final result = await _authRepository.restoreSession();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _authSession = switch (result) {
+        Success<AuthSession>(:final value) => value,
+        Failure<AuthSession>() => null,
+      };
+      _isRestoringSession = false;
+    });
+  }
+
+  Future<void> _signOut() async {
+    await _authRepository.signOut();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _authSession = null;
+    });
+  }
+}
+
+class _AuthLoadingScreen extends StatelessWidget {
+  const _AuthLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
 class GamelanHomeShell extends StatefulWidget {
-  const GamelanHomeShell({super.key});
+  const GamelanHomeShell({
+    super.key,
+    required this.authSession,
+    required this.onSignOut,
+  });
+
+  final AuthSession authSession;
+  final Future<void> Function() onSignOut;
 
   @override
   State<GamelanHomeShell> createState() => _GamelanHomeShellState();
@@ -69,7 +150,7 @@ class _GamelanHomeShellState extends State<GamelanHomeShell> {
       const EntityListScreen(),
       const ContributionListScreen(),
       const ReviewQueueScreen(),
-      const _ProfileTab(),
+      _ProfileTab(authSession: widget.authSession, onSignOut: widget.onSignOut),
     ];
 
     return Scaffold(
@@ -152,8 +233,18 @@ class _HomeTab extends StatelessWidget {
   }
 }
 
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
+class _ProfileTab extends StatefulWidget {
+  const _ProfileTab({required this.authSession, required this.onSignOut});
+
+  final AuthSession authSession;
+  final Future<void> Function() onSignOut;
+
+  @override
+  State<_ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<_ProfileTab> {
+  bool _isSigningOut = false;
 
   @override
   Widget build(BuildContext context) {
@@ -161,29 +252,55 @@ class _ProfileTab extends StatelessWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: const [
+        children: [
           ListTile(
-            leading: Icon(Icons.person_outline),
-            title: Text('Demo contributor'),
-            subtitle: Text('Local roles: Contributor and Curator'),
+            leading: const Icon(Icons.person_outline),
+            title: Text(widget.authSession.displayLabel),
+            subtitle: const Text(
+              'Signed in through the backend API. Role labels are not trusted for authorization on the device.',
+            ),
           ),
-          Divider(),
-          ListTile(
+          const Divider(),
+          const ListTile(
             leading: Icon(Icons.privacy_tip_outlined),
             title: Text('Privacy boundary'),
             subtitle: Text(
-              'Tokens, backend authorization, media controls, and secure storage are not implemented in this local MVP.',
+              'The access token is stored in secure device storage. Backend policies remain the source of truth for protected data and actions.',
             ),
           ),
-          ListTile(
+          const ListTile(
             leading: Icon(Icons.account_tree_outlined),
             title: Text('Ontology boundary'),
             subtitle: Text(
               'Approved local content is demo knowledge only and is not RDF publication.',
             ),
           ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: _isSigningOut ? null : _signOut,
+            icon: _isSigningOut
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.logout),
+            label: Text(_isSigningOut ? 'Signing out...' : 'Sign out'),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _signOut() async {
+    setState(() {
+      _isSigningOut = true;
+    });
+    await widget.onSignOut();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isSigningOut = false;
+    });
   }
 }

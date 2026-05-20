@@ -8,7 +8,9 @@ Full offline sync is not implemented yet. The current app can persist the
 contributor's own non-sensitive local drafts with `shared_preferences`, but it
 has no sync queue, no media upload queue, and no conflict resolution UI.
 Culturally sensitive drafts, submitted contributions, review decisions, and
-approved demo knowledge reset when the app restarts.
+approved demo knowledge reset when the app restarts. Authentication tokens are
+stored separately with secure device storage and are not part of the offline
+draft cache.
 
 This guide defines the target behavior for future offline work.
 
@@ -77,7 +79,7 @@ Do not cache sensitive data unless encrypted and required.
 
 Avoid caching:
 
-- access tokens in plain storage
+- access tokens in plain storage; use secure device storage only
 - culturally sensitive contribution drafts in plain storage
 - unpublished contributions from other users
 - expert notes
