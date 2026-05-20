@@ -43,9 +43,11 @@ Current implementation:
 - API helper classes exist under `lib/core/api`.
 - Local MVP state is held in `GamelanMvpStore` and exposed through
   `GamelanScope`.
+- Non-sensitive local drafts are persisted through `ContributionDraftStorage`
+  and `shared_preferences`.
 - Seeded knowledge records and approved local contributions appear in Search.
 - Draft, submitted, under-review, approved, and rejected contribution states are
-  simulated in memory.
+  simulated locally. Only non-sensitive drafts persist across app restart.
 - Repositories are placeholders and do not perform real network requests yet.
 
 Target responsibilities:
@@ -63,7 +65,7 @@ The mobile app must not contain authoritative business rules. It may mirror vali
 
 ### Current Local MVP Flow
 
-The current mobile MVP runs this in-memory flow only:
+The current mobile MVP runs this local flow only:
 
 ```txt
 Seeded Gong Kebyar/Gong Gede knowledge
@@ -71,6 +73,8 @@ Seeded Gong Kebyar/Gong Gede knowledge
 Local contribution form
     ↓
 Draft or submitted contribution in GamelanMvpStore
+    ↓
+Non-sensitive drafts may persist locally
     ↓
 Local curator review action
     ↓

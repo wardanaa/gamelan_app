@@ -24,6 +24,8 @@ Implemented local MVP behavior includes:
 - Contribution form with required title, description, source note, consent,
   knowledge type, gamelan type, contributor note, and cultural sensitivity flag
 - Local draft and submitted contribution states
+- Local persistence for non-sensitive contribution drafts through
+  `shared_preferences`
 - Curator-style local review queue with mark-under-review, approve, request
   changes, and reject actions
 - Approved local contributions appear in Search as community approved demo
@@ -32,8 +34,10 @@ Implemented local MVP behavior includes:
 - Placeholder contribution and review repositories that do not make HTTP calls
 - In-memory token storage for development scaffolding only
 
-The MVP data is in memory only. Local contributions reset when the app restarts.
-Approved local content is demo knowledge, not RDF publication.
+Non-sensitive local drafts can survive app restart on the same device.
+Culturally sensitive drafts, submitted contributions, review decisions, and
+approved demo knowledge remain session-only. Approved local content is demo
+knowledge, not RDF publication.
 
 ## Target Capability
 
@@ -47,8 +51,9 @@ The intended application supports:
 - SPARQL-based semantic search through Apache Jena Fuseki or compatible triplestore
 
 Laravel, relational database, RDF/OWL ontology files, SPARQL integration,
-offline sync, media upload, and AI triage are target architecture capabilities
-and are not implemented in this local Flutter MVP yet.
+offline sync, encrypted sensitive draft storage, media upload, and AI triage are
+target architecture capabilities and are not implemented in this local Flutter
+MVP yet.
 
 ## Run And Test
 

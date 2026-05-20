@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
+import '../../features/contributions/data/contribution_draft_storage.dart';
 import '../../features/contributions/data/contribution_model.dart';
 import '../../features/knowledge/data/knowledge_item.dart';
 
 class GamelanMvpStore extends ChangeNotifier {
-  GamelanMvpStore();
+  GamelanMvpStore({ContributionDraftStorage? draftStorage})
+    : _draftStorage = draftStorage ?? ContributionDraftStorage();
+
+  final ContributionDraftStorage _draftStorage;
 
   static const knowledgeTypes = <String>[
     'Instrument',
@@ -116,6 +122,20 @@ class GamelanMvpStore extends ChangeNotifier {
   List<ContributionModel> get contributions =>
       List.unmodifiable(_contributions);
 
+  Future<void> loadPersistedDrafts() async {
+    final drafts = await _draftStorage.loadDrafts();
+    if (drafts.isEmpty) {
+      return;
+    }
+
+    final draftIds = drafts.map((draft) => draft.id).toSet();
+    _contributions.removeWhere((contribution) {
+      return draftIds.contains(contribution.id);
+    });
+    _contributions.insertAll(0, drafts);
+    notifyListeners();
+  }
+
   List<ContributionModel> get reviewQueue {
     return _contributions
         .where(
@@ -166,7 +186,7 @@ class GamelanMvpStore extends ChangeNotifier {
         .toList(growable: false);
   }
 
-  ContributionModel createContribution({
+  Future<ContributionModel> createContribution({
     required String title,
     required String description,
     required String knowledgeType,
@@ -176,7 +196,7 @@ class GamelanMvpStore extends ChangeNotifier {
     required bool culturalSensitivity,
     required bool consentGiven,
     required bool submitForReview,
-  }) {
+  }) async {
     final contribution = ContributionModel(
       id: 'local-${DateTime.now().microsecondsSinceEpoch}',
       title: title.trim(),
@@ -194,6 +214,9 @@ class GamelanMvpStore extends ChangeNotifier {
     );
     _contributions.insert(0, contribution);
     notifyListeners();
+    if (contribution.status == ContributionStatus.draft) {
+      await _persistDrafts();
+    }
     return contribution;
   }
 
@@ -248,7 +271,17 @@ class GamelanMvpStore extends ChangeNotifier {
       status: status,
       reviewNote: reviewNote,
     );
+    unawaited(_persistDrafts());
     notifyListeners();
+  }
+
+  Future<void> _persistDrafts() async {
+    final drafts = _contributions
+        .where(
+          (contribution) => contribution.status == ContributionStatus.draft,
+        )
+        .toList(growable: false);
+    await _draftStorage.saveDrafts(drafts);
   }
 
   KnowledgeItem _knowledgeItemFromContribution(ContributionModel contribution) {

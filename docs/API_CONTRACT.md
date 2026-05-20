@@ -19,8 +19,9 @@ requests yet. Existing mobile constants are:
 
 `ApiClient.endpoint(path)` currently builds a `Uri` from a configured base URL
 and path. Repository methods call this helper but return placeholder results.
-The local MVP uses `GamelanMvpStore` for in-memory data instead of calling these
-API helpers.
+The local MVP uses `GamelanMvpStore` for local data instead of calling these API
+helpers. Only non-sensitive draft contributions are persisted locally; API
+integration remains target architecture.
 
 The contract below is the target REST API contract for the future backend.
 

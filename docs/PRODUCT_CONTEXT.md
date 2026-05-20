@@ -27,21 +27,21 @@ A normal database can store records, but it is weak at representing rich semanti
 ## Current Product State
 
 The current repository is a local Flutter MVP for this product. It implements a
-Material 3 mobile shell with local, in-memory workflows for the main product
-areas:
+Material 3 mobile shell with local workflows for the main product areas:
 
 - Home, Search, Contribute, Review, and Profile tabs
 - seeded knowledge browsing for Gong Kebyar and Gong Gede
 - keyword search over local knowledge records and relation labels
 - contribution listing, details, form, and status
+- non-sensitive local draft persistence
 - curator-style local review queue, details, and decisions
 - approved local contributions appearing in Search as community approved demo
   content
 
 The current app does not yet provide real registration/login, backend
 communication, role authorization, semantic SPARQL search, media upload,
-offline draft persistence, RDF generation, SPARQL querying, expert validation,
-or AI triage. Those remain target capabilities.
+full offline sync, encrypted sensitive draft storage, RDF generation, SPARQL
+querying, expert validation, or AI triage. Those remain target capabilities.
 
 ## Goals
 

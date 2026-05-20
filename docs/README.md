@@ -12,19 +12,22 @@ Implemented local MVP behavior includes:
 
 - seeded Gong Kebyar and Gong Gede knowledge browsing
 - keyword search over local knowledge records and relation labels
-- an in-memory contribution form with consent and cultural sensitivity fields
+- a local contribution form with consent and cultural sensitivity fields
 - local draft, submitted, under review, approved, and rejected statuses
+- local persistence for non-sensitive contribution drafts
 - a curator-style local review queue
 - approval flow that exposes approved local contributions in Search as
   community approved demo content
 
-This MVP uses `GamelanMvpStore` and `GamelanScope` for in-memory state. Data
-resets when the app restarts.
+This MVP uses `GamelanMvpStore` and `GamelanScope` for local state.
+Non-sensitive draft contributions are persisted with `shared_preferences` so
+they can survive app restart on the same device. Sensitive drafts, submitted
+items, review decisions, and approved demo content remain in memory only.
 
 The Laravel backend, relational database, RDF/OWL ontology files, Fuseki/SPARQL
-integration, media storage, offline sync persistence, and AI triage pipeline are
-documented as target architecture unless corresponding implementation appears in
-the repository.
+integration, media storage, full offline sync, encrypted sensitive draft
+storage, and AI triage pipeline are documented as target architecture unless
+corresponding implementation appears in the repository.
 
 ## Documentation Map
 
@@ -76,7 +79,8 @@ Current implemented stack:
 | Layer | Current State |
 |---|---|
 | Mobile | Flutter / Dart local MVP at repository root |
-| State Management | In-memory `ChangeNotifier` store through `GamelanMvpStore` and `GamelanScope` |
+| State Management | Local `ChangeNotifier` store through `GamelanMvpStore` and `GamelanScope` |
+| Local Draft Storage | `shared_preferences` for non-sensitive drafts only |
 | API Client | Lightweight helper classes; no real HTTP dependency yet |
 | Token Storage | In-memory development placeholder |
 | Backend | Not present in this repository |

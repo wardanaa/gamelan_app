@@ -172,7 +172,7 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
     return null;
   }
 
-  void _saveContribution({required bool submitForReview}) {
+  Future<void> _saveContribution({required bool submitForReview}) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -186,7 +186,7 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
     }
 
     final store = GamelanScope.of(context);
-    store.createContribution(
+    await store.createContribution(
       title: _titleController.text,
       description: _descriptionController.text,
       knowledgeType: _knowledgeType,
@@ -197,6 +197,18 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
       consentGiven: _consentGiven,
       submitForReview: submitForReview,
     );
+    if (!mounted) {
+      return;
+    }
+    if (!submitForReview && _culturalSensitivity) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sensitive drafts stay in this session only until encrypted storage rules are added.',
+          ),
+        ),
+      );
+    }
     Navigator.of(context).pop();
   }
 }

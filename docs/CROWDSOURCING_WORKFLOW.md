@@ -4,8 +4,10 @@ This document defines the contribution, review, curation, and validation workflo
 
 ## Current Implementation
 
-The Flutter app currently implements a local in-memory contribution and review
-simulation. It uses the following Dart contribution statuses:
+The Flutter app currently implements a local contribution and review
+simulation. Non-sensitive drafts may persist locally; submitted, reviewed, and
+sensitive contributions remain session-only. It uses the following Dart
+contribution statuses:
 
 ```txt
 ContributionStatus: draft, submitted, underReview, approved, rejected
@@ -14,6 +16,7 @@ ContributionStatus: draft, submitted, underReview, approved, rejected
 Implemented local behavior:
 
 - contributors can save a local draft or submit a local contribution
+- non-sensitive drafts survive app restart on the same device
 - contribution fields include title, description, knowledge type, gamelan type,
   source note, contributor note, consent, and cultural sensitivity
 - submitted and under-review contributions appear in the local Review tab

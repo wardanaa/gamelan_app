@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'core/state/gamelan_mvp_store.dart';
@@ -16,6 +18,12 @@ class GamelanApp extends StatefulWidget {
 
 class _GamelanAppState extends State<GamelanApp> {
   late final GamelanMvpStore _store = GamelanMvpStore();
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_store.loadPersistedDrafts());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +113,7 @@ class _HomeTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'This demo uses in-memory data only. It does not sync, publish RDF, call SPARQL, or store sensitive content after restart.',
+                    'This demo persists non-sensitive drafts locally. It does not sync, publish RDF, call SPARQL, or store sensitive content after restart.',
                   ),
                 ],
               ),

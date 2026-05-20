@@ -4,10 +4,11 @@ This document defines offline and synchronization behavior for the mobile app.
 
 ## Current Implementation
 
-Offline sync is not implemented yet. The current app can create in-memory local
-drafts, but it has no local draft persistence package, no sync queue, no media
-upload queue, and no conflict resolution UI. All local MVP contribution data
-resets when the app restarts.
+Full offline sync is not implemented yet. The current app can persist the
+contributor's own non-sensitive local drafts with `shared_preferences`, but it
+has no sync queue, no media upload queue, and no conflict resolution UI.
+Culturally sensitive drafts, submitted contributions, review decisions, and
+approved demo knowledge reset when the app restarts.
 
 This guide defines the target behavior for future offline work.
 
@@ -34,6 +35,10 @@ The backend remains the source of truth.
 Local data is temporary until synced and accepted by backend.
 
 ## Local Draft Status
+
+Current MVP local draft persistence uses the existing Dart `draft` status only.
+The statuses below remain target sync states for future backend-backed offline
+work.
 
 Suggested local statuses:
 
@@ -73,6 +78,7 @@ Do not cache sensitive data unless encrypted and required.
 Avoid caching:
 
 - access tokens in plain storage
+- culturally sensitive contribution drafts in plain storage
 - unpublished contributions from other users
 - expert notes
 - restricted media

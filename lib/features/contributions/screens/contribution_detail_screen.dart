@@ -104,7 +104,7 @@ class _BoundaryNotice extends StatelessWidget {
         padding: EdgeInsets.all(16),
         child: Text(
           'Only approved contributions appear in public knowledge browsing. '
-          'This local MVP does not publish RDF or sync data.',
+          'This local MVP only persists non-sensitive drafts and does not publish RDF or sync data.',
         ),
       ),
     );

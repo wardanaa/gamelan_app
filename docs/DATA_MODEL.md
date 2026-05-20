@@ -40,8 +40,9 @@ KnowledgeItem
 ```
 
 There is no relational database, migration set, backend model, or persisted
-schema in this repository yet. `GamelanMvpStore` holds local in-memory records
-only. The model below is the target backend data model.
+schema in this repository yet. `GamelanMvpStore` holds local records, and
+`ContributionDraftStorage` persists only non-sensitive local drafts in
+`shared_preferences`. The model below is the target backend data model.
 
 ## Core Tables
 

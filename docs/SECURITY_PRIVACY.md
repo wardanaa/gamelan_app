@@ -4,12 +4,16 @@ This document defines security, privacy, and cultural sensitivity rules.
 
 ## Current Implementation
 
-The current Flutter MVP uses in-memory state only:
+The current Flutter MVP uses local state with limited draft persistence:
 
 - `GamelanMvpStore` holds seeded knowledge and local contributions.
+- `ContributionDraftStorage` uses `shared_preferences` to persist only
+  non-sensitive local drafts.
 - `TokenStorage` remains an in-memory placeholder.
 - The contribution form requires a consent checkbox before saving or submitting.
 - Contributions can be marked culturally sensitive.
+- Culturally sensitive drafts are kept in memory only and are not written to
+  plain local draft storage.
 - Draft, submitted, under-review, request-changes, and rejected contributions do
   not appear in public knowledge browsing.
 - Approved local contributions appear in Search as community approved demo
@@ -77,7 +81,9 @@ Protect:
 
 In the current MVP, cultural sensitivity is a local UI and review marker only.
 It is not backed by durable authorization, encrypted storage, media access
-control, or backend policy checks.
+control, or backend policy checks. Because encrypted draft storage and clear
+product rules are not implemented yet, culturally sensitive drafts must remain
+session-only.
 
 Restricted content must not be exposed through:
 

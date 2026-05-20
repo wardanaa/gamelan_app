@@ -12,16 +12,20 @@ The current app is a local Flutter MVP:
 - The app opens `GamelanHomeShell` with Home, Search, Contribute, Review, and
   Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
-- `GamelanMvpStore` and `GamelanScope` provide in-memory local MVP state.
+- `GamelanMvpStore` and `GamelanScope` provide local MVP state.
+- Non-sensitive contribution drafts are persisted locally with
+  `shared_preferences`.
 - Search uses seeded Gong Kebyar and Gong Gede knowledge plus approved local
   contributions.
 - Contribution list, detail, form, and status screens are implemented for local
-  data.
+  data and non-sensitive draft persistence.
 - Review queue, detail, and decision screens are implemented for local curator
   simulation.
 - `ContributionRepository`, `ReviewRepository`, and `AuthRepository` remain
   placeholders and do not perform real network requests.
 - `TokenStorage` stores a token in memory only and is not production-ready.
+- Culturally sensitive drafts, submitted items, review decisions, and approved
+  demo knowledge remain session-only.
 - Admin and authentication screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -40,8 +44,9 @@ Target additions when needed:
 
 - Riverpod, Bloc, or Provider for state management
 - Dio or http for API requests
-- Hive, Isar, Drift, or SQLite for offline draft storage
+- Hive, Isar, Drift, or SQLite for richer offline draft storage
 - Secure storage for authentication token
+- Encrypted storage for culturally sensitive drafts if product rules allow it
 
 Do not mix multiple state management systems without a clear reason.
 
@@ -129,9 +134,11 @@ archived
 
 ## Offline Draft
 
-Offline draft persistence is a target capability. The current app can create
-local in-memory drafts, but it does not persist drafts across app restarts and
-does not sync with a backend.
+Basic offline draft persistence is partially implemented. The current app stores
+only the contributor's own non-sensitive local drafts with `shared_preferences`.
+It does not persist culturally sensitive drafts, submitted contributions, review
+decisions, media, or approved demo knowledge across app restarts, and it does
+not sync with a backend.
 
 Rules:
 
@@ -140,6 +147,13 @@ Rules:
 3. Media uploads may wait until connection is available.
 4. Backend remains the source of truth after sync.
 5. Conflicts must be shown clearly.
+
+Current MVP limits:
+
+- Only non-sensitive `draft` contributions are cached locally.
+- Plain local storage must not be used for culturally sensitive drafts.
+- Submitted and reviewed local contributions remain session-only until backend
+  persistence and sync are implemented.
 
 ## API Error Handling
 

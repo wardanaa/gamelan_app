@@ -25,7 +25,7 @@ class ContributionListScreen extends StatelessWidget {
                   return const Padding(
                     padding: EdgeInsets.fromLTRB(4, 4, 4, 12),
                     child: Text(
-                      'Local prototype: drafts and submissions reset when the app restarts.',
+                      'Local prototype: non-sensitive drafts are stored on this device. Sensitive drafts and submitted items are session-only.',
                     ),
                   );
                 }
