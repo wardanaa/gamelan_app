@@ -44,6 +44,23 @@ knowledge data instead of calling those API helpers. Only non-sensitive draft
 contributions are persisted locally; broader API integration remains target
 architecture.
 
+The Flutter test suite includes an opt-in live Laravel-backed widget test for
+the implemented authentication contract. The test is skipped unless the
+following environment variables are supplied:
+
+```txt
+GAMELAN_TEST_API_BASE_URL
+GAMELAN_TEST_EMAIL
+GAMELAN_TEST_PASSWORD
+```
+
+That live test signs in through `POST /auth/login`, confirms the app can load
+the authenticated profile through `GET /me`, and signs out through
+`POST /auth/logout`. It does not exercise contribution, review, knowledge,
+semantic search, ontology, SPARQL, media, RDF publication, or provenance
+endpoints because those mobile workflows are not yet API-backed in this
+repository.
+
 The contract below is the target REST API contract for the future backend.
 
 ## Base URL

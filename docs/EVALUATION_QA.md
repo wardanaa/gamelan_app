@@ -4,9 +4,21 @@ This document defines software, ontology, and research evaluation rules.
 
 ## Current Implementation
 
-The current test suite contains Flutter widget tests for the local MVP. Backend,
+The current default test suite contains deterministic Flutter widget tests for
+the local MVP and mocked authentication HTTP responses. Backend persistence,
 ontology, SPARQL, offline sync, media, and AI triage tests are not applicable
 until those capabilities are implemented.
+
+An opt-in live Laravel-backed widget test exists at:
+
+```txt
+test/live_laravel_backend_widget_test.dart
+```
+
+It is skipped unless `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_EMAIL`, and
+`GAMELAN_TEST_PASSWORD` are present in the environment. The live test covers
+only login, `/me` profile loading, token storage through the test-only in-memory
+backend, and logout against the configured Laravel API.
 
 ## Evaluation Dimensions
 
@@ -26,6 +38,8 @@ Current implemented scenario:
 
 - user registration, login, `/me` profile loading, logout, and expired-token
   clearing
+- opt-in live Laravel authentication smoke coverage for login, profile loading,
+  and logout
 - reviewer role gating for the local Review workflow
 - app shell renders the Material 3 bottom navigation
 - Search shows seeded Gong Kebyar and Gong Gede knowledge
@@ -33,6 +47,11 @@ Current implemented scenario:
 - submitted contribution appears in the contribution list and review queue
 - culturally sensitive contribution shows a warning marker
 - approving a contribution moves it into searchable knowledge
+
+Live Laravel widget tests must not store credentials in the repository or print
+tokens. They do not currently validate contribution persistence, curator review
+approval, semantic search, RDF publication, SPARQL queries, media upload, or
+provenance records.
 
 Target scenarios:
 
