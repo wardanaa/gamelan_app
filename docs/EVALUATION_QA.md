@@ -9,16 +9,16 @@ the local MVP and mocked authentication HTTP responses. Backend persistence,
 ontology, SPARQL, offline sync, media, and AI triage tests are not applicable
 until those capabilities are implemented.
 
-An opt-in live Laravel-backed widget test exists at:
+An opt-in live Laravel-backed integration test exists at:
 
 ```txt
-test/live_laravel_backend_widget_test.dart
+integration_test/live_laravel_backend_test.dart
 ```
 
 It is skipped unless `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_EMAIL`, and
-`GAMELAN_TEST_PASSWORD` are present in the environment. The live test covers
-only login, `/me` profile loading, token storage through the test-only in-memory
-backend, and logout against the configured Laravel API.
+`GAMELAN_TEST_PASSWORD` are supplied with `--dart-define`. The live test covers
+only login, `/me` profile loading, token storage through the test-only
+in-memory backend, and logout against the configured Laravel API.
 
 ## Evaluation Dimensions
 
@@ -48,10 +48,10 @@ Current implemented scenario:
 - culturally sensitive contribution shows a warning marker
 - approving a contribution moves it into searchable knowledge
 
-Live Laravel widget tests must not store credentials in the repository or print
-tokens. They do not currently validate contribution persistence, curator review
-approval, semantic search, RDF publication, SPARQL queries, media upload, or
-provenance records.
+Live Laravel integration tests must not store credentials in the repository or
+print tokens. They do not currently validate contribution persistence, curator
+review approval, semantic search, RDF publication, SPARQL queries, media
+upload, or provenance records.
 
 Target scenarios:
 

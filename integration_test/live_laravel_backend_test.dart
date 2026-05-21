@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/app.dart';
@@ -7,14 +5,17 @@ import 'package:gamelan_app/core/api/api_client.dart';
 import 'package:gamelan_app/core/storage/token_storage.dart';
 import 'package:gamelan_app/features/auth/data/auth_repository.dart';
 import 'package:http/http.dart' as http;
+import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  final config = LiveLaravelBackendConfig.fromEnvironment();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  final config = LiveLaravelBackendConfig.fromDartDefines();
 
   if (config == null) {
     testWidgets(
-      'live Laravel backend authentication flow skipped: set GAMELAN_TEST_API_BASE_URL, GAMELAN_TEST_EMAIL, and GAMELAN_TEST_PASSWORD',
+      'live Laravel backend authentication flow skipped: set GAMELAN_TEST_API_BASE_URL, GAMELAN_TEST_EMAIL, and GAMELAN_TEST_PASSWORD with --dart-define',
       (WidgetTester tester) async {},
       skip: true,
     );
@@ -94,10 +95,10 @@ class LiveLaravelBackendConfig {
   final String email;
   final String password;
 
-  static LiveLaravelBackendConfig? fromEnvironment() {
-    final apiBaseUrl = _environmentValue('GAMELAN_TEST_API_BASE_URL');
-    final email = _environmentValue('GAMELAN_TEST_EMAIL');
-    final password = _environmentValue('GAMELAN_TEST_PASSWORD');
+  static LiveLaravelBackendConfig? fromDartDefines() {
+    final apiBaseUrl = _dartDefineValue(_apiBaseUrl);
+    final email = _dartDefineValue(_email);
+    final password = _dartDefineValue(_password);
 
     if (apiBaseUrl == null || email == null || password == null) {
       return null;
@@ -110,12 +111,20 @@ class LiveLaravelBackendConfig {
     );
   }
 
-  static String? _environmentValue(String key) {
-    final value = Platform.environment[key]?.trim();
-    if (value == null || value.isEmpty) {
+  static const String _apiBaseUrl = String.fromEnvironment(
+    'GAMELAN_TEST_API_BASE_URL',
+  );
+  static const String _email = String.fromEnvironment('GAMELAN_TEST_EMAIL');
+  static const String _password = String.fromEnvironment(
+    'GAMELAN_TEST_PASSWORD',
+  );
+
+  static String? _dartDefineValue(String value) {
+    final trimmedValue = value.trim();
+    if (trimmedValue.isEmpty) {
       return null;
     }
-    return value;
+    return trimmedValue;
   }
 }
 

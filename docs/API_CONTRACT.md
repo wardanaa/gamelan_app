@@ -44,9 +44,9 @@ knowledge data instead of calling those API helpers. Only non-sensitive draft
 contributions are persisted locally; broader API integration remains target
 architecture.
 
-The Flutter test suite includes an opt-in live Laravel-backed widget test for
-the implemented authentication contract. The test is skipped unless the
-following environment variables are supplied:
+The Flutter test suite includes an opt-in live Laravel-backed integration test
+for the implemented authentication contract. The test is skipped unless the
+following dart-defines are supplied:
 
 ```txt
 GAMELAN_TEST_API_BASE_URL

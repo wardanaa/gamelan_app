@@ -33,8 +33,8 @@ The current app is a local Flutter MVP:
 - `ContributionRepository` and `ReviewRepository` remain placeholders and do
   not perform real network requests.
 - The default Flutter widget tests use mocked HTTP responses. A separate
-  opt-in live Laravel-backed widget test can exercise only the implemented
-  authentication flow when backend test environment variables are provided.
+  opt-in live Laravel-backed integration test can exercise only the implemented
+  authentication flow when backend test dart-defines are provided.
 - Culturally sensitive drafts, submitted items, review decisions, and approved
   demo knowledge remain session-only.
 - Admin screens remain scaffold-level placeholders.
@@ -56,11 +56,12 @@ Current:
 Current testing:
 
 - `flutter test` runs deterministic local and mocked-auth widget tests.
-- `test/live_laravel_backend_widget_test.dart` is skipped unless
-  `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_EMAIL`, and
-  `GAMELAN_TEST_PASSWORD` are set.
-- Live Laravel widget coverage currently verifies login, `/me` profile loading,
-  in-memory test token storage, and logout only.
+- `integration_test/live_laravel_backend_test.dart` provides opt-in live
+  Laravel authentication coverage when `GAMELAN_TEST_API_BASE_URL`,
+  `GAMELAN_TEST_EMAIL`, and `GAMELAN_TEST_PASSWORD` are supplied with
+  `--dart-define`.
+- Live Laravel integration coverage currently verifies login, `/me` profile
+  loading, in-memory test token storage, and logout only.
 
 Target additions when needed:
 

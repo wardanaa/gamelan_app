@@ -66,16 +66,21 @@ flutter analyze
 flutter test
 ```
 
-An opt-in live Laravel-backed widget test is also available for the current
-authentication flow. It is skipped by the default suite unless all required
-environment variables are set:
+An opt-in live Laravel-backed integration test is also available for the
+current authentication flow. It is outside the default widget test suite and is
+skipped unless all required dart-defines are set:
 
 ```sh
-GAMELAN_TEST_API_BASE_URL=http://127.0.0.1:8000/api/v1 \
-GAMELAN_TEST_EMAIL=curator@example.com \
-GAMELAN_TEST_PASSWORD='secret-password' \
-flutter test test/live_laravel_backend_widget_test.dart
+flutter test integration_test/live_laravel_backend_test.dart \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=http://127.0.0.1:8000/api/v1 \
+  --dart-define=GAMELAN_TEST_EMAIL=curator@example.com \
+  --dart-define=GAMELAN_TEST_PASSWORD=secret-password
 ```
+
+When running against a Laravel server on the host machine from the Android
+emulator, use `http://10.0.2.2:8000/api/v1` for
+`GAMELAN_TEST_API_BASE_URL`. The iOS simulator and desktop targets can usually
+use `http://127.0.0.1:8000/api/v1`.
 
 Use a low-privilege backend test account. Do not commit credentials, access
 tokens, or backend response bodies.
@@ -91,12 +96,13 @@ The current widget tests cover:
 - contribution form validation and submission
 - review queue visibility
 - approval flow that promotes local contributions into searchable knowledge
-- opt-in live Laravel login, `/me` profile loading, and logout when backend
-  test environment variables are provided
+- opt-in live Laravel integration login, `/me` profile loading, and logout
+  when backend test dart-defines are provided
 
-The live Laravel widget test currently verifies authentication wiring only. It
-does not validate backend persistence for contributions, review decisions,
-semantic search, RDF publication, SPARQL, media upload, or provenance.
+The live Laravel integration test currently verifies authentication wiring
+only. It does not validate backend persistence for contributions, review
+decisions, semantic search, RDF publication, SPARQL, media upload, or
+provenance.
 
 ## Development Roadmap
 
