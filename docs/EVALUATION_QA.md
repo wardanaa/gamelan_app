@@ -20,6 +20,30 @@ It is skipped unless `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_EMAIL`, and
 only login, `/me` profile loading, token storage through the test-only
 in-memory backend, and logout against the configured Laravel API.
 
+Chrome web execution uses the Flutter integration driver at:
+
+```txt
+test_driver/integration_test.dart
+```
+
+Run the live Laravel authentication smoke test on Chrome with:
+
+```sh
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/live_laravel_backend_test.dart \
+  -d chrome \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://your-api.example.com/api/v1 \
+  --dart-define=GAMELAN_TEST_EMAIL=test@example.com \
+  --dart-define=GAMELAN_TEST_PASSWORD=secret
+```
+
+The same test target may still be run with `flutter test
+integration_test/live_laravel_backend_test.dart` for non-Chrome/local
+integration execution where supported. Live credentials must come from local
+command-line values or CI secrets and must not be stored in repository files.
+The test must not print backend tokens.
+
 ## Evaluation Dimensions
 
 The project should be evaluated across:

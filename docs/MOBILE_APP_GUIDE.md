@@ -60,8 +60,28 @@ Current testing:
   Laravel authentication coverage when `GAMELAN_TEST_API_BASE_URL`,
   `GAMELAN_TEST_EMAIL`, and `GAMELAN_TEST_PASSWORD` are supplied with
   `--dart-define`.
+- `test_driver/integration_test.dart` provides the `integrationDriver()`
+  entrypoint required to run the live Laravel integration target on Chrome web
+  with `flutter drive`.
 - Live Laravel integration coverage currently verifies login, `/me` profile
   loading, in-memory test token storage, and logout only.
+
+Chrome web live integration tests should be run with `flutter drive`:
+
+```sh
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/live_laravel_backend_test.dart \
+  -d chrome \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://your-api.example.com/api/v1 \
+  --dart-define=GAMELAN_TEST_EMAIL=test@example.com \
+  --dart-define=GAMELAN_TEST_PASSWORD=secret
+```
+
+Use local shell values or CI secrets for the `GAMELAN_TEST_*` values. Do not
+store live backend credentials in the repository. `flutter test
+integration_test/live_laravel_backend_test.dart` remains useful for
+non-Chrome/local integration execution where supported.
 
 Target additions when needed:
 

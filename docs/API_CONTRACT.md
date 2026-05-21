@@ -61,6 +61,22 @@ semantic search, ontology, SPARQL, media, RDF publication, or provenance
 endpoints because those mobile workflows are not yet API-backed in this
 repository.
 
+Chrome web execution of the live authentication test should use the Flutter
+driver entrypoint at `test_driver/integration_test.dart`:
+
+```sh
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/live_laravel_backend_test.dart \
+  -d chrome \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://your-api.example.com/api/v1 \
+  --dart-define=GAMELAN_TEST_EMAIL=test@example.com \
+  --dart-define=GAMELAN_TEST_PASSWORD=secret
+```
+
+Use local shell values or CI secrets for live credentials. Do not store them in
+repository files or print backend tokens from the test.
+
 The contract below is the target REST API contract for the future backend.
 
 ## Base URL
