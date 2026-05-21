@@ -73,7 +73,7 @@ flutter drive \
   --driver=test_driver/integration_test.dart \
   --target=integration_test/live_laravel_backend_test.dart \
   -d chrome \
-  --dart-define=GAMELAN_TEST_API_BASE_URL=https://your-api.example.com/api/v1 \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://127.0.0.1:8000/api/v1 \
   --dart-define=GAMELAN_TEST_EMAIL=test@example.com \
   --dart-define=GAMELAN_TEST_PASSWORD=secret
 ```
