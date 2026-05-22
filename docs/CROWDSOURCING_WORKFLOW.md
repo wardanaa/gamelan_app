@@ -4,10 +4,10 @@ This document defines the contribution, review, curation, and validation workflo
 
 ## Current Implementation
 
-The Flutter app currently implements a local contribution and review
-simulation. Non-sensitive drafts may persist locally; submitted, reviewed, and
-sensitive contributions remain session-only. It uses the following Dart
-contribution statuses:
+The Flutter app currently implements a repository-backed local contribution and
+review simulation. Non-sensitive drafts may persist locally; submitted,
+reviewed, and sensitive contributions remain session-only. It uses the
+following Dart contribution statuses:
 
 ```txt
 ContributionStatus: draft, submitted, underReview, approved, rejected
@@ -26,10 +26,12 @@ Implemented local behavior:
   content
 - draft, submitted, under-review, request-changes, and rejected contributions do
   not appear in public knowledge browsing
+- contribution, review, and knowledge data access is behind local repository
+  implementations that can later be replaced with API-backed repositories
 
-No backend workflow, role authorization, durable curation decision persistence,
-expert validation, RDF publication, or durable provenance storage is implemented
-yet.
+No backend workflow persistence, backend role authorization for workflow
+actions, durable curation decision persistence, expert validation, RDF
+publication, or durable provenance storage is implemented yet.
 
 The workflow below is the target application workflow.
 

@@ -10,7 +10,9 @@ The current app is a local Flutter MVP. It demonstrates:
 - seeded Gong Kebyar and Gong Gede knowledge
 - local keyword search
 - local persistence for non-sensitive contribution drafts
-- in-memory submitted contributions and review decisions
+- repository-backed local demo state for contributions, review queue, and
+  knowledge browsing
+- session-only submitted contributions and review decisions
 - local curator-style review decisions
 - approved local contributions appearing in Search as community approved demo
   content
@@ -34,9 +36,11 @@ SPARQL-backed search, expert validation, or AI triage.
    and culturally sensitive data. Keep backend authorization as the source of
    truth.
 
-2. Replace the in-memory store with repository-backed state.
-   Keep the current UI flow, but move data access behind repositories that can
-   switch between local demo data and API-backed data.
+2. Replace the in-memory store with repository-backed state. Implemented for
+   the local MVP. `GamelanMvpStore` now coordinates UI-facing state while
+   contribution, review, and knowledge data access lives behind repository
+   interfaces with local demo implementations. These repositories do not call
+   the backend yet.
 
 3. Implement Laravel API integration.
    Connect contributions, review queue, knowledge browsing, and authentication
@@ -89,7 +93,7 @@ SPARQL-backed search, expert validation, or AI triage.
 Prioritize workflow correctness before semantic automation. The safest order is:
 
 ```txt
-authentication and authorization
+authentication, authorization, and repository-backed local state
   ↓
 API-backed contribution workflow
   ↓

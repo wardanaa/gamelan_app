@@ -39,10 +39,11 @@ Registration and login expect the standard response envelope and a token at
 bearer token for authenticated API requests. If `/me` returns `401`, the mobile
 app clears the stored token and returns to the auth screen.
 
-The local MVP still uses `GamelanMvpStore` for contribution, review, and
-knowledge data instead of calling those API helpers. Only non-sensitive draft
-contributions are persisted locally; broader API integration remains target
-architecture.
+The local MVP now routes contribution, review, and knowledge data through
+repository interfaces coordinated by `GamelanMvpStore`. The current repository
+implementations are local demo data sources and do not call the contribution,
+review, or knowledge API endpoints. Only non-sensitive draft contributions are
+persisted locally; broader API integration remains target architecture.
 
 The Flutter test suite includes an opt-in live Laravel-backed integration test
 for the implemented authentication contract. The test is skipped unless the

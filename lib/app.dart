@@ -40,7 +40,7 @@ class _GamelanAppState extends State<GamelanApp> {
   @override
   void initState() {
     super.initState();
-    unawaited(_store.loadPersistedDrafts());
+    unawaited(_store.loadRepositoryState());
     unawaited(_restoreAuthSession());
   }
 

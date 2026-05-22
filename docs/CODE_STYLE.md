@@ -72,6 +72,21 @@ review_queue_screen.dart
 semantic_search_screen.dart
 ```
 
+Current repository-backed local state uses repository interfaces with local
+implementations:
+
+```txt
+ContributionRepository
+LocalContributionRepository
+ReviewRepository
+LocalReviewRepository
+KnowledgeRepository
+LocalKnowledgeRepository
+```
+
+Keep future API-backed implementations behind the same interface pattern rather
+than reading API or storage concerns directly from screens.
+
 Recommended class names:
 
 ```dart

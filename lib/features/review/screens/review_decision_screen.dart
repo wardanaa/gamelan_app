@@ -69,7 +69,7 @@ class _ReviewDecisionScreenState extends State<ReviewDecisionScreen> {
     );
   }
 
-  void _submitDecision() {
+  Future<void> _submitDecision() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -78,11 +78,15 @@ class _ReviewDecisionScreenState extends State<ReviewDecisionScreen> {
     final note = _noteController.text.trim();
     switch (widget.action) {
       case ReviewDecisionAction.approve:
-        store.approveContribution(widget.contributionId, note);
+        await store.approveContribution(widget.contributionId, note);
       case ReviewDecisionAction.requestChanges:
-        store.requestChanges(widget.contributionId, note);
+        await store.requestChanges(widget.contributionId, note);
       case ReviewDecisionAction.reject:
-        store.rejectContribution(widget.contributionId, note);
+        await store.rejectContribution(widget.contributionId, note);
+    }
+
+    if (!mounted) {
+      return;
     }
 
     Navigator.of(context).popUntil((route) => route.isFirst);

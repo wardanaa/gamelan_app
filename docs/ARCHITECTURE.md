@@ -47,14 +47,17 @@ Current implementation:
 - The local Review workflow is UX-gated by backend profile roles or the
   `review.contributions` permission. Backend policies remain the source of
   truth for protected actions.
-- Local MVP state is held in `GamelanMvpStore` and exposed through
-  `GamelanScope`.
+- UI-facing local MVP state is coordinated by `GamelanMvpStore` and exposed
+  through `GamelanScope`.
+- Contribution, review, and knowledge data access is behind repository
+  interfaces with local demo implementations.
 - Non-sensitive local drafts are persisted through `ContributionDraftStorage`
   and `shared_preferences`.
-- Seeded knowledge records and approved local contributions appear in Search.
+- Seeded knowledge records and approved local contributions appear in Search
+  through `LocalKnowledgeRepository`.
 - Draft, submitted, under-review, approved, and rejected contribution states are
   simulated locally. Only non-sensitive drafts persist across app restart.
-- Contribution and review repositories are placeholders and do not perform real
+- Local contribution, review, and knowledge repositories do not perform real
   network requests yet.
 
 Target responsibilities:
@@ -80,7 +83,7 @@ Seeded Gong Kebyar/Gong Gede knowledge
     +
 Local contribution form
     ↓
-Draft or submitted contribution in GamelanMvpStore
+Draft or submitted contribution through repository-backed local state
     ↓
 Non-sensitive drafts may persist locally
     ↓

@@ -5,9 +5,10 @@ This document defines software, ontology, and research evaluation rules.
 ## Current Implementation
 
 The current default test suite contains deterministic Flutter widget tests for
-the local MVP and mocked authentication HTTP responses. Backend persistence,
-ontology, SPARQL, offline sync, media, and AI triage tests are not applicable
-until those capabilities are implemented.
+the local MVP, mocked authentication HTTP responses, and focused repository
+tests for local contribution, review, draft persistence, and knowledge-search
+behavior. Backend persistence, ontology, SPARQL, offline sync, media, and AI
+triage tests are not applicable until those capabilities are implemented.
 
 An opt-in live Laravel-backed integration test exists at:
 
@@ -71,6 +72,9 @@ Current implemented scenario:
 - submitted contribution appears in the contribution list and review queue
 - culturally sensitive contribution shows a warning marker
 - approving a contribution moves it into searchable knowledge
+- local repository tests verify non-sensitive draft persistence, sensitive
+  draft exclusion from plain storage, submitted item non-persistence, review
+  queue filtering, review decisions, and approved demo knowledge search
 
 Live Laravel integration tests must not store credentials in the repository or
 print tokens. They do not currently validate contribution persistence, curator

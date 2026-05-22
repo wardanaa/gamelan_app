@@ -22,11 +22,12 @@ Implemented local MVP behavior includes:
 - approval flow that exposes approved local contributions in Search as
   community approved demo content
 
-This MVP uses `GamelanMvpStore` and `GamelanScope` for local state.
-Non-sensitive draft contributions are persisted with `shared_preferences` so
-they can survive app restart on the same device. Access tokens are stored
-separately with `flutter_secure_storage`. Sensitive drafts, submitted items,
-review decisions, and approved demo content remain in memory only.
+This MVP uses `GamelanMvpStore` and `GamelanScope` for UI-facing local state,
+with contribution, review, and knowledge data behind local repository
+implementations. Non-sensitive draft contributions are persisted with
+`shared_preferences` so they can survive app restart on the same device. Access
+tokens are stored separately with `flutter_secure_storage`. Sensitive drafts,
+submitted items, review decisions, and approved demo content remain session-only.
 
 The Laravel backend, relational database, RDF/OWL ontology files, Fuseki/SPARQL
 integration, media storage, full offline sync, encrypted sensitive draft
@@ -83,9 +84,10 @@ Current implemented stack:
 | Layer | Current State |
 |---|---|
 | Mobile | Flutter / Dart local MVP at repository root |
-| State Management | Local `ChangeNotifier` store through `GamelanMvpStore` and `GamelanScope` |
+| State Management | Local `ChangeNotifier` coordinator through `GamelanMvpStore` and `GamelanScope` |
+| Local Data Access | Repository interfaces with local demo implementations for contributions, review, and knowledge |
 | Local Draft Storage | `shared_preferences` for non-sensitive drafts only |
-| API Client | `http` JSON client used for authentication; other repositories remain local/placeholders |
+| API Client | `http` JSON client used for authentication; contribution, review, and knowledge repositories remain local |
 | Token Storage | `flutter_secure_storage` for access tokens |
 | Backend | Not present in this repository |
 | Ontology/SPARQL | Not present in this repository |

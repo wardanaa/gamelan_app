@@ -35,6 +35,7 @@ Material 3 mobile shell with local workflows for the main product areas:
 - seeded knowledge browsing for Gong Kebyar and Gong Gede
 - keyword search over local knowledge records and relation labels
 - contribution listing, details, form, and status
+- repository-backed local state for contribution, review, and knowledge data
 - non-sensitive local draft persistence
 - curator-style local review queue, details, and decisions
 - approved local contributions appearing in Search as community approved demo

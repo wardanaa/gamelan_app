@@ -4,13 +4,14 @@ This document defines offline and synchronization behavior for the mobile app.
 
 ## Current Implementation
 
-Full offline sync is not implemented yet. The current app can persist the
-contributor's own non-sensitive local drafts with `shared_preferences`, but it
-has no sync queue, no media upload queue, and no conflict resolution UI.
-Culturally sensitive drafts, submitted contributions, review decisions, and
-approved demo knowledge reset when the app restarts. Authentication tokens are
-stored separately with secure device storage and are not part of the offline
-draft cache.
+Full offline sync is not implemented yet. The current app routes local
+contribution, review, and knowledge data through repository interfaces and can
+persist the contributor's own non-sensitive local drafts with
+`shared_preferences`, but it has no sync queue, no media upload queue, and no
+conflict resolution UI. Culturally sensitive drafts, submitted contributions,
+review decisions, and approved demo knowledge reset when the app restarts.
+Authentication tokens are stored separately with secure device storage and are
+not part of the offline draft cache.
 
 This guide defines the target behavior for future offline work.
 

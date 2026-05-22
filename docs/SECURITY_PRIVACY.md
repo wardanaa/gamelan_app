@@ -4,9 +4,12 @@ This document defines security, privacy, and cultural sensitivity rules.
 
 ## Current Implementation
 
-The current Flutter MVP uses local state with limited draft persistence:
+The current Flutter MVP uses repository-backed local state with limited draft
+persistence:
 
-- `GamelanMvpStore` holds seeded knowledge and local contributions.
+- `GamelanMvpStore` coordinates UI-facing state.
+- Local contribution, review, and knowledge repositories hold the current demo
+  data and workflow mutations.
 - `ContributionDraftStorage` uses `shared_preferences` to persist only
   non-sensitive local drafts.
 - `TokenStorage` uses `flutter_secure_storage` for access-token persistence.
@@ -19,17 +22,19 @@ The current Flutter MVP uses local state with limited draft persistence:
   `review.contributions` permission.
 - The contribution form requires a consent checkbox before saving or submitting.
 - Contributions can be marked culturally sensitive.
-- Culturally sensitive drafts are kept in memory only and are not written to
-  plain local draft storage.
+- Culturally sensitive drafts are kept in session-only repository state and are
+  not written to plain local draft storage.
 - Draft, submitted, under-review, request-changes, and rejected contributions do
   not appear in public knowledge browsing.
 - Approved local contributions appear in Search as community approved demo
   content only.
 
 The app does not yet implement backend persistence for contribution/review data,
-media access control, SPARQL restrictions, or AI prompt logging controls. Mobile
-role checks are convenience-only UX gates. Backend authorization must remain
-authoritative for all protected actions and data.
+durable provenance storage, media access control, SPARQL restrictions, or AI
+prompt logging controls. Repository-backed local state is not backend
+persistence or RDF publication. Mobile role checks are convenience-only UX
+gates. Backend authorization must remain authoritative for all protected
+actions and data.
 
 The requirements below apply as target security and privacy rules when those
 capabilities are implemented.

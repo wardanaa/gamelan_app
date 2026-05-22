@@ -65,8 +65,8 @@ class ReviewDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           if (contribution.status == ContributionStatus.submitted)
             OutlinedButton.icon(
-              onPressed: () {
-                store.markUnderReview(contribution.id);
+              onPressed: () async {
+                await store.markUnderReview(contribution.id);
               },
               icon: const Icon(Icons.rate_review_outlined),
               label: const Text('Mark under review'),
