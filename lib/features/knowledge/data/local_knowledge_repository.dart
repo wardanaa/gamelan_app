@@ -1,5 +1,6 @@
 import '../../contributions/data/contribution_model.dart';
 import '../../contributions/data/contribution_repository.dart';
+import '../../contributions/data/media_asset_model.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
 import '../../../core/utils/result.dart';
 import 'knowledge_item.dart';
@@ -112,16 +113,14 @@ class LocalKnowledgeRepository implements KnowledgeRepository {
   Future<Result<KnowledgeItem?>> findKnowledgeItem(String id) async {
     final itemsResult = await fetchKnowledgeItems();
     return switch (itemsResult) {
-      Success<List<KnowledgeItem>>(:final value) => Success(
-        () {
-          for (final item in value) {
-            if (item.id == id) {
-              return item;
-            }
+      Success<List<KnowledgeItem>>(:final value) => Success(() {
+        for (final item in value) {
+          if (item.id == id) {
+            return item;
           }
-          return null;
-        }(),
-      ),
+        }
+        return null;
+      }()),
       Failure<List<KnowledgeItem>>(:final message, :final exception) => Failure(
         message,
         exception: exception,
@@ -188,6 +187,14 @@ class LocalKnowledgeRepository implements KnowledgeRepository {
       provenanceSummary:
           'Community approved demo content. Contributor note: ${contribution.contributorNote}',
       isCommunityApproved: true,
+      mediaAssets: contribution.mediaAssets
+          .where(
+            (asset) =>
+                asset.visibility == MediaVisibility.public &&
+                asset.consentStatus.permitsPublic &&
+                !asset.culturalSensitivity,
+          )
+          .toList(growable: false),
     );
   }
 }

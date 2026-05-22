@@ -1,5 +1,6 @@
 import '../../../core/api/api_parsers.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
+import 'media_asset_model.dart';
 
 enum ContributionStatus {
   draft,
@@ -68,6 +69,7 @@ class ContributionModel {
     this.reviewNote,
     this.knowledgeTypeSlug,
     this.gamelanTypeSlug,
+    this.mediaAssets = const [],
   });
 
   final String id;
@@ -89,10 +91,15 @@ class ContributionModel {
   final String? reviewNote;
   final String? knowledgeTypeSlug;
   final String? gamelanTypeSlug;
+  final List<MediaAssetModel> mediaAssets;
 
   bool get canEdit => allowedActions.contains('edit');
   bool get canSubmit => allowedActions.contains('submit');
   bool get canArchive => allowedActions.contains('archive');
+  bool get canManageMedia =>
+      canEdit &&
+      (status == ContributionStatus.draft ||
+          status == ContributionStatus.needsRevision);
 
   String get statusDisplayLabel => status.labelFor(this);
 
@@ -207,13 +214,13 @@ class ContributionModel {
       status: status,
       knowledgeTypeSlug: knowledgeSlug,
       gamelanTypeSlug: gamelanSlug,
-      knowledgeType: stringFrom(source, const [
-            'knowledge_type_label',
-          ]) ??
+      knowledgeType:
+          stringFrom(source, const ['knowledge_type_label']) ??
           (knowledgeSlug == null
               ? 'Unknown'
               : mapper.knowledgeLabelFromSlug(knowledgeSlug)),
-      gamelanType: stringFrom(source, const ['gamelan_type_label']) ??
+      gamelanType:
+          stringFrom(source, const ['gamelan_type_label']) ??
           (gamelanSlug == null
               ? 'Unknown'
               : mapper.gamelanLabelFromSlug(gamelanSlug)),
@@ -227,7 +234,11 @@ class ContributionModel {
       statusDescription: stringFrom(source, const ['status_description']),
       allowedActions: stringListFrom(source, const ['allowed_actions']),
       updatedAt: dateTimeFrom(source, const ['updated_at']),
-      reviewNote: stringFrom(source, const ['review_note', 'latest_review_note']),
+      reviewNote: stringFrom(source, const [
+        'review_note',
+        'latest_review_note',
+      ]),
+      mediaAssets: MediaAssetModel.listFromApi(source['media_assets']),
     );
   }
 
@@ -288,6 +299,7 @@ class ContributionModel {
     String? reviewNote,
     String? knowledgeTypeSlug,
     String? gamelanTypeSlug,
+    List<MediaAssetModel>? mediaAssets,
   }) {
     return ContributionModel(
       id: id ?? this.id,
@@ -309,6 +321,7 @@ class ContributionModel {
       reviewNote: reviewNote ?? this.reviewNote,
       knowledgeTypeSlug: knowledgeTypeSlug ?? this.knowledgeTypeSlug,
       gamelanTypeSlug: gamelanTypeSlug ?? this.gamelanTypeSlug,
+      mediaAssets: mediaAssets ?? this.mediaAssets,
     );
   }
 }

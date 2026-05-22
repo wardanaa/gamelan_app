@@ -10,6 +10,9 @@ class ApiEndpoints {
   static String contribution(String uuid) => '/contributions/$uuid';
   static String contributionSubmit(String uuid) =>
       '/contributions/$uuid/submit';
+  static String contributionMedia(String uuid) => '/contributions/$uuid/media';
+  static String contributionMediaItem(String uuid, String mediaAssetUuid) =>
+      '/contributions/$uuid/media/$mediaAssetUuid';
 
   static const String reviewQueue = '/reviews/queue';
   static String reviewApprove(String uuid) => '/reviews/$uuid/approve';

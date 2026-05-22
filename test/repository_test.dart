@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
+import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
 import 'package:gamelan_app/features/knowledge/data/local_knowledge_repository.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:gamelan_app/core/utils/result.dart';
@@ -108,6 +109,75 @@ void main() {
   );
 
   test(
+    'local contribution repository keeps media attachments in memory only',
+    () async {
+      final firstRepository = LocalContributionRepository();
+      final draftResult = await firstRepository.createContribution(
+        contributionInput(title: 'Draft with media', submitForReview: false),
+      );
+      final draft = switch (draftResult) {
+        Success<ContributionModel>(:final value) => value,
+        Failure<ContributionModel>() => fail('Expected success'),
+      };
+
+      final uploadResult = await firstRepository.uploadMedia(
+        draft.id,
+        const MediaUploadInput(
+          title: 'Gangsa photo',
+          mediaType: MediaType.image,
+          consentStatus: MediaConsentStatus.granted,
+          visibility: MediaVisibility.private,
+          culturalSensitivity: false,
+          filename: 'gangsa.jpg',
+        ),
+      );
+      final asset = switch (uploadResult) {
+        Success<MediaAssetModel>(:final value) => value,
+        Failure<MediaAssetModel>() => fail('Expected success'),
+      };
+
+      final loadedResult = await firstRepository.findContribution(draft.id);
+      final loaded = switch (loadedResult) {
+        Success<ContributionModel?>(:final value) => value,
+        Failure<ContributionModel?>() => fail('Expected success'),
+      };
+      expect(loaded?.mediaAssets.single.title, 'Gangsa photo');
+
+      final removeResult = await firstRepository.removeMedia(
+        draft.id,
+        asset.id,
+      );
+      expect(removeResult, isA<Success<void>>());
+      final removedResult = await firstRepository.findContribution(draft.id);
+      final removed = switch (removedResult) {
+        Success<ContributionModel?>(:final value) => value,
+        Failure<ContributionModel?>() => fail('Expected success'),
+      };
+      expect(removed?.mediaAssets, isEmpty);
+
+      await firstRepository.uploadMedia(
+        draft.id,
+        const MediaUploadInput(
+          title: 'Non-persisted photo',
+          mediaType: MediaType.image,
+          consentStatus: MediaConsentStatus.granted,
+          visibility: MediaVisibility.private,
+          culturalSensitivity: false,
+          filename: 'gangsa.jpg',
+        ),
+      );
+      final secondRepository = LocalContributionRepository();
+      await secondRepository.loadPersistedDrafts();
+      final persistedResult = await secondRepository.findContribution(draft.id);
+      final persisted = switch (persistedResult) {
+        Success<ContributionModel?>(:final value) => value,
+        Failure<ContributionModel?>() => fail('Expected success'),
+      };
+      expect(persisted?.mediaAssets, isEmpty);
+    },
+  );
+
+  test(
     'local review repository filters submitted and under-review items',
     () async {
       final contributions = LocalContributionRepository();
@@ -198,46 +268,33 @@ void main() {
     await reviewRepository.rejectContribution(rejected.id, 'Rejected note.');
     await reviewRepository.requestChanges(changes.id, 'Clarify source.');
 
-    final underReviewLoaded = await contributions.findContribution(underReview.id);
+    final underReviewLoaded = await contributions.findContribution(
+      underReview.id,
+    );
     final approvedLoaded = await contributions.findContribution(approved.id);
     final rejectedLoaded = await contributions.findContribution(rejected.id);
     final changesLoaded = await contributions.findContribution(changes.id);
 
-    expect(
-      switch (underReviewLoaded) {
-        Success<ContributionModel?>(:final value) => value?.status,
-        Failure<ContributionModel?>() => null,
-      },
-      ContributionStatus.underReview,
-    );
-    expect(
-      switch (approvedLoaded) {
-        Success<ContributionModel?>(:final value) => value?.status,
-        Failure<ContributionModel?>() => null,
-      },
-      ContributionStatus.curatorApproved,
-    );
-    expect(
-      switch (approvedLoaded) {
-        Success<ContributionModel?>(:final value) => value?.reviewNote,
-        Failure<ContributionModel?>() => null,
-      },
-      'Approved note.',
-    );
-    expect(
-      switch (rejectedLoaded) {
-        Success<ContributionModel?>(:final value) => value?.status,
-        Failure<ContributionModel?>() => null,
-      },
-      ContributionStatus.rejected,
-    );
-    expect(
-      switch (changesLoaded) {
-        Success<ContributionModel?>(:final value) => value?.reviewNote,
-        Failure<ContributionModel?>() => null,
-      },
-      'Changes requested: Clarify source.',
-    );
+    expect(switch (underReviewLoaded) {
+      Success<ContributionModel?>(:final value) => value?.status,
+      Failure<ContributionModel?>() => null,
+    }, ContributionStatus.underReview);
+    expect(switch (approvedLoaded) {
+      Success<ContributionModel?>(:final value) => value?.status,
+      Failure<ContributionModel?>() => null,
+    }, ContributionStatus.curatorApproved);
+    expect(switch (approvedLoaded) {
+      Success<ContributionModel?>(:final value) => value?.reviewNote,
+      Failure<ContributionModel?>() => null,
+    }, 'Approved note.');
+    expect(switch (rejectedLoaded) {
+      Success<ContributionModel?>(:final value) => value?.status,
+      Failure<ContributionModel?>() => null,
+    }, ContributionStatus.rejected);
+    expect(switch (changesLoaded) {
+      Success<ContributionModel?>(:final value) => value?.reviewNote,
+      Failure<ContributionModel?>() => null,
+    }, 'Changes requested: Clarify source.');
   });
 
   test(
@@ -261,13 +318,10 @@ void main() {
       final emptySearch = await knowledgeRepository.searchKnowledge(
         query: 'Kempli',
       );
-      expect(
-        switch (emptySearch) {
-          Success<List<dynamic>>(:final value) => value,
-          Failure<List<dynamic>>() => fail('Expected success'),
-        },
-        isEmpty,
-      );
+      expect(switch (emptySearch) {
+        Success<List<dynamic>>(:final value) => value,
+        Failure<List<dynamic>>() => fail('Expected success'),
+      }, isEmpty);
 
       await reviewRepository.approveContribution(
         contribution.id,

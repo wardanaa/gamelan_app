@@ -5,6 +5,7 @@ import '../../../core/mapping/taxonomy_mapper.dart';
 import '../../../core/utils/result.dart';
 import 'contribution_model.dart';
 import 'contribution_repository.dart';
+import 'media_asset_model.dart';
 
 typedef TokenResolver = Future<String?> Function();
 
@@ -75,7 +76,10 @@ class RemoteContributionRepository implements ContributionRepository {
       final response = await _apiClient.postJson(
         ApiEndpoints.contributions,
         token: token,
-        body: _payloadFromInput(input, includeOptionalFields: !input.submitForReview),
+        body: _payloadFromInput(
+          input,
+          includeOptionalFields: !input.submitForReview,
+        ),
       );
       final contribution = ContributionModel.fromApi(
         response.dataMap,
@@ -141,9 +145,45 @@ class RemoteContributionRepository implements ContributionRepository {
   @override
   Future<Result<void>> archiveContribution(String id) async {
     return _runAuthenticated((token) async {
-      await _apiClient.deleteJson(
-        ApiEndpoints.contribution(id),
+      await _apiClient.deleteJson(ApiEndpoints.contribution(id), token: token);
+      return const Success(null);
+    });
+  }
+
+  @override
+  Future<Result<MediaAssetModel>> uploadMedia(
+    String contributionId,
+    MediaUploadInput input,
+  ) async {
+    return _runAuthenticated((token) async {
+      final response = await _apiClient.postMultipart(
+        ApiEndpoints.contributionMedia(contributionId),
         token: token,
+        idempotencyKey: _idempotencyKey('media-upload'),
+        fields: input.toMultipartFields(),
+        fileField: 'file',
+        filePath: input.filePath,
+        bytes: input.bytes,
+        filename: input.filename,
+      );
+      final mediaAsset = MediaAssetModel.fromApi(response.dataMap);
+      if (mediaAsset == null) {
+        return const Failure('The server returned an invalid media asset.');
+      }
+      return Success(mediaAsset);
+    });
+  }
+
+  @override
+  Future<Result<void>> removeMedia(
+    String contributionId,
+    String mediaAssetId,
+  ) async {
+    return _runAuthenticated((token) async {
+      await _apiClient.deleteJson(
+        ApiEndpoints.contributionMediaItem(contributionId, mediaAssetId),
+        token: token,
+        idempotencyKey: _idempotencyKey('media-remove'),
       );
       return const Success(null);
     });
@@ -183,7 +223,9 @@ class RemoteContributionRepository implements ContributionRepository {
       payload['contribution_intent'] = input.contributionIntent!.trim();
     }
     if (lastKnownUpdatedAt != null) {
-      payload['last_known_updated_at'] = lastKnownUpdatedAt.toUtc().toIso8601String();
+      payload['last_known_updated_at'] = lastKnownUpdatedAt
+          .toUtc()
+          .toIso8601String();
     }
 
     return payload;
@@ -215,10 +257,11 @@ class RemoteContributionRepository implements ContributionRepository {
         exception: exception,
       );
     } on Object catch (exception) {
-      return Failure(
-        'Unable to reach the server.',
-        exception: exception,
-      );
+      return Failure('Unable to reach the server.', exception: exception);
     }
+  }
+
+  String _idempotencyKey(String purpose) {
+    return '$purpose-${DateTime.now().microsecondsSinceEpoch}';
   }
 }

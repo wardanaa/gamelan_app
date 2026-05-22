@@ -1,5 +1,6 @@
 import '../../../core/api/api_parsers.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
+import '../../contributions/data/media_asset_model.dart';
 
 class KnowledgeItem {
   const KnowledgeItem({
@@ -13,6 +14,7 @@ class KnowledgeItem {
     required this.provenanceSummary,
     this.slug,
     this.isCommunityApproved = false,
+    this.mediaAssets = const [],
   });
 
   final String id;
@@ -25,6 +27,7 @@ class KnowledgeItem {
   final String provenanceSummary;
   final String? slug;
   final bool isCommunityApproved;
+  final List<MediaAssetModel> mediaAssets;
 
   static KnowledgeItem? fromApi(
     Map<String, Object?> json, {
@@ -47,21 +50,23 @@ class KnowledgeItem {
       slug: stringFrom(source, const ['slug']),
       title: title,
       description: stringFrom(source, const ['description']) ?? '',
-      knowledgeType: stringFrom(source, const ['knowledge_type_label']) ??
+      knowledgeType:
+          stringFrom(source, const ['knowledge_type_label']) ??
           (knowledgeSlug == null
               ? 'Unknown'
               : mapper.knowledgeLabelFromSlug(knowledgeSlug)),
-      gamelanType: stringFrom(source, const ['gamelan_type_label']) ??
+      gamelanType:
+          stringFrom(source, const ['gamelan_type_label']) ??
           (gamelanSlug == null
               ? 'Unknown'
               : mapper.gamelanLabelFromSlug(gamelanSlug)),
       relations: relations,
       sourceSummary: stringFrom(source, const ['source_summary']) ?? '',
-      provenanceSummary: stringFrom(source, const [
-            'provenance_summary',
-          ]) ??
+      provenanceSummary:
+          stringFrom(source, const ['provenance_summary']) ??
           'Published knowledge from the backend API.',
       isCommunityApproved: true,
+      mediaAssets: MediaAssetModel.listFromApi(source['media_assets']),
     );
   }
 

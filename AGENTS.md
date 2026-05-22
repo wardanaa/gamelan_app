@@ -5,7 +5,7 @@ This repository contains a mobile-based Balinese gamelan knowledge management ap
 The current repository is a Flutter application scaffold. It already contains
 feature folders and placeholder screens for authentication, contributions,
 knowledge browsing, review, and administration. Backend, database, RDF/OWL,
-SPARQL, offline sync, media upload, and AI triage capabilities are target
+SPARQL, offline sync, and AI triage capabilities are target
 architecture unless corresponding code or infrastructure is added later.
 
 The target system combines:
@@ -81,6 +81,9 @@ Current Flutter implementation:
 - `GamelanMvpStore.local()` keeps local repositories for deterministic tests only.
 - `TokenStorage` uses `flutter_secure_storage` for bearer tokens.
 - Contribution drafts are API-only in production wiring; backend validation remains mandatory.
+- Editable draft and needs-revision contributions can attach media through the
+  Laravel media API with safe metadata, consent status, visibility, and removal
+  controls. Offline media upload queues remain target architecture.
 
 When updating documentation, keep this current state separate from target
 architecture requirements.

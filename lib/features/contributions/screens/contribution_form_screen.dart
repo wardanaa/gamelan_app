@@ -313,9 +313,9 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
         setState(() {
           _fieldErrors = validation?.fieldErrors ?? const {};
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(validation?.message ?? message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(validation?.message ?? message)));
     }
   }
 }

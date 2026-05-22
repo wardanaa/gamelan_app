@@ -1,8 +1,7 @@
-import '../../../core/api/api_client.dart';
-import '../../../core/mapping/taxonomy_mapper.dart';
 import '../../../core/utils/result.dart';
 import 'contribution_draft_storage.dart';
 import 'contribution_model.dart';
+import 'media_asset_model.dart';
 
 class ContributionInput {
   const ContributionInput({
@@ -54,6 +53,13 @@ abstract class ContributionRepository {
   Future<Result<ContributionModel>> submitContribution(String id);
 
   Future<Result<void>> archiveContribution(String id);
+
+  Future<Result<MediaAssetModel>> uploadMedia(
+    String contributionId,
+    MediaUploadInput input,
+  );
+
+  Future<Result<void>> removeMedia(String contributionId, String mediaAssetId);
 }
 
 class LocalContributionRepository implements ContributionRepository {
@@ -137,6 +143,9 @@ class LocalContributionRepository implements ContributionRepository {
       contributionIntent: input.contributionIntent,
       knowledgeTypeSlug: input.knowledgeTypeSlug,
       gamelanTypeSlug: input.gamelanTypeSlug,
+      allowedActions: input.submitForReview
+          ? const ['view']
+          : const ['view', 'edit', 'submit', 'archive'],
     );
     _contributions.insert(0, contribution);
     if (contribution.status == ContributionStatus.draft) {
@@ -182,6 +191,7 @@ class LocalContributionRepository implements ContributionRepository {
 
     _contributions[index] = _contributions[index].copyWith(
       status: ContributionStatus.submitted,
+      allowedActions: const ['view'],
     );
     await _persistDrafts();
     return Success(_contributions[index]);
@@ -196,6 +206,77 @@ class LocalContributionRepository implements ContributionRepository {
 
     _contributions[index] = _contributions[index].copyWith(
       status: ContributionStatus.archived,
+      allowedActions: const ['view'],
+    );
+    await _persistDrafts();
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<MediaAssetModel>> uploadMedia(
+    String contributionId,
+    MediaUploadInput input,
+  ) async {
+    final index = _contributions.indexWhere(
+      (item) => item.id == contributionId,
+    );
+    if (index == -1) {
+      return const Failure('Contribution not found.');
+    }
+
+    final contribution = _contributions[index];
+    if (!contribution.canManageMedia) {
+      return const Failure('Media can be attached only to editable drafts.');
+    }
+
+    final asset = MediaAssetModel(
+      id: 'local-media-${DateTime.now().microsecondsSinceEpoch}',
+      title: input.title.trim(),
+      description: input.description?.trim(),
+      mediaType: input.mediaType,
+      consentStatus: input.consentStatus,
+      visibility: input.visibility,
+      culturalSensitivity: input.culturalSensitivity,
+      creator: input.creator?.trim(),
+      credit: input.credit?.trim(),
+      license: input.license?.trim(),
+      recordingDate: input.recordingDate?.trim(),
+      recordingPlace: input.recordingPlace?.trim(),
+      relatedEntityLabel: input.relatedEntityLabel?.trim(),
+      altText: input.altText?.trim(),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    _contributions[index] = contribution.copyWith(
+      mediaAssets: [...contribution.mediaAssets, asset],
+      updatedAt: DateTime.now(),
+    );
+    await _persistDrafts();
+    return Success(asset);
+  }
+
+  @override
+  Future<Result<void>> removeMedia(
+    String contributionId,
+    String mediaAssetId,
+  ) async {
+    final index = _contributions.indexWhere(
+      (item) => item.id == contributionId,
+    );
+    if (index == -1) {
+      return const Failure('Contribution not found.');
+    }
+
+    final contribution = _contributions[index];
+    if (!contribution.canManageMedia) {
+      return const Failure('Media can be removed only from editable drafts.');
+    }
+
+    _contributions[index] = contribution.copyWith(
+      mediaAssets: contribution.mediaAssets
+          .where((asset) => asset.id != mediaAssetId)
+          .toList(growable: false),
+      updatedAt: DateTime.now(),
     );
     await _persistDrafts();
     return const Success(null);

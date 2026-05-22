@@ -29,6 +29,11 @@ class LocalReviewRepository implements ReviewRepository {
                   contribution.status == ContributionStatus.submitted ||
                   contribution.status == ContributionStatus.underReview,
             )
+            .map(
+              (contribution) => contribution.copyWith(
+                allowedActions: const ['approve', 'reject', 'request_revision'],
+              ),
+            )
             .toList(growable: false),
       ),
       Failure<List<ContributionModel>>(:final message, :final exception) =>

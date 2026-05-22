@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../features/contributions/data/contribution_model.dart';
 import '../../features/contributions/data/contribution_repository.dart';
+import '../../features/contributions/data/media_asset_model.dart';
 import '../../features/knowledge/data/knowledge_item.dart';
 import '../../features/knowledge/data/knowledge_repository.dart';
 import '../../features/knowledge/data/local_knowledge_repository.dart';
@@ -16,7 +17,9 @@ class GamelanMvpStore extends ChangeNotifier {
     return GamelanMvpStore._(
       contributionRepository: contributions,
       reviewRepository: LocalReviewRepository(contributions: contributions),
-      knowledgeRepository: LocalKnowledgeRepository(contributions: contributions),
+      knowledgeRepository: LocalKnowledgeRepository(
+        contributions: contributions,
+      ),
       taxonomyMapper: taxonomyMapper ?? TaxonomyMapper(),
     );
   }
@@ -154,7 +157,9 @@ class GamelanMvpStore extends ChangeNotifier {
         consentGiven: consentGiven,
         submitForReview: submitForReview,
         contributionIntent: contributionIntent,
-        knowledgeTypeSlug: _taxonomyMapper.knowledgeSlugFromLabel(knowledgeType),
+        knowledgeTypeSlug: _taxonomyMapper.knowledgeSlugFromLabel(
+          knowledgeType,
+        ),
         gamelanTypeSlug: _taxonomyMapper.gamelanSlugFromLabel(gamelanType),
       ),
     );
@@ -183,6 +188,45 @@ class GamelanMvpStore extends ChangeNotifier {
         notifyListeners();
         return Failure(message, exception: exception);
     }
+  }
+
+  Future<Result<MediaAssetModel>> uploadContributionMedia(
+    String contributionId,
+    MediaUploadInput input,
+  ) async {
+    final result = await _contributionRepository.uploadMedia(
+      contributionId,
+      input,
+    );
+    switch (result) {
+      case Success<MediaAssetModel>(:final value):
+        _lastError = null;
+        await _refreshState();
+        return Success(value);
+      case Failure<MediaAssetModel>(:final message, :final exception):
+        _lastError = message;
+        notifyListeners();
+        return Failure(message, exception: exception);
+    }
+  }
+
+  Future<Result<void>> removeContributionMedia(
+    String contributionId,
+    String mediaAssetId,
+  ) async {
+    final result = await _contributionRepository.removeMedia(
+      contributionId,
+      mediaAssetId,
+    );
+    switch (result) {
+      case Success<void>():
+        _lastError = null;
+        await _refreshState();
+      case Failure<void>(:final message):
+        _lastError = message;
+        notifyListeners();
+    }
+    return result;
   }
 
   ContributionModel? contributionById(String id) {
@@ -221,15 +265,23 @@ class GamelanMvpStore extends ChangeNotifier {
   }
 
   Future<Result<void>> requestChanges(String id, String note) async {
-    return _runReviewAction(
-      () => _reviewRepository.requestChanges(id, note),
-    );
+    return _runReviewAction(() => _reviewRepository.requestChanges(id, note));
   }
 
   Map<String, List<String>>? validationErrorsFromFailure(
     Result<ContributionModel> result,
   ) {
     if (result is! Failure<ContributionModel>) {
+      return null;
+    }
+    final validation = validationExceptionFrom(result.exception);
+    return validation?.fieldErrors;
+  }
+
+  Map<String, List<String>>? mediaValidationErrorsFromFailure(
+    Result<MediaAssetModel> result,
+  ) {
+    if (result is! Failure<MediaAssetModel>) {
       return null;
     }
     final validation = validationExceptionFrom(result.exception);
@@ -257,15 +309,18 @@ class GamelanMvpStore extends ChangeNotifier {
   }
 
   Future<void> _loadTaxonomy() async {
-    final knowledgeTypesResult = await _knowledgeRepository.fetchKnowledgeTypes();
+    final knowledgeTypesResult = await _knowledgeRepository
+        .fetchKnowledgeTypes();
     final gamelanTypesResult = await _knowledgeRepository.fetchGamelanTypes();
 
     final knowledgeTypes = switch (knowledgeTypesResult) {
-      Success<List<TaxonomyOption>>(:final value) when value.isNotEmpty => value,
+      Success<List<TaxonomyOption>>(:final value) when value.isNotEmpty =>
+        value,
       _ => TaxonomyMapper.defaultKnowledgeTypes,
     };
     final gamelanTypes = switch (gamelanTypesResult) {
-      Success<List<TaxonomyOption>>(:final value) when value.isNotEmpty => value,
+      Success<List<TaxonomyOption>>(:final value) when value.isNotEmpty =>
+        value,
       _ => TaxonomyMapper.defaultGamelanTypes,
     };
 
@@ -276,10 +331,12 @@ class GamelanMvpStore extends ChangeNotifier {
   }
 
   Future<void> _refreshState() async {
-    final contributionsResult = await _contributionRepository.fetchContributions();
+    final contributionsResult = await _contributionRepository
+        .fetchContributions();
     final reviewQueueResult = await _reviewRepository.fetchReviewQueue();
     final knowledgeResult = await _knowledgeRepository.fetchKnowledgeItems();
-    final statusCountsResult = await _contributionRepository.fetchStatusCounts();
+    final statusCountsResult = await _contributionRepository
+        .fetchStatusCounts();
 
     switch (contributionsResult) {
       case Success<List<ContributionModel>>(:final value):

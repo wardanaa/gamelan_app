@@ -79,16 +79,22 @@ class RemoteKnowledgeRepository implements KnowledgeRepository {
             ? null
             : _taxonomyMapper.knowledgeSlugFromLabel(knowledgeType));
 
+    final queryParameters = <String, String>{
+      'q': normalizedQuery,
+      'per_page': '50',
+    };
+    if (gamelanSlug != null) {
+      queryParameters['gamelan_type'] = gamelanSlug;
+    }
+    if (knowledgeSlug != null) {
+      queryParameters['knowledge_type'] = knowledgeSlug;
+    }
+
     return _run((token) async {
       final response = await _apiClient.getJson(
         ApiEndpoints.search,
         token: token,
-        queryParameters: {
-          'q': normalizedQuery,
-          if (gamelanSlug != null) 'gamelan_type': gamelanSlug,
-          if (knowledgeSlug != null) 'knowledge_type': knowledgeSlug,
-          'per_page': '50',
-        },
+        queryParameters: queryParameters,
       );
       return Success(_searchResultsFromApi(response.data));
     });
@@ -103,9 +109,7 @@ class RemoteKnowledgeRepository implements KnowledgeRepository {
       );
       final options = TaxonomyMapper.optionsFromApiList(response.data);
       return Success(
-        options.isEmpty
-            ? TaxonomyMapper.defaultKnowledgeTypes
-            : options,
+        options.isEmpty ? TaxonomyMapper.defaultKnowledgeTypes : options,
       );
     });
   }

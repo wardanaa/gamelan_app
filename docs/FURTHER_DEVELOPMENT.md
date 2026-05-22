@@ -11,17 +11,18 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - `/me` profile loading for new and restored sessions
 - expired or invalid saved-token handling when `/me` returns unauthenticated
 - secure device storage for the access token
-- Laravel API-backed contributions, review queue, and knowledge browse/search
+- Laravel API-backed contributions, contribution media upload/removal, review
+  queue, and knowledge browse/search
 - API-only contribution drafts in production wiring
 - mobile UX validation with backend `422` and `409` error handling
 - role-aware Review tab gating from backend profile roles
 - repository interfaces with remote production implementations and local test
   implementations
 
-The current app does not include media upload, RDF publication UI, provenance
-and version screens, semantic-search fallback UI, encrypted sensitive draft
-storage, full offline sync, expert-validation-specific mobile flows, or AI
-triage display beyond API-provided suggestions.
+The current app does not include RDF publication UI, provenance and version
+screens, semantic-search fallback UI, encrypted sensitive draft storage, full
+offline sync, offline media upload queues, expert-validation-specific mobile
+flows, or AI triage display beyond API-provided suggestions.
 
 ## Recommended Next Steps
 
@@ -44,9 +45,11 @@ triage display beyond API-provided suggestions.
    follow-up: broader live integration coverage and conflict-resolution UI for
    concurrent edits.
 
-4. Add media metadata and upload flow.
-   Start with media metadata and consent handling before enabling file upload.
-   Sensitive or restricted media must not be publicly exposed by default.
+4. Add media metadata and upload flow. Implemented for online editable drafts.
+   Contributors can attach media with consent, visibility, sensitivity, and
+   descriptive metadata through the Laravel API, then remove attachments before
+   submission. Sensitive or restricted media is not publicly exposed by default.
+   Offline media upload queues remain future work.
 
 5. Add role-aware review and expert validation.
    Replace demo role labels with backend roles and policies. Add a distinct

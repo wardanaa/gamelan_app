@@ -100,10 +100,7 @@ class TaxonomyMapper {
     if (slug == null) {
       return null;
     }
-    return TaxonomyOption(
-      slug: slug,
-      label: label ?? _titleCaseSlug(slug),
-    );
+    return TaxonomyOption(slug: slug, label: label ?? _titleCaseSlug(slug));
   }
 
   static String? _slugFromLabel(List<TaxonomyOption> options, String label) {

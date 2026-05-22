@@ -74,9 +74,10 @@ GAMELAN_TEST_PASSWORD
 ```
 
 That live test currently exercises authentication only (`POST /auth/login`,
-`GET /me`, `POST /auth/logout`). Media upload, RDF publication, provenance
-screens, semantic-search fallback UI, SPARQL proxy usage, and full offline sync
-remain target architecture in the mobile app.
+`GET /me`, `POST /auth/logout`). The mobile app implements online media
+upload/removal for editable contributions, while RDF publication, provenance
+screens, semantic-search fallback UI, SPARQL proxy usage, offline media queues,
+and full offline sync remain target architecture in the mobile app.
 
 Chrome web execution of the live authentication test should use the Flutter
 driver entrypoint at `test_driver/integration_test.dart`:

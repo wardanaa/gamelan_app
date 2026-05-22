@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -35,10 +36,7 @@ class ApiClient {
       return uri;
     }
     return uri.replace(
-      queryParameters: {
-        ...uri.queryParameters,
-        ...queryParameters,
-      },
+      queryParameters: {...uri.queryParameters, ...queryParameters},
     );
   }
 
@@ -94,11 +92,54 @@ class ApiClient {
     return _parseResponse(response);
   }
 
+  Future<ApiResponse> postMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required String fileField,
+    required String filename,
+    String? filePath,
+    Uint8List? bytes,
+    String? token,
+    String? idempotencyKey,
+  }) async {
+    if ((filePath == null || filePath.isEmpty) && bytes == null) {
+      throw ArgumentError('A multipart upload requires a file path or bytes.');
+    }
+
+    final request = http.MultipartRequest('POST', endpoint(path));
+    request.headers.addAll(
+      _writeHeaders(
+        token: token,
+        idempotencyKey: idempotencyKey,
+        includeContentType: false,
+      ),
+    );
+    request.fields.addAll(fields);
+    request.files.add(
+      filePath != null && filePath.isNotEmpty
+          ? await http.MultipartFile.fromPath(
+              fileField,
+              filePath,
+              filename: filename,
+            )
+          : http.MultipartFile.fromBytes(fileField, bytes!, filename: filename),
+    );
+
+    final streamedResponse = await _httpClient.send(request);
+    final response = await http.Response.fromStream(streamedResponse);
+    return _parseResponse(response);
+  }
+
   Map<String, String> _writeHeaders({
     String? token,
     String? idempotencyKey,
+    bool includeContentType = true,
   }) {
-    final headers = authInterceptor.jsonHeaders(token: token);
+    final headers = includeContentType
+        ? authInterceptor.jsonHeaders(token: token)
+        : authInterceptor.attachToken(const {
+            'Accept': 'application/json',
+          }, token: token);
     if (idempotencyKey != null && idempotencyKey.isNotEmpty) {
       return {...headers, 'Idempotency-Key': idempotencyKey};
     }

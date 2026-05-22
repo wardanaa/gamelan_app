@@ -13,10 +13,7 @@ class RepositoryValidationException implements Exception {
 }
 
 class RepositoryConflictException implements Exception {
-  const RepositoryConflictException({
-    required this.message,
-    this.exception,
-  });
+  const RepositoryConflictException({required this.message, this.exception});
 
   final String message;
   final Object? exception;

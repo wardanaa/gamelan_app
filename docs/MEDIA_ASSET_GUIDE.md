@@ -4,11 +4,22 @@ This document defines rules for audio, video, image, and document assets.
 
 ## Current Implementation
 
-Media upload and media metadata management are not implemented in the current
-local Flutter MVP. There are no media models, upload screens, upload queues,
-storage configuration, or backend validation endpoints yet.
+The Flutter app implements online media attachment for editable contribution
+drafts and needs-revision contributions through the Laravel media API.
 
-This guide defines target media behavior for future mobile and backend work.
+Implemented mobile behavior:
+
+- safe media metadata models for contribution, review, and public knowledge
+  responses
+- file selection with `file_picker`
+- multipart upload to `POST /api/v1/contributions/{uuid}/media`
+- removal through `DELETE /api/v1/contributions/{uuid}/media/{media_asset_uuid}`
+- consent, visibility, and cultural-sensitivity checks before upload
+- read-only media metadata on review and public knowledge detail screens
+
+The mobile app does not implement an offline media upload queue, media playback,
+download links, storage configuration, malware scanning, or public URL handling.
+Backend validation and authorization remain mandatory.
 
 ## Supported Media Types
 
@@ -108,6 +119,10 @@ API clients should:
 - allow removal before submission
 
 The API must enforce upload permission, consent status, file validation, and media visibility regardless of client behavior.
+
+Current Flutter upload UI supports draft attachment and removal with retry-safe
+API calls. Full progress display and offline queued retry remain target
+capabilities.
 
 ## Implemented MVP Endpoints
 

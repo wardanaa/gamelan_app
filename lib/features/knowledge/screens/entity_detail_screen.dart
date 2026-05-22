@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/state/gamelan_scope.dart';
+import '../../contributions/widgets/media_asset_list.dart';
 
 class EntityDetailScreen extends StatelessWidget {
   const EntityDetailScreen({required this.itemId, super.key});
@@ -43,6 +44,23 @@ class EntityDetailScreen extends StatelessWidget {
           _DetailSection(title: 'Relations', body: item.relations.join('\n')),
           _DetailSection(title: 'Source', body: item.sourceSummary),
           _DetailSection(title: 'Provenance', body: item.provenanceSummary),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Public media metadata',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                MediaAssetList(
+                  assets: item.mediaAssets,
+                  emptyText: 'No public media metadata is available.',
+                ),
+              ],
+            ),
+          ),
           const Card(
             child: Padding(
               padding: EdgeInsets.all(16),

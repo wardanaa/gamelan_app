@@ -51,10 +51,7 @@ class RemoteReviewRepository implements ReviewRepository {
     String contributionId,
     String note,
   ) async {
-    return _postDecision(
-      ApiEndpoints.reviewReject(contributionId),
-      note: note,
-    );
+    return _postDecision(ApiEndpoints.reviewReject(contributionId), note: note);
   }
 
   @override

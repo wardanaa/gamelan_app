@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/state/gamelan_scope.dart';
 import '../../contributions/data/contribution_model.dart';
+import '../../contributions/widgets/media_asset_list.dart';
 import 'review_decision_screen.dart';
 
 class ReviewDetailScreen extends StatelessWidget {
@@ -21,12 +22,13 @@ class ReviewDetailScreen extends StatelessWidget {
       );
     }
 
-    final canApprove = _allowsAction(contribution, 'approve', 'recommend_approve');
-    final canReject = _allowsAction(contribution, 'reject', 'recommend_reject');
-    final canRequestRevision = _allowsAction(
+    final canApprove = _allowsAction(
       contribution,
-      'request_revision',
+      'approve',
+      'recommend_approve',
     );
+    final canReject = _allowsAction(contribution, 'reject', 'recommend_reject');
+    final canRequestRevision = _allowsAction(contribution, 'request_revision');
 
     return Scaffold(
       appBar: const _ReviewDetailAppBar(title: 'Review details'),
@@ -65,6 +67,7 @@ class ReviewDetailScreen extends StatelessWidget {
                 ? 'No contributor note.'
                 : contribution.contributorNote,
           ),
+          _ReviewMediaSection(contribution: contribution),
           const Card(
             child: Padding(
               padding: EdgeInsets.all(16),
@@ -141,6 +144,33 @@ class ReviewDetailScreen extends StatelessWidget {
           action: action,
           contributionId: contributionId,
         ),
+      ),
+    );
+  }
+}
+
+class _ReviewMediaSection extends StatelessWidget {
+  const _ReviewMediaSection({required this.contribution});
+
+  final ContributionModel contribution;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Media evidence',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          MediaAssetList(
+            assets: contribution.mediaAssets,
+            emptyText: 'No media evidence is attached.',
+          ),
+        ],
       ),
     );
   }

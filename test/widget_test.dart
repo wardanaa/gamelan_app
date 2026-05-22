@@ -5,8 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/core/api/api_client.dart';
 import 'package:gamelan_app/core/state/gamelan_mvp_store.dart';
 import 'package:gamelan_app/core/storage/token_storage.dart';
+import 'package:gamelan_app/core/utils/result.dart';
 import 'package:gamelan_app/app.dart';
 import 'package:gamelan_app/features/auth/data/auth_repository.dart';
+import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
+import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
+import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
+import 'package:gamelan_app/features/knowledge/data/local_knowledge_repository.dart';
+import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +23,7 @@ void main() {
     bool resetPreferences = true,
     bool authenticated = true,
     http.Client? httpClient,
+    GamelanMvpStore? store,
   }) async {
     if (resetPreferences) {
       SharedPreferences.setMockInitialValues({});
@@ -40,7 +47,7 @@ void main() {
     await tester.pumpWidget(
       GamelanApp(
         authRepository: authRepository,
-        store: GamelanMvpStore.local(),
+        store: store ?? GamelanMvpStore.local(),
       ),
     );
     await tester.pumpAndSettle();
@@ -359,9 +366,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text(
-        'Complete the required fields before submitting for review.',
-      ),
+      find.text('Complete the required fields before submitting for review.'),
       findsOneWidget,
     );
 
@@ -487,6 +492,98 @@ void main() {
     expect(find.text('Submitted reyong note'), findsNothing);
   });
 
+  testWidgets('draft contribution detail shows editable media section', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(tester);
+
+    await tester.tap(find.text('Contribute'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New contribution'));
+    await tester.pumpAndSettle();
+
+    await fillRequiredContributionFields(tester, title: 'Draft media note');
+    await tester.tap(find.text('Save draft'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Draft media note'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Media attachments'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Add media'), findsOneWidget);
+    expect(find.text('No media attachments yet.'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Add media'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Upload media'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose a file to upload.'), findsOneWidget);
+  });
+
+  testWidgets('submitted contribution hides media management actions', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(tester);
+
+    await tester.tap(find.text('Contribute'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New contribution'));
+    await tester.pumpAndSettle();
+
+    await fillRequiredContributionFields(tester, title: 'Submitted media note');
+    await tester.tap(find.text('Submit for review'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Submitted media note'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Media attachments'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Add media'), findsNothing);
+  });
+
+  testWidgets('review detail shows read-only media metadata', (
+    WidgetTester tester,
+  ) async {
+    final contributions = LocalContributionRepository();
+    final draftResult = await contributions.createContribution(
+      contributionInput(title: 'Review media note', submitForReview: false),
+    );
+    final draft = switch (draftResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+    await contributions.uploadMedia(
+      draft.id,
+      const MediaUploadInput(
+        title: 'Gangsa photo',
+        mediaType: MediaType.image,
+        consentStatus: MediaConsentStatus.granted,
+        visibility: MediaVisibility.private,
+        culturalSensitivity: false,
+        filename: 'gangsa.jpg',
+        altText: 'Gangsa instrument documentation.',
+      ),
+    );
+    await contributions.submitContribution(draft.id);
+    final store = GamelanMvpStore(
+      contributionRepository: contributions,
+      reviewRepository: LocalReviewRepository(contributions: contributions),
+      knowledgeRepository: LocalKnowledgeRepository(
+        contributions: contributions,
+      ),
+    );
+
+    await pumpMvpApp(tester, store: store);
+    await tester.tap(find.text('Review'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Review media note'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Media evidence'), findsOneWidget);
+    expect(find.text('Gangsa photo'), findsOneWidget);
+    expect(find.textContaining('Alt text: Gangsa instrument'), findsOneWidget);
+    expect(find.byTooltip('Remove media'), findsNothing);
+  });
+
   testWidgets('approved contribution becomes searchable knowledge', (
     WidgetTester tester,
   ) async {
@@ -530,6 +627,24 @@ void main() {
     expect(find.text('Kempli pulse'), findsOneWidget);
     expect(find.byIcon(Icons.verified_outlined), findsWidgets);
   });
+}
+
+ContributionInput contributionInput({
+  required String title,
+  bool submitForReview = true,
+}) {
+  return ContributionInput(
+    title: title,
+    description: 'Local practice note for widget testing.',
+    knowledgeType: 'Instrument',
+    gamelanType: 'Gong Kebyar',
+    sourceNote: 'Contributor interview summary.',
+    contributorNote: 'Widget test note.',
+    culturalSensitivity: false,
+    consentGiven: true,
+    submitForReview: submitForReview,
+    contributionIntent: 'new_entity',
+  );
 }
 
 class MemoryTokenStorageBackend implements TokenStorageBackend {

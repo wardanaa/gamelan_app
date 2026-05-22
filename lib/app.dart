@@ -266,57 +266,61 @@ class _HomeTab extends StatelessWidget {
             .toList(growable: false);
 
         return Scaffold(
-      appBar: AppBar(title: const Text('Gamelan Knowledge MVP')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          appBar: AppBar(title: const Text('Gamelan Knowledge MVP')),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Backend-connected MVP',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Contributions, media attachments, review, and published knowledge load from the Laravel API. RDF publication and offline sync are not implemented yet.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Featured knowledge',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              for (final item in featuredItems)
+                Card(
+                  child: ListTile(
+                    title: Text(item.title),
+                    subtitle: Text(
+                      '${item.knowledgeType} • ${item.gamelanType}',
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              Text(
+                'Contribution status',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  Text(
-                    'Backend-connected MVP',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Contributions, review, and published knowledge load from the Laravel API. RDF publication, media upload, and offline sync are not implemented yet.',
-                  ),
+                  for (final status in ContributionStatus.values)
+                    Chip(
+                      label: Text('${status.label}: ${counts[status] ?? 0}'),
+                    ),
                 ],
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Featured knowledge',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          for (final item in featuredItems)
-            Card(
-              child: ListTile(
-                title: Text(item.title),
-                subtitle: Text('${item.knowledgeType} • ${item.gamelanType}'),
-              ),
-            ),
-          const SizedBox(height: 16),
-          Text(
-            'Contribution status',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final status in ContributionStatus.values)
-                Chip(label: Text('${status.label}: ${counts[status] ?? 0}')),
             ],
           ),
-        ],
-      ),
         );
       },
     );

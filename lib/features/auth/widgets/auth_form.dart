@@ -182,7 +182,9 @@ class _AuthFormState extends State<AuthForm> {
     widget.onSubmit(
       email: _emailController.text,
       password: _passwordController.text,
-      passwordConfirmation: widget.mode == AuthFormMode.register ? _confirmPasswordController.text : null,
+      passwordConfirmation: widget.mode == AuthFormMode.register
+          ? _confirmPasswordController.text
+          : null,
       name: widget.mode == AuthFormMode.register ? _nameController.text : null,
     );
   }

@@ -28,8 +28,13 @@ The current app is a backend-connected Flutter MVP:
   data uses `GET /knowledge-items`.
 - Contribution forms apply mobile UX validation, send API slug values for
   knowledge and gamelan types, and surface backend `422`/`409` responses.
+- Editable contribution detail screens support media attachment and removal
+  through the Laravel media API. The upload form captures file, consent,
+  visibility, cultural sensitivity, and descriptive metadata.
 - Review screens call backend review endpoints and render actions from API
   `allowed_actions` when present.
+- Review and knowledge detail screens render safe read-only media metadata when
+  the API includes `media_assets`.
 - `AuthRepository` performs real JSON registration, login, logout, and `/me`
   profile requests against the configured Laravel API base URL.
 - `TokenStorage` stores the access token through `flutter_secure_storage`.
@@ -42,9 +47,9 @@ The current app is a backend-connected Flutter MVP:
   handling. Widget tests inject local repositories for offline flows.
 - An opt-in live Laravel-backed integration test currently exercises only the
   authentication flow when backend test dart-defines are provided.
-- Media upload, RDF publication, provenance/version screens, semantic-search
-  fallback UI, SPARQL proxy usage, encrypted sensitive draft storage, and full
-  offline sync remain target architecture.
+- RDF publication, provenance/version screens, semantic-search fallback UI,
+  SPARQL proxy usage, encrypted sensitive draft storage, offline media upload
+  queues, and full offline sync remain target architecture.
 - Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -60,6 +65,7 @@ Current:
 - Flutter test
 - `http` for current authentication API requests
 - `flutter_secure_storage` for access-token storage
+- `file_picker` for media file selection
 
 Current testing:
 
@@ -167,8 +173,10 @@ The current local MVP contribution form supports:
 - Save as draft
 - Submit for review
 
-Target future additions include related entity selection, media attachments, and
+Target future additions include related entity selection and richer
 backend-backed validation.
+Current media attachment is available from editable contribution detail screens
+after a draft exists.
 
 ## Status Display
 

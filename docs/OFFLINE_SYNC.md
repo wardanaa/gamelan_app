@@ -15,6 +15,7 @@ truth for draft, submitted, review, and published knowledge state.
 The mobile app has no sync queue, no media upload queue, and no dedicated
 conflict-resolution screen yet, although the contribution update API already
 supports `last_known_updated_at` and returns `409 Conflict` for stale edits.
+Media upload is currently online-only for editable API-backed contributions.
 Authentication tokens are stored separately with secure device storage and are
 not part of any offline draft cache.
 
