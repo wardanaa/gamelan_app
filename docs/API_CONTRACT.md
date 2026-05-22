@@ -149,7 +149,8 @@ Expected auth data:
 
 ```json
 {
-  "access_token": "opaque-token",
+  "token": "opaque-token",
+  "token_type": "Bearer",
   "token_expires_at": "2026-05-20T12:00:00Z",
   "user": {
     "name": "Curator User",
@@ -159,6 +160,8 @@ Expected auth data:
   }
 }
 ```
+
+The Flutter app checks for both `token` and `access_token` keys for compatibility.
 
 `GET /me` should return the authenticated user profile with the same `user`
 shape. Mobile role checks are only UX gates; Laravel policies must still enforce

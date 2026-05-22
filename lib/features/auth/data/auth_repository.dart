@@ -139,7 +139,7 @@ class AuthRepository {
   Future<Result<AuthSession>> _sessionFromTokenResponse(
     Map<String, Object?> data,
   ) async {
-    final token = _stringFrom(data, const ['access_token']);
+    final token = _stringFrom(data, const ['access_token', 'token']);
     if (token == null || token.isEmpty) {
       return const Failure('Authentication response did not include a token.');
     }
