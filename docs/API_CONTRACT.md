@@ -134,6 +134,17 @@ POST /auth/logout
 GET  /me
 ```
 
+Expected registration payload:
+
+```json
+{
+  "name": "Made Contributor",
+  "email": "made@example.com",
+  "password": "secretpassword",
+  "password_confirmation": "secretpassword"
+}
+```
+
 Expected auth data:
 
 ```json

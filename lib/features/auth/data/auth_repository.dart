@@ -65,6 +65,7 @@ class AuthRepository {
     required String name,
     required String email,
     required String password,
+    required String passwordConfirmation,
   }) async {
     try {
       final response = await _apiClient.postJson(
@@ -73,6 +74,7 @@ class AuthRepository {
           'name': name.trim(),
           'email': email.trim(),
           'password': password,
+          'password_confirmation': passwordConfirmation,
         },
       );
       return _sessionFromTokenResponse(response.dataMap);

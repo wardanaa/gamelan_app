@@ -77,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submitAuth({
     required String email,
     required String password,
+    String? passwordConfirmation,
     String? name,
   }) async {
     setState(() {
@@ -93,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
         name: name ?? '',
         email: email,
         password: password,
+        passwordConfirmation: passwordConfirmation ?? '',
       ),
     };
     if (!mounted) {

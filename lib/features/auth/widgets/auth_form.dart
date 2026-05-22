@@ -4,6 +4,7 @@ typedef AuthFormSubmit =
     void Function({
       required String email,
       required String password,
+      String? passwordConfirmation,
       String? name,
     });
 
@@ -181,6 +182,7 @@ class _AuthFormState extends State<AuthForm> {
     widget.onSubmit(
       email: _emailController.text,
       password: _passwordController.text,
+      passwordConfirmation: widget.mode == AuthFormMode.register ? _confirmPasswordController.text : null,
       name: widget.mode == AuthFormMode.register ? _nameController.text : null,
     );
   }
