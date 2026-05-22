@@ -26,6 +26,8 @@ The current app does not include backend persistence for contribution/review
 data, encrypted sensitive draft storage, media upload, RDF/OWL generation,
 SPARQL-backed search, expert validation, or AI triage.
 
+*Note: The Laravel backend repository (`gamelan-api`) has now implemented these target features. The primary next step for this mobile application is API integration.*
+
 ## Recommended Next Steps
 
 1. Continue backend authorization integration.

@@ -48,6 +48,8 @@ AI must not:
 
 All AI output must be stored as suggestion.
 
+MVP 9 uses rule-based preprocessing only. It does not call an external AI provider, does not store raw prompts, and does not store raw model responses. Triage runs automatically after successful contribution submission only when `AI_TRIAGE_ENABLED=true`; the default is disabled.
+
 Suggested fields:
 
 ```txt
@@ -85,3 +87,25 @@ Curator UI must clearly label AI output:
 ```txt
 AI suggestion, not validated.
 ```
+
+## Implemented MVP 9 Behavior
+
+Implemented rule-based triage may suggest:
+
+- duplicate candidates from published public knowledge items and non-sensitive submitted review candidates
+- entity type and ontology class hints from the submitted `knowledge_type`
+- relation hints using only documented MVP ontology properties
+- missing metadata such as related entities, source strength, language, media license, media credit, consent, and recording place
+- language normalization for simple spacing and language metadata defaults
+- curator summaries extracted from submitted text only
+
+The backend stores one `triage_results` record per run and mirrors the latest suggestion into `contributions.ai_*` fields for operational convenience. Review-facing resources expose `triage_suggestion` only to authorized non-owner review roles. Public endpoints, normal contributor contribution endpoints, RDF publication responses, and SPARQL responses do not expose triage suggestions.
+
+Triage must not:
+
+- change contribution workflow status
+- create review decisions
+- create approved ontology mappings
+- queue or publish RDF
+- create public knowledge items
+- override curator or expert decisions

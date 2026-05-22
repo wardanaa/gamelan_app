@@ -1,6 +1,6 @@
 # Documentation Index
 
-This folder contains documentation for the mobile-based Balinese gamelan knowledge management application.
+This folder contains documentation for the Laravel REST API backend for a Balinese gamelan knowledge management platform.
 
 ## Current Implementation Status
 
@@ -39,10 +39,12 @@ corresponding implementation appears in the repository.
 | File | Purpose |
 |---|---|
 | `PRODUCT_CONTEXT.md` | Project background, goals, scope, and users |
+| `FURTHER_DEVELOPMENT.md` | MVP-focused backend development roadmap and next-step backlog |
 | `ARCHITECTURE.md` | System architecture and module boundaries |
-| `MOBILE_APP_GUIDE.md` | Flutter mobile app development guide |
 | `BACKEND_GUIDE.md` | Laravel backend development guide |
 | `API_CONTRACT.md` | REST API standards and endpoint examples |
+| `API_CLIENT_GUIDE.md` | API client contract expectations for mobile, web, or other consumers |
+| `API_CLIENT_EXPERIENCE.md` | Client-facing response, validation, and accessibility support |
 | `DATA_MODEL.md` | Relational database model and workflow tables |
 | `KNOWLEDGE_MODEL.md` | Domain concepts, entities, and relations |
 | `ONTOLOGY_GUIDE.md` | RDF/OWL ontology modeling guide |
@@ -51,26 +53,24 @@ corresponding implementation appears in the repository.
 | `PROVENANCE_VERSIONING.md` | Provenance, audit trail, and versioning rules |
 | `AI_TRIAGE_GUIDE.md` | Safe AI-assisted preprocessing rules |
 | `MEDIA_ASSET_GUIDE.md` | Audio, image, video, document, and metadata rules |
-| `OFFLINE_SYNC.md` | Offline-first and synchronization behavior |
+| `SYNC_IDEMPOTENCY_GUIDE.md` | Retry-safe sync, idempotency, and offline-capable client support |
 | `SECURITY_PRIVACY.md` | Security, privacy, and cultural sensitivity rules |
-| `ACCESSIBILITY_UX.md` | Mobile UX and accessibility baseline |
 | `EVALUATION_QA.md` | Research and software evaluation plan |
 | `CODE_STYLE.md` | Naming, formatting, and coding standards |
 | `DEPLOYMENT.md` | Deployment, environment, and release workflow |
-| `FURTHER_DEVELOPMENT.md` | Suggested next development steps after the local MVP |
 
 ## Main Principle
 
-This project is not just a mobile CRUD app.
+This project is not just a CRUD API.
 
 It is a cultural knowledge management system with a semantic layer, validation workflow, and community participation. Code changes must protect cultural accuracy, provenance, and long-term knowledge usability.
 
-## Target Stack
+## Default Stack
 
 | Layer | Recommended Stack |
 |---|---|
-| Mobile | Flutter / Dart |
 | Backend | Laravel / PHP |
+| API Clients | Flutter mobile app, web app, or other authorized clients |
 | Database | MySQL or PostgreSQL |
 | Semantic Store | Apache Jena Fuseki or compatible triplestore |
 | Ontology Editing | Protégé |
@@ -78,19 +78,6 @@ It is a cultural knowledge management system with a semantic layer, validation w
 | Semantic Query | SPARQL |
 | Media Storage | Local storage, S3-compatible storage, or institutional server |
 | AI Assistance | External LLM for triage only |
-
-Current implemented stack:
-
-| Layer | Current State |
-|---|---|
-| Mobile | Flutter / Dart local MVP at repository root |
-| State Management | Local `ChangeNotifier` coordinator through `GamelanMvpStore` and `GamelanScope` |
-| Local Data Access | Repository interfaces with local demo implementations for contributions, review, and knowledge |
-| Local Draft Storage | `shared_preferences` for non-sensitive drafts only |
-| API Client | `http` JSON client used for authentication; contribution, review, and knowledge repositories remain local |
-| Token Storage | `flutter_secure_storage` for access tokens |
-| Backend | Not present in this repository |
-| Ontology/SPARQL | Not present in this repository |
 
 ## Primary Knowledge Scope
 

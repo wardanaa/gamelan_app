@@ -21,11 +21,31 @@ http://localhost:3030/gamelan/query
 
 Production endpoint should not be publicly writable.
 
+The backend RDF publication job uses a backend-only SPARQL update endpoint configured through environment variables. API clients must not receive update credentials or call the triplestore directly.
+
+MVP semantic search uses a backend-only SPARQL query endpoint configured through `SPARQL_QUERY_ENDPOINT`. REST endpoints build predefined `SELECT` queries and reconcile RDF bindings with public relational knowledge items before returning client responses.
+
 ## Public Query Policy
 
-Mobile app users should normally access semantic search through REST API endpoints.
+API clients should normally access semantic search through REST API endpoints.
 
 Arbitrary SPARQL query execution should be restricted to admin, curator, developer, or internal services.
+
+Implemented public semantic search:
+
+```txt
+GET /api/v1/search/semantic
+```
+
+Implemented protected predefined proxy:
+
+```txt
+POST /api/v1/sparql/query
+```
+
+The proxy accepts only `published_entities_by_type`, `related_entities`, and `instruments_in_ensemble`. It does not accept raw SPARQL text.
+
+MVP 10 test coverage includes a safe competency-style check for `instruments_in_ensemble` using synthetic published fixtures and faked SPARQL responses. These tests verify that queries use `graph/published`, avoid `graph/draft`, and filter returned RDF bindings through public relational `knowledge_items` before a REST response is returned.
 
 ## Common Prefixes
 
@@ -87,3 +107,22 @@ graph/deprecated
 ```
 
 Only `graph/published` should power public semantic search unless explicitly configured otherwise.
+
+MVP 7 writes validated, non-sensitive entity triples to `graph/published` and publication provenance triples to `graph/provenance`. Draft, rejected, under-review, archived, and culturally sensitive contributions must not be inserted into `graph/published`.
+
+Relevant environment variables:
+
+```txt
+SPARQL_QUERY_ENDPOINT
+SPARQL_QUERY_USERNAME
+SPARQL_QUERY_PASSWORD
+SPARQL_QUERY_TIMEOUT
+SPARQL_UPDATE_ENDPOINT
+SPARQL_UPDATE_USERNAME
+SPARQL_UPDATE_PASSWORD
+SPARQL_UPDATE_TIMEOUT
+RDF_BASE_URI
+RDF_NAMESPACE
+RDF_PUBLISHED_GRAPH_URI
+RDF_PROVENANCE_GRAPH_URI
+```

@@ -59,30 +59,12 @@ The project should be evaluated across:
 
 ## Functional Testing
 
-Current implemented scenario:
+Test scenarios:
 
-- user registration, login, `/me` profile loading, logout, and expired-token
-  clearing
-- opt-in live Laravel authentication smoke coverage for login, profile loading,
-  and logout
-- reviewer role gating for the local Review workflow
-- app shell renders the Material 3 bottom navigation
-- Search shows seeded Gong Kebyar and Gong Gede knowledge
-- contribution form validates title, description, source note, and consent
-- submitted contribution appears in the contribution list and review queue
-- culturally sensitive contribution shows a warning marker
-- approving a contribution moves it into searchable knowledge
-- local repository tests verify non-sensitive draft persistence, sensitive
-  draft exclusion from plain storage, submitted item non-persistence, review
-  queue filtering, review decisions, and approved demo knowledge search
-
-Live Laravel integration tests must not store credentials in the repository or
-print tokens. They do not currently validate contribution persistence, curator
-review approval, semantic search, RDF publication, SPARQL queries, media
-upload, or provenance records.
-
-Target scenarios:
-
+- user registration
+- token-based login/logout
+- current-user retrieval
+- unauthenticated API access
 - browse knowledge items
 - semantic search
 - create draft
@@ -94,7 +76,18 @@ Target scenarios:
 - publish to RDF
 - query published knowledge
 - reject contribution
-- offline draft sync
+- idempotent retry of contribution submission
+- idempotent retry of media upload and removal
+- conflict handling for stale contribution updates
+
+Current schema foundation tests cover:
+
+- domain table creation
+- role seeding without cultural knowledge seed data
+- contribution, review, media, provenance, RDF publication, and idempotency relationships
+- default workflow status, UUID assignment, JSON casts, boolean casts, and date/time casts
+
+Workflow endpoint tests now cover contribution submission, review queue visibility, peer-review recommendation boundaries, curator approval/rejection, expert-required routing, expert validation, self-review blocking, private-note privacy, safe provenance/version timeline access, review provenance/audit records, contribution lifecycle audit records, idempotent trace behavior, stale contribution update conflicts, consent-aware media upload/removal, RDF publication queue/job behavior, published knowledge browsing, keyword search, semantic search fallback behavior, protected predefined SPARQL proxy filtering, and the critical contribution-to-publication flow.
 
 ## Ontology Evaluation
 
@@ -140,3 +133,36 @@ Suggested MVP targets:
 | Contribution submit without media | < 2 seconds |
 | Contribution submit with media | progress visible |
 | RDF publication job | async |
+| AI triage job | async |
+
+## API Contract Evaluation
+
+API evaluation should include:
+
+- stable response envelope
+- field-level validation errors
+- `/api/v1` auth contract for register, login, logout, and current user
+- bearer-token revocation on logout
+- authorization checks for every sensitive endpoint
+- restricted data excluded from public and unauthorized responses
+- retry-safe idempotency behavior for write endpoints
+- safe trace timeline responses for provenance and version endpoints
+- protected RDF publication queueing and failed-publication safety
+- optional AI triage dispatch, review-only suggestion visibility, and suggestion-only side effects
+- public knowledge browsing and search filtering for published, non-sensitive content only
+- semantic search unavailable behavior when the SPARQL query endpoint is not configured
+- protected predefined SPARQL proxy authorization and filtering
+- clear conflict responses for stale or duplicate client requests
+- consistent `/api/v1` route versioning
+
+## Deployment Readiness Evaluation
+
+Run before staging demos or field testing:
+
+```txt
+php artisan gamelan:deployment-check
+php artisan gamelan:deployment-check --json
+composer test
+```
+
+The deployment check reports `pass`, `warn`, or `fail` without printing secrets. Warnings may be acceptable for local development, but staging and production must resolve failures before client field testing.

@@ -1,6 +1,8 @@
 # API Contract
 
-This document defines REST API standards.
+This document defines REST API standards for the Laravel backend.
+
+Endpoint examples describe the intended API v1 contract. Some endpoints may be planned before they are implemented, but new backend work should preserve these route shapes unless a documented versioned change is made.
 
 ## Current Implementation
 
@@ -108,6 +110,8 @@ The contract below is the target REST API contract for the future backend.
 }
 ```
 
+Errors must not expose stack traces, SQL errors, filesystem paths, credentials, private review notes, or restricted cultural knowledge.
+
 ### Pagination
 
 ```json
@@ -128,13 +132,15 @@ The contract below is the target REST API contract for the future backend.
 ### Authentication
 
 ```txt
-POST /auth/register
-POST /auth/login
-POST /auth/logout
-GET  /me
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+GET  /api/v1/me
 ```
 
-Expected registration payload:
+Authentication uses bearer tokens suitable for external mobile and web API clients.
+
+Registration (`POST /api/v1/auth/register`) expects:
 
 ```json
 {
@@ -145,94 +151,477 @@ Expected registration payload:
 }
 ```
 
-Expected auth data:
+Register and login responses return the token once:
 
 ```json
 {
-  "token": "opaque-token",
-  "token_type": "Bearer",
-  "token_expires_at": "2026-05-20T12:00:00Z",
-  "user": {
-    "name": "Curator User",
-    "email": "curator@example.com",
-    "roles": ["curator"],
-    "permissions": ["review.contributions"]
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "user": {
+      "id": 1,
+      "name": "Made Contributor",
+      "email": "made@example.com",
+      "email_verified_at": null,
+      "created_at": "2026-05-20T10:00:00.000000Z",
+      "updated_at": "2026-05-20T10:00:00.000000Z"
+    },
+    "token": "plain-text-token-returned-once",
+    "token_type": "Bearer"
   }
 }
 ```
 
-The Flutter app checks for both `token` and `access_token` keys for compatibility.
+Authenticated requests must send:
 
-`GET /me` should return the authenticated user profile with the same `user`
-shape. Mobile role checks are only UX gates; Laravel policies must still enforce
-authorization on every protected endpoint and return `403` when the user is
-authenticated but not allowed.
+```txt
+Authorization: Bearer <token>
+```
+
+`POST /api/v1/auth/logout` revokes the current bearer token only. User payloads must not include passwords, remember tokens, token model internals, or private profile fields.
 
 ### Knowledge Browsing
 
-The current Flutter constant is `/knowledge`. The target backend should expose
-resource-oriented knowledge endpoints:
+```txt
+GET /api/v1/knowledge-items
+GET /api/v1/knowledge-items/{id}
+GET /api/v1/knowledge-items/{id}/relations
+GET /api/v1/knowledge-types
+GET /api/v1/gamelan-types
+```
+
+Implemented MVP browsing endpoints are public and return only published, non-sensitive content. `{id}` may be either the knowledge item UUID or slug. Public filtering requires:
+
+- `knowledge_items.publish_status = published`
+- `knowledge_items.cultural_sensitivity = false`
+- linked `ontology_entities.status = published`
+- linked `ontology_entities.cultural_sensitivity = false`
+
+`GET /api/v1/knowledge-items` supports:
 
 ```txt
-GET /knowledge-items
-GET /knowledge-items/{id}
-GET /knowledge-items/{id}/relations
-GET /knowledge-types
-GET /gamelan-types
+page
+per_page
+q
+knowledge_type
+gamelan_type
 ```
+
+`per_page` is capped at `50`. `knowledge_type` and `gamelan_type` use the same documented allowlists as contribution payloads.
+
+Knowledge item responses use safe metadata only:
+
+```json
+{
+  "success": true,
+  "message": "Knowledge item retrieved successfully.",
+  "data": {
+    "knowledge_item": {
+      "id": "knowledge-item-uuid",
+      "slug": "gangsa-in-gong-kebyar",
+      "title": "Gangsa in Gong Kebyar",
+      "description": "Validated public description.",
+      "knowledge_type": "instrument",
+      "knowledge_type_label": "Instrument",
+      "gamelan_type": "gong_kebyar",
+      "gamelan_type_label": "Gong Kebyar",
+      "source_summary": "Curator-approved source summary.",
+      "cultural_sensitivity": false,
+      "ontology_entity": {
+        "id": "ontology-entity-uuid",
+        "uri": "https://example.org/gamelan/entity/gangsa-in-gong-kebyar",
+        "slug": "gangsa-in-gong-kebyar",
+        "label": "Gangsa in Gong Kebyar",
+        "entity_type": "instrument",
+        "description": "Validated public description."
+      },
+      "media_assets": [],
+      "metadata": {
+        "ontology_class": "Instrument"
+      },
+      "published_at": "2026-05-22T10:00:00.000000Z"
+    }
+  }
+}
+```
+
+Public media metadata is included only when the media is linked to the published knowledge item, has `visibility = public`, has consent status `granted` or `not_required`, and is not culturally sensitive. Responses never include `storage_disk`, `file_path`, or `file_url`.
+
+`GET /api/v1/knowledge-items/{id}/relations` returns published mapping relations from the approved ontology mapping payload and includes a linked public knowledge item only when the related object is also public.
 
 ### Semantic Search
 
 ```txt
-GET /search
-GET /search/semantic
-GET /search/suggestions
+GET /api/v1/search
+GET /api/v1/search/semantic
+GET /api/v1/search/suggestions
+```
+
+Implemented MVP search endpoints are public and apply the same publication and cultural-sensitivity restrictions as browsing endpoints.
+
+`GET /api/v1/search` requires `q` and performs relational keyword search over public title, slug, description, and source summary fields. It supports `page`, `per_page`, `knowledge_type`, and `gamelan_type`.
+
+`GET /api/v1/search/suggestions` requires `q` with at least 2 characters and returns capped public-safe suggestions from taxonomy labels and public knowledge item titles/slugs.
+
+`GET /api/v1/search/semantic` requires `q` and runs a backend-built SPARQL `SELECT` query against the configured published graph only. Returned subject URIs are reconciled with relational public knowledge items before any result is returned. If `SPARQL_QUERY_ENDPOINT` is not configured or the triplestore query fails, the endpoint returns:
+
+```json
+{
+  "success": false,
+  "message": "Semantic search is temporarily unavailable.",
+  "errors": {}
+}
+```
+
+with HTTP `503`.
+
+Search result items use this shape:
+
+```json
+{
+  "result_type": "knowledge_item",
+  "match_type": "semantic",
+  "knowledge_item": {
+    "id": "knowledge-item-uuid",
+    "slug": "gangsa-in-gong-kebyar",
+    "title": "Gangsa in Gong Kebyar"
+  }
+}
 ```
 
 ### Contributions
 
-The current Flutter constant is `/contributions`. The target backend should
-support:
+```txt
+GET    /api/v1/contributions
+POST   /api/v1/contributions
+GET    /api/v1/contributions/{uuid}
+GET    /api/v1/contributions/{uuid}/versions
+GET    /api/v1/contributions/{uuid}/provenance
+PUT    /api/v1/contributions/{uuid}
+DELETE /api/v1/contributions/{uuid}
+POST   /api/v1/contributions/{uuid}/submit
+POST   /api/v1/contributions/{uuid}/media
+DELETE /api/v1/contributions/{uuid}/media/{media_asset_uuid}
+POST   /api/v1/contributions/{uuid}/rdf-publications
+```
+
+Implemented MVP contribution endpoints require bearer authentication and return only authorized records. Standard contribution list/show/update/archive endpoints are owner scoped. Trace endpoints are visible to the contribution owner and to authorized review roles. `DELETE` archives eligible drafts instead of hard-deleting them. Contribution create and submit support idempotency for retry-safe clients.
+
+`PUT /api/v1/contributions/{uuid}` accepts an optional optimistic concurrency marker for offline-capable clients:
+
+```json
+{
+  "title": "Updated draft title",
+  "last_known_updated_at": "2026-05-22T10:00:00.000000Z"
+}
+```
+
+If `last_known_updated_at` is omitted, existing client behavior is unchanged. If it is present and older than the current contribution `updated_at`, the API returns HTTP `409`:
+
+```json
+{
+  "success": false,
+  "message": "This contribution has changed since you last loaded it. Please refresh and try again.",
+  "errors": {}
+}
+```
+
+The marker is validated but not stored, and stale rejected updates do not create contribution versions or provenance records.
+
+Contribution version responses are paginated and return safe snapshots:
+
+```json
+{
+  "success": true,
+  "message": "Contribution versions retrieved successfully.",
+  "data": [
+    {
+      "version_number": 1,
+      "status": "draft",
+      "change_note": "Draft created.",
+      "editor": {
+        "id": 1,
+        "name": "Made Contributor"
+      },
+      "snapshot": {
+        "title": "Gangsa in Gong Kebyar",
+        "status": "draft"
+      },
+      "edited_at": "2026-05-22T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 10,
+    "total": 1
+  }
+}
+```
+
+Contribution provenance responses are paginated and client-safe:
+
+```json
+{
+  "success": true,
+  "message": "Contribution provenance retrieved successfully.",
+  "data": [
+    {
+      "id": "provenance-uuid",
+      "event_type": "contribution_submitted",
+      "summary": "Contribution submitted for review.",
+      "actor": {
+        "id": 1,
+        "name": "Made Contributor"
+      },
+      "source": {
+        "type": "Contribution"
+      },
+      "contribution_version_number": 2,
+      "metadata": {
+        "status": "submitted"
+      },
+      "occurred_at": "2026-05-22T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 10,
+    "total": 1
+  }
+}
+```
+
+Contributor-facing trace responses hide reviewer and expert identities. Trace responses must not include private notes, IP address, user agent, storage paths, file URLs, raw AI prompts, raw AI responses, or restricted cultural details.
+
+Media upload endpoints require bearer authentication and contribution ownership. Upload and removal are allowed only while the contribution is `draft` or `needs_revision`. Media upload accepts multipart form data with:
 
 ```txt
-GET    /contributions
-POST   /contributions
-GET    /contributions/{id}
-PUT    /contributions/{id}
-DELETE /contributions/{id}
-POST   /contributions/{id}/submit
-POST   /contributions/{id}/media
+file
+title
+description
+media_type
+creator
+credit
+license
+consent_status
+visibility
+cultural_sensitivity
+recording_date
+recording_place
+related_entity_label
+alt_text
+metadata
 ```
+
+Required fields are `file`, `title`, `media_type`, `consent_status`, `visibility`, and `cultural_sensitivity`.
+
+Allowed media types and upload limits:
+
+| media_type | Extensions | Max size |
+|---|---|---:|
+| `image` | jpg, jpeg, png, webp | 10 MB |
+| `audio` | mp3, wav, ogg, m4a | 50 MB |
+| `video` | mp4, mov, webm | 200 MB |
+| `document` | pdf, txt, doc, docx | 20 MB |
+
+Media responses return safe metadata only:
+
+```json
+{
+  "success": true,
+  "message": "Media asset uploaded successfully.",
+  "data": {
+    "media_asset": {
+      "id": "media-uuid",
+      "title": "Gangsa instrument photo",
+      "description": "Photo evidence for curator review.",
+      "media_type": "image",
+      "mime_type": "image/jpeg",
+      "file_size": 12345,
+      "creator": "Made Contributor",
+      "credit": "Community documentation",
+      "license": "cc-by",
+      "consent_status": "granted",
+      "visibility": "private",
+      "cultural_sensitivity": false,
+      "recording_date": "2026-05-22",
+      "recording_place": "Denpasar",
+      "related_entity_label": "Gangsa",
+      "alt_text": "Gangsa instrument photo for documentation.",
+      "metadata": {},
+      "created_at": "2026-05-22T10:00:00.000000Z",
+      "updated_at": "2026-05-22T10:00:00.000000Z"
+    }
+  }
+}
+```
+
+Media responses must not include `file_path`, `storage_disk`, or `file_url`.
+
+RDF publication endpoints require bearer authentication and are restricted to curators and admins. Publication is a separate action after human validation; curator approval or expert approval does not automatically publish RDF.
+
+`POST /api/v1/contributions/{uuid}/rdf-publications` queues an asynchronous publication job for an eligible, non-sensitive contribution in `curator_approved` or `expert_approved` status. The authenticated publisher cannot be the original contributor. Draft, submitted, under-review, rejected, archived, already pending, already published, and culturally sensitive contributions are rejected with safe client messages.
+
+Publication payload:
+
+```json
+{
+  "ontology_class": "Instrument",
+  "subject_slug": "gangsa-in-gong-kebyar",
+  "preferred_label": "Gangsa in Gong Kebyar",
+  "language": "id",
+  "source_summary": "Community interview and local practice note.",
+  "relations": [
+    {
+      "property": "usedInEnsemble",
+      "object_slug": "gong-kebyar",
+      "object_label": "Gong Kebyar",
+      "object_class": "Ensemble"
+    }
+  ]
+}
+```
+
+Successful queue response:
+
+```json
+{
+  "success": true,
+  "message": "RDF publication queued successfully.",
+  "data": {
+    "rdf_publication": {
+      "id": "rdf-publication-uuid",
+      "contribution_id": "contribution-uuid",
+      "knowledge_item_id": null,
+      "ontology_mapping_id": "ontology-mapping-uuid",
+      "rdf_subject_uri": "https://example.org/gamelan/entity/gangsa-in-gong-kebyar",
+      "rdf_graph_uri": "graph/published",
+      "status": "pending",
+      "published_at": null,
+      "published_by": {
+        "id": 2,
+        "name": "Made Curator"
+      },
+      "error_message": null,
+      "metadata": {
+        "ontology_class": "Instrument",
+        "subject_slug": "gangsa-in-gong-kebyar",
+        "relations_count": 1,
+        "provenance_graph_uri": "graph/provenance"
+      }
+    }
+  }
+}
+```
+
+The response never includes SPARQL credentials, raw triplestore errors, private notes, raw AI output, media storage paths, or media URLs.
 
 ### Review
 
-The current Flutter constant is `/reviews`. The target backend should support:
-
 ```txt
-GET  /reviews/queue
-POST /reviews/{contribution}/approve
-POST /reviews/{contribution}/reject
-POST /reviews/{contribution}/request-revision
-POST /reviews/{contribution}/expert-validate
+GET  /api/v1/reviews/queue
+GET  /api/v1/reviews/{contribution_uuid}
+GET  /api/v1/reviews/{contribution_uuid}/provenance
+POST /api/v1/reviews/{contribution_uuid}/approve
+POST /api/v1/reviews/{contribution_uuid}/reject
+POST /api/v1/reviews/{contribution_uuid}/request-revision
+POST /api/v1/reviews/{contribution_uuid}/mark-expert-required
+POST /api/v1/reviews/{contribution_uuid}/expert-validate
 ```
+
+Review endpoints must enforce role, ownership, workflow status, and cultural sensitivity checks.
+
+Implemented MVP review endpoints require bearer authentication and use contribution UUIDs in URLs. Peer reviewers may record approve or reject recommendations for non-sensitive submitted contributions, but those recommendations do not final-approve or final-reject content. Peer reviewers may request revision. Curators and admins may approve, reject, request revision, or mark expert validation required. Expert validators and admins may validate contributions in `expert_required` status.
+
+Review decision payloads may include:
+
+```json
+{
+  "note": "Client-safe reviewer note.",
+  "private_note": "Private reviewer note for authorized reviewers only."
+}
+```
+
+`POST /api/v1/reviews/{contribution_uuid}/mark-expert-required` additionally requires `expert_required_reasons`:
+
+```json
+{
+  "note": "Origin claim needs expert validation.",
+  "expert_required_reasons": ["origin_claim", "curator_flagged"]
+}
+```
+
+`POST /api/v1/reviews/{contribution_uuid}/expert-validate` requires a `decision` of `approve`, `reject`, or `request_revision`.
+
+Private review notes, private expert notes, and reviewer or expert identity fields must not be returned to contributor-facing responses.
+
+When optional MVP 9 triage has run, review queue and review detail responses for authorized non-owner review roles may include:
+
+```json
+{
+  "triage_suggestion": {
+    "label": "AI suggestion, not validated.",
+    "provider": "rules",
+    "status": "suggested",
+    "model_name": "rule-based-v1",
+    "processed_at": "2026-05-22T10:00:00.000000Z",
+    "confidence_score": "0.7600",
+    "suggested_entity_type": "instrument",
+    "suggested_relations": [],
+    "duplicate_candidates": [],
+    "missing_metadata": [],
+    "language_normalization": {
+      "suggested_language": "id"
+    },
+    "curator_summary": "Extractive summary from submitted text.",
+    "uncertainty_notes": [
+      "Human validation is still required."
+    ]
+  }
+}
+```
+
+The API must not expose `triage_suggestion` in public endpoints, normal contributor-facing contribution responses, RDF publication responses, or SPARQL responses.
 
 ### Ontology
 
 ```txt
-GET /ontology/classes
-GET /ontology/properties
-GET /ontology/entities
-GET /ontology/entities/{id}
-GET /ontology/entities/{id}/graph
+GET /api/v1/ontology/classes
+GET /api/v1/ontology/properties
+GET /api/v1/ontology/entities
+GET /api/v1/ontology/entities/{id}
+GET /api/v1/ontology/entities/{id}/graph
 ```
 
 ### SPARQL Proxy
 
 ```txt
-POST /sparql/query
+POST /api/v1/sparql/query
 ```
 
-This endpoint should be protected or restricted. Public users should normally use predefined semantic search endpoints, not arbitrary SPARQL.
+Implemented MVP SPARQL proxy behavior is protected by bearer authentication and restricted to `curator` and `admin` users. Public users should use predefined browsing and search endpoints.
+
+The endpoint does not accept raw SPARQL. It accepts only predefined query keys:
+
+```txt
+published_entities_by_type
+related_entities
+instruments_in_ensemble
+```
+
+Example payload:
+
+```json
+{
+  "query_key": "published_entities_by_type",
+  "parameters": {
+    "ontology_class": "Instrument",
+    "limit": 25
+  }
+}
+```
+
+`related_entities` accepts `subject_slug` or `subject_uri`. `instruments_in_ensemble` accepts `ensemble_slug` or `ensemble_uri`. Proxy results are reconciled with public relational `knowledge_items`; unpublished or culturally sensitive RDF bindings are filtered out before the response.
 
 ## Example Contribution Payload
 
@@ -242,14 +631,51 @@ This endpoint should be protected or restricted. Public users should normally us
   "description": "Gangsa is a metallophone instrument used in Gong Kebyar ensemble.",
   "knowledge_type": "instrument",
   "gamelan_type": "gong_kebyar",
+  "contribution_intent": "new_entity",
   "source_note": "Community interview and local practice note.",
+  "contributor_note": "Submitted as community knowledge.",
   "cultural_sensitivity": false,
   "related_entities": [
     {
       "type": "ensemble",
       "label": "Gong Kebyar",
-      "relation": "used_in"
+      "relation": "usedInEnsemble"
     }
   ]
 }
 ```
+
+Draft creation allows nullable `description`, `source_note`, and `contribution_intent`, but these fields are required before `POST /api/v1/contributions/{uuid}/submit` can move the contribution to `submitted`.
+
+## Idempotency Headers
+
+Retryable write requests should accept an idempotency key.
+
+Example:
+
+```txt
+Idempotency-Key: 018f7c0a-8df5-7b40-a084-6c4f2b62f95f
+```
+
+The API binds idempotency keys to the authenticated user and request purpose for implemented contribution create and submit endpoints. Matching retries return the stored accepted response. Reusing the same key with different request content returns `409 Conflict`.
+
+## Client-Safe Workflow Metadata
+
+Where useful, API responses may include workflow metadata that helps clients render allowed actions.
+
+Example:
+
+```json
+{
+  "status": "submitted",
+  "status_label": "Submitted",
+  "status_description": "This contribution has been submitted and is waiting for review.",
+  "allowed_actions": [
+    "view"
+  ]
+}
+```
+
+Clients must not infer permission from role names alone.
+
+For eligible curator/admin review views, `allowed_actions` may include `publish_rdf`. Clients must still call the RDF publication endpoint and rely on backend authorization.

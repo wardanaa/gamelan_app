@@ -1,6 +1,6 @@
 # Knowledge Model
 
-This document defines the core Balinese gamelan knowledge concepts used by the application.
+This document defines the core Balinese gamelan knowledge concepts used by the API platform.
 
 ## Current Implementation
 
@@ -110,6 +110,16 @@ Gong Gede
 | `derivedFromSource` | Knowledge derived from source |
 | `similarTo` | Entity similar to another entity |
 | `partOf` | Entity is part of larger structure |
+
+## RDF Publication Scope
+
+MVP 7 publishes only validated, non-sensitive knowledge using the core entity types and relations above. Curator/admin mapping requests must use documented classes and relation names; new cultural domains, entity types, or relation terms require ontology and workflow documentation updates before implementation.
+
+## Public Browsing and Semantic Search Scope
+
+MVP 8 exposes only published, non-sensitive knowledge items linked to published, non-sensitive ontology entities. Public keyword search uses the relational public knowledge projection. Public semantic search uses predefined backend SPARQL queries against `graph/published` and returns results only after matching RDF URIs back to public relational knowledge items.
+
+The protected SPARQL proxy is limited to predefined competency-style query patterns. Raw public SPARQL is not exposed.
 
 ## Contribution Types
 

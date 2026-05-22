@@ -111,6 +111,8 @@ Responsible for:
 - RDF generation orchestration
 - SPARQL query proxy or integration
 - Audit log and provenance
+- Idempotency and retry-safe writes for offline-capable clients
+- Client-safe response messages and workflow action metadata
 
 ### Relational Database
 
@@ -127,6 +129,7 @@ Stores workflow and operational data:
 - validation status
 - provenance records
 - RDF publication records
+- idempotency and sync records where needed
 - local drafts if synced
 
 ### RDF/OWL Triplestore

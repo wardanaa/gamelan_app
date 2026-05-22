@@ -28,6 +28,9 @@ Before modifying mobile app code, read:
 - `docs/MOBILE_APP_GUIDE.md`
 - `docs/API_CONTRACT.md`
 - `docs/OFFLINE_SYNC.md`
+- `docs/SYNC_IDEMPOTENCY_GUIDE.md`
+- `docs/API_CLIENT_GUIDE.md`
+- `docs/API_CLIENT_EXPERIENCE.md`
 - `docs/ACCESSIBILITY_UX.md`
 - `docs/CODE_STYLE.md`
 

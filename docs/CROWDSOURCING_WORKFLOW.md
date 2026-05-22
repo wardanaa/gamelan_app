@@ -48,24 +48,6 @@ The workflow must:
 
 ## Contribution Lifecycle
 
-Current local MVP lifecycle:
-
-```txt
-draft
-  ↓
-submitted
-  ↓
-underReview
-  ↓
-approved OR rejected
-```
-
-In the current MVP, request changes is represented as `rejected` with a review
-note prefixed by `Changes requested:`. This should be replaced by a dedicated
-`needs_revision` state when backend workflow support is added.
-
-Target lifecycle:
-
 ```txt
 draft
   ↓
@@ -84,17 +66,11 @@ published
 
 ## Status Definitions
 
-Current mobile statuses are intentionally simpler than the target workflow. Do
-not expose target statuses in the UI until backend support exists.
-
 | Status | Meaning |
 |---|---|
 | `draft` | Contribution saved but not submitted |
 | `submitted` | Contribution submitted by contributor |
-| `underReview` | Being reviewed by peer reviewer or curator in the local MVP |
-| `approved` | Approved in the local MVP; appears in Search as demo content |
-| `rejected` | Rejected or changes requested in the local MVP |
-| `under_review` | Target backend status for active review |
+| `under_review` | Being reviewed by peer reviewer or curator |
 | `needs_revision` | Contributor must revise |
 | `curator_approved` | Curator accepts normalized content |
 | `expert_required` | Requires expert validation |
@@ -102,6 +78,18 @@ not expose target statuses in the UI until backend support exists.
 | `published` | Published to public knowledge graph |
 | `rejected` | Rejected with reason |
 | `archived` | No longer active |
+
+## Schema Foundation
+
+The relational schema now stores workflow truth for contributions, versions, relations, reviews, expert validations, media metadata, provenance records, RDF publication records, ontology mappings, audit logs, notifications, idempotency records, and AI triage suggestions.
+
+The contribution workflow MVP now implements draft creation, owner-only draft updates, draft submission, draft archiving, safe status metadata, idempotent create/submit behavior, and consent-aware media upload/removal for editable drafts. Review queues, curator decisions, expert validation actions, centralized provenance/versioning, safe trace timelines, audit logging, manual RDF publication for validated non-sensitive contributions, semantic search, and optional rule-based AI triage suggestions are also implemented.
+
+## Media Attachment Workflow
+
+Contributors may upload or remove media only on their own `draft` or `needs_revision` contributions. Media attachments preserve consent, visibility, cultural sensitivity, credit, license, creator, recording context, and related-entity labels as candidate evidence for review.
+
+Media visibility does not publish a file. `public` visibility means the asset may become publishable later after validation; restricted and sensitive assets remain protected from public API URLs.
 
 ## Role Permissions
 
@@ -143,6 +131,27 @@ Expert validation is required for:
 - high-impact corrections
 - content flagged by curator
 
+## Implemented Review Behavior
+
+- Peer reviewers may record approve and reject recommendations for non-sensitive submitted or under-review contributions, but those decisions do not final-approve or final-reject content.
+- Peer reviewers may request revision, moving a contribution to `needs_revision`.
+- Curators and admins may approve, reject, request revision, or mark expert validation required.
+- Curator approval of culturally sensitive content moves the contribution to `expert_required`.
+- Experts and admins may validate only `expert_required` contributions.
+- Contributors cannot review, approve, reject, or validate their own submissions.
+- Review and expert validation actions create provenance and audit records.
+- Contribution owners and authorized review roles can retrieve safe provenance/version timelines without exposing private notes, reviewer or expert identities to contributors, media storage paths, or operational audit internals.
+
+## Implemented RDF Publication Behavior
+
+- Curators and admins may manually queue RDF publication through `POST /api/v1/contributions/{uuid}/rdf-publications`.
+- Publication requires `curator_approved` or `expert_approved` status.
+- The publisher cannot be the original contributor.
+- Culturally sensitive contributions are blocked from the public RDF graph in MVP 7.
+- Queued publication creates an approved ontology mapping, a pending RDF publication record, and `rdf_publication_queued` provenance.
+- Successful jobs insert into `graph/published` and `graph/provenance`, create or update the published ontology entity and knowledge item, mark the contribution as `published`, and record `rdf_publication_published`.
+- Failed jobs record `rdf_publication_failed`, keep the contribution unpublished, and store only a sanitized failure message.
+
 ## AI Triage Role
 
 AI may produce:
@@ -155,3 +164,5 @@ AI may produce:
 - language/spelling normalization suggestion
 
 AI output must be shown as suggestion, not decision.
+
+Implemented MVP 9 triage runs as `RunContributionTriageJob` after successful submission when `AI_TRIAGE_ENABLED=true`. It uses local rule-based preprocessing only, stores `triage_results`, mirrors the latest `contributions.ai_*` fields, records `ai_triage_suggested` provenance/audit metadata, and never changes workflow status or publishes knowledge.

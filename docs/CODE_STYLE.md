@@ -49,51 +49,25 @@ item2
 stuff
 ```
 
-## Flutter
+## API Client References
 
-Current file naming examples:
-
-```txt
-contribution_model.dart
-contribution_repository.dart
-contribution_list_screen.dart
-review_queue_screen.dart
-api_endpoints.dart
-token_storage.dart
-```
-
-Target file names as features grow:
+Client-related docs should describe API expectations, not Flutter implementation details.
 
 ```txt
-knowledge_item_model.dart
-contribution_repository.dart
-contribution_controller.dart
-review_queue_screen.dart
-semantic_search_screen.dart
+api_client
+idempotency_key
+validation_error
+allowed_action
+localized_label
 ```
 
-Current repository-backed local state uses repository interfaces with local
-implementations:
+Avoid documenting frontend framework internals in this API repository, such as:
 
 ```txt
-ContributionRepository
-LocalContributionRepository
-ReviewRepository
-LocalReviewRepository
-KnowledgeRepository
-LocalKnowledgeRepository
-```
-
-Keep future API-backed implementations behind the same interface pattern rather
-than reading API or storage concerns directly from screens.
-
-Recommended class names:
-
-```dart
-KnowledgeItem
-ContributionRepository
-ReviewQueueScreen
-SemanticSearchController
+widget tree
+state management provider
+screen routing
+local UI component hierarchy
 ```
 
 ## Laravel

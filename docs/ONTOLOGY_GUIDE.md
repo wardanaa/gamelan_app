@@ -122,6 +122,32 @@ https://example.org/gamelan/entity/{slug-or-uuid}
 
 Do not use database auto-increment IDs as permanent public ontology identifiers unless there is no alternative.
 
+## MVP Publication Mapping Rules
+
+Manual RDF publication accepts only the documented core classes and properties in this guide. Curators/admins provide a stable `subject_slug`, an `ontology_class`, and optional relation mappings. The backend validates those values before queueing publication.
+
+Allowed classes for MVP 7:
+
+```txt
+Instrument
+Ensemble
+Composition
+Performance
+Technique
+Person
+Group
+Place
+MediaAsset
+Source
+Term
+Contribution
+Validation
+```
+
+Allowed relation properties for MVP 7 are the documented object properties above. New classes or properties require ontology documentation and validation workflow updates before implementation.
+
+MVP 8 semantic search does not introduce new classes or properties. Search and predefined SPARQL proxy queries use the published graph and documented MVP classes/properties only, then filter results through public relational `knowledge_items`.
+
 ## Evaluation
 
 Ontology evaluation should include:
