@@ -23,7 +23,7 @@ class ContributionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(contribution.status.label),
+            Text(contribution.statusDisplayLabel),
             if (contribution.culturalSensitivity)
               const Icon(
                 Icons.warning_amber_outlined,

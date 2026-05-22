@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/core/api/api_client.dart';
+import 'package:gamelan_app/core/state/gamelan_mvp_store.dart';
 import 'package:gamelan_app/core/storage/token_storage.dart';
 import 'package:gamelan_app/app.dart';
 import 'package:gamelan_app/features/auth/data/auth_repository.dart';
@@ -36,7 +37,12 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(GamelanApp(authRepository: authRepository));
+    await tester.pumpWidget(
+      GamelanApp(
+        authRepository: authRepository,
+        store: GamelanMvpStore.local(),
+      ),
+    );
     await tester.pumpAndSettle();
     return tokenBackend;
   }
@@ -53,6 +59,10 @@ void main() {
     await tester.enterText(
       find.byType(EditableText).at(2),
       'Contributor interview summary.',
+    );
+    await tester.enterText(
+      find.byType(EditableText).at(3),
+      'Contributor context note for curator review.',
     );
     await tester.tap(find.text('Contributor consent confirmed'));
     await tester.pumpAndSettle();
@@ -343,10 +353,17 @@ void main() {
     await tester.tap(find.text('New contribution'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Contributor consent confirmed'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Submit for review'));
     await tester.pumpAndSettle();
 
-    expect(find.text('This field is required.'), findsNWidgets(3));
+    expect(
+      find.text(
+        'Complete the required fields before submitting for review.',
+      ),
+      findsOneWidget,
+    );
 
     await tester.enterText(find.byType(EditableText).at(0), 'Kajar cue note');
     await tester.enterText(
@@ -357,18 +374,19 @@ void main() {
       find.byType(EditableText).at(2),
       'Contributor interview summary.',
     );
+    await tester.enterText(
+      find.byType(EditableText).at(3),
+      'Contributor context note for curator review.',
+    );
 
-    await tester.tap(find.text('Contributor consent confirmed'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('Culturally sensitive'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Submit for review'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Kajar cue note'), findsOneWidget);
-    expect(find.text('Submitted'), findsWidgets);
+    expect(find.text('New contribution'), findsWidgets);
 
-    await tester.tap(find.text('Review'));
+    await tester.tap(find.byIcon(Icons.fact_check_outlined));
     await tester.pumpAndSettle();
 
     expect(find.text('Kajar cue note'), findsOneWidget);
@@ -425,13 +443,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sensitive ceremony draft'), findsOneWidget);
-    expect(
-      find.text(
-        'Sensitive drafts stay in this session only until encrypted storage rules are added.',
-      ),
-      findsOneWidget,
-    );
-
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
     await pumpMvpApp(tester, resetPreferences: false);

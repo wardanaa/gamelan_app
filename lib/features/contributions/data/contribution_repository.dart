@@ -1,23 +1,8 @@
+import '../../../core/api/api_client.dart';
+import '../../../core/mapping/taxonomy_mapper.dart';
+import '../../../core/utils/result.dart';
 import 'contribution_draft_storage.dart';
 import 'contribution_model.dart';
-
-abstract class ContributionRepository {
-  Future<void> loadPersistedDrafts();
-
-  Future<List<ContributionModel>> fetchContributions();
-
-  Future<ContributionModel?> findContribution(String id);
-
-  Future<Map<ContributionStatus, int>> fetchStatusCounts();
-
-  Future<ContributionModel> createContribution(ContributionInput input);
-
-  Future<void> updateContributionStatus(
-    String id,
-    ContributionStatus status, {
-    String? reviewNote,
-  });
-}
 
 class ContributionInput {
   const ContributionInput({
@@ -30,6 +15,9 @@ class ContributionInput {
     required this.culturalSensitivity,
     required this.consentGiven,
     required this.submitForReview,
+    this.contributionIntent,
+    this.knowledgeTypeSlug,
+    this.gamelanTypeSlug,
   });
 
   final String title;
@@ -41,6 +29,31 @@ class ContributionInput {
   final bool culturalSensitivity;
   final bool consentGiven;
   final bool submitForReview;
+  final String? contributionIntent;
+  final String? knowledgeTypeSlug;
+  final String? gamelanTypeSlug;
+}
+
+abstract class ContributionRepository {
+  Future<void> loadPersistedDrafts();
+
+  Future<Result<List<ContributionModel>>> fetchContributions();
+
+  Future<Result<ContributionModel?>> findContribution(String id);
+
+  Future<Result<Map<ContributionStatus, int>>> fetchStatusCounts();
+
+  Future<Result<ContributionModel>> createContribution(ContributionInput input);
+
+  Future<Result<ContributionModel>> updateContribution(
+    String id,
+    ContributionInput input, {
+    DateTime? lastKnownUpdatedAt,
+  });
+
+  Future<Result<ContributionModel>> submitContribution(String id);
+
+  Future<Result<void>> archiveContribution(String id);
 }
 
 class LocalContributionRepository implements ContributionRepository {
@@ -81,30 +94,32 @@ class LocalContributionRepository implements ContributionRepository {
   }
 
   @override
-  Future<List<ContributionModel>> fetchContributions() async {
-    return List.unmodifiable(_contributions);
+  Future<Result<List<ContributionModel>>> fetchContributions() async {
+    return Success(List.unmodifiable(_contributions));
   }
 
   @override
-  Future<ContributionModel?> findContribution(String id) async {
+  Future<Result<ContributionModel?>> findContribution(String id) async {
     for (final contribution in _contributions) {
       if (contribution.id == id) {
-        return contribution;
+        return Success(contribution);
       }
     }
-    return null;
+    return const Success(null);
   }
 
   @override
-  Future<Map<ContributionStatus, int>> fetchStatusCounts() async {
-    return {
+  Future<Result<Map<ContributionStatus, int>>> fetchStatusCounts() async {
+    return Success({
       for (final status in ContributionStatus.values)
         status: _contributions.where((item) => item.status == status).length,
-    };
+    });
   }
 
   @override
-  Future<ContributionModel> createContribution(ContributionInput input) async {
+  Future<Result<ContributionModel>> createContribution(
+    ContributionInput input,
+  ) async {
     final contribution = ContributionModel(
       id: 'local-${DateTime.now().microsecondsSinceEpoch}',
       title: input.title.trim(),
@@ -119,23 +134,81 @@ class LocalContributionRepository implements ContributionRepository {
       culturalSensitivity: input.culturalSensitivity,
       consentGiven: input.consentGiven,
       createdAt: DateTime.now(),
+      contributionIntent: input.contributionIntent,
+      knowledgeTypeSlug: input.knowledgeTypeSlug,
+      gamelanTypeSlug: input.gamelanTypeSlug,
     );
     _contributions.insert(0, contribution);
     if (contribution.status == ContributionStatus.draft) {
       await _persistDrafts();
     }
-    return contribution;
+    return Success(contribution);
   }
 
   @override
-  Future<void> updateContributionStatus(
+  Future<Result<ContributionModel>> updateContribution(
+    String id,
+    ContributionInput input, {
+    DateTime? lastKnownUpdatedAt,
+  }) async {
+    final index = _contributions.indexWhere((item) => item.id == id);
+    if (index == -1) {
+      return const Failure('Contribution not found.');
+    }
+
+    final updated = _contributions[index].copyWith(
+      title: input.title.trim(),
+      description: input.description.trim(),
+      knowledgeType: input.knowledgeType,
+      gamelanType: input.gamelanType,
+      sourceNote: input.sourceNote.trim(),
+      contributorNote: input.contributorNote.trim(),
+      culturalSensitivity: input.culturalSensitivity,
+      consentGiven: input.consentGiven,
+      contributionIntent: input.contributionIntent,
+      updatedAt: DateTime.now(),
+    );
+    _contributions[index] = updated;
+    await _persistDrafts();
+    return Success(updated);
+  }
+
+  @override
+  Future<Result<ContributionModel>> submitContribution(String id) async {
+    final index = _contributions.indexWhere((item) => item.id == id);
+    if (index == -1) {
+      return const Failure('Contribution not found.');
+    }
+
+    _contributions[index] = _contributions[index].copyWith(
+      status: ContributionStatus.submitted,
+    );
+    await _persistDrafts();
+    return Success(_contributions[index]);
+  }
+
+  @override
+  Future<Result<void>> archiveContribution(String id) async {
+    final index = _contributions.indexWhere((item) => item.id == id);
+    if (index == -1) {
+      return const Failure('Contribution not found.');
+    }
+
+    _contributions[index] = _contributions[index].copyWith(
+      status: ContributionStatus.archived,
+    );
+    await _persistDrafts();
+    return const Success(null);
+  }
+
+  Future<Result<void>> updateContributionStatus(
     String id,
     ContributionStatus status, {
     String? reviewNote,
   }) async {
     final index = _contributions.indexWhere((item) => item.id == id);
     if (index == -1) {
-      return;
+      return const Failure('Contribution not found.');
     }
 
     _contributions[index] = _contributions[index].copyWith(
@@ -143,6 +216,7 @@ class LocalContributionRepository implements ContributionRepository {
       reviewNote: reviewNote,
     );
     await _persistDrafts();
+    return const Success(null);
   }
 
   Future<void> _persistDrafts() async {

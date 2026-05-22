@@ -11,36 +11,67 @@ import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/auth_session.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/contributions/data/contribution_model.dart';
+import 'features/contributions/data/remote_contribution_repository.dart';
 import 'features/contributions/screens/contribution_list_screen.dart';
+import 'features/knowledge/data/remote_knowledge_repository.dart';
 import 'features/knowledge/screens/entity_list_screen.dart';
+import 'features/review/data/remote_review_repository.dart';
 import 'features/review/screens/review_queue_screen.dart';
 
 class GamelanApp extends StatefulWidget {
-  const GamelanApp({super.key, AuthRepository? authRepository})
-    : _authRepository = authRepository;
+  const GamelanApp({
+    super.key,
+    AuthRepository? authRepository,
+    GamelanMvpStore? store,
+    TokenStorage? tokenStorage,
+    ApiClient? apiClient,
+  }) : _authRepository = authRepository,
+       _store = store,
+       _tokenStorage = tokenStorage,
+       _apiClient = apiClient;
 
   final AuthRepository? _authRepository;
+  final GamelanMvpStore? _store;
+  final TokenStorage? _tokenStorage;
+  final ApiClient? _apiClient;
 
   @override
   State<GamelanApp> createState() => _GamelanAppState();
 }
 
 class _GamelanAppState extends State<GamelanApp> {
-  late final GamelanMvpStore _store = GamelanMvpStore();
+  late final TokenStorage _tokenStorage =
+      widget._tokenStorage ?? const TokenStorage();
+  late final ApiClient _apiClient =
+      widget._apiClient ?? ApiClient.fromEnvironment();
+  late final GamelanMvpStore _store = widget._store ?? _createRemoteStore();
   late final AuthRepository _authRepository =
       widget._authRepository ??
-      AuthRepository(
-        apiClient: ApiClient.fromEnvironment(),
-        tokenStorage: const TokenStorage(),
-      );
+      AuthRepository(apiClient: _apiClient, tokenStorage: _tokenStorage);
 
   AuthSession? _authSession;
   bool _isRestoringSession = true;
 
+  GamelanMvpStore _createRemoteStore() {
+    return GamelanMvpStore(
+      contributionRepository: RemoteContributionRepository(
+        apiClient: _apiClient,
+        tokenResolver: _tokenStorage.readToken,
+      ),
+      reviewRepository: RemoteReviewRepository(
+        apiClient: _apiClient,
+        tokenResolver: _tokenStorage.readToken,
+      ),
+      knowledgeRepository: RemoteKnowledgeRepository(
+        apiClient: _apiClient,
+        tokenResolver: _tokenStorage.readToken,
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    unawaited(_store.loadRepositoryState());
     unawaited(_restoreAuthSession());
   }
 
@@ -72,6 +103,7 @@ class _GamelanAppState extends State<GamelanApp> {
           setState(() {
             _authSession = session;
           });
+          unawaited(_store.loadRepositoryState());
         },
       );
     }
@@ -85,13 +117,17 @@ class _GamelanAppState extends State<GamelanApp> {
       return;
     }
 
+    final session = switch (result) {
+      Success<AuthSession>(:final value) => value,
+      Failure<AuthSession>() => null,
+    };
     setState(() {
-      _authSession = switch (result) {
-        Success<AuthSession>(:final value) => value,
-        Failure<AuthSession>() => null,
-      };
+      _authSession = session;
       _isRestoringSession = false;
     });
+    if (session != null) {
+      unawaited(_store.loadRepositoryState());
+    }
   }
 
   Future<void> _signOut() async {
@@ -191,7 +227,7 @@ class _ProtectedReviewTab extends StatelessWidget {
               ),
               SizedBox(height: 8),
               Text(
-                'Your backend profile does not include a reviewer, curator, expert validator, or admin role. The mobile app hides this local workflow for clarity, but backend policies remain the source of truth for every protected action.',
+                'Your backend profile does not include a reviewer, curator, expert validator, or admin role. The mobile app hides this workflow for clarity, but backend policies remain the source of truth for every protected action.',
               ),
             ],
           ),
@@ -220,10 +256,16 @@ class _HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = GamelanScope.of(context);
-    final counts = store.contributionStatusCounts;
-    final featuredItems = store.knowledgeItems.take(3).toList(growable: false);
 
-    return Scaffold(
+    return ListenableBuilder(
+      listenable: store,
+      builder: (context, _) {
+        final counts = store.contributionStatusCounts;
+        final featuredItems = store.knowledgeItems
+            .take(3)
+            .toList(growable: false);
+
+        return Scaffold(
       appBar: AppBar(title: const Text('Gamelan Knowledge MVP')),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -235,12 +277,12 @@ class _HomeTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Local prototype',
+                    'Backend-connected MVP',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'This demo persists non-sensitive drafts locally. It does not sync, publish RDF, call SPARQL, or store sensitive content after restart.',
+                    'Contributions, review, and published knowledge load from the Laravel API. RDF publication, media upload, and offline sync are not implemented yet.',
                   ),
                 ],
               ),
@@ -275,6 +317,8 @@ class _HomeTab extends StatelessWidget {
           ),
         ],
       ),
+        );
+      },
     );
   }
 }
@@ -323,7 +367,7 @@ class _ProfileTabState extends State<_ProfileTab> {
             leading: Icon(Icons.account_tree_outlined),
             title: Text('Ontology boundary'),
             subtitle: Text(
-              'Approved local content is demo knowledge only and is not RDF publication.',
+              'Published knowledge comes from the backend API and is not direct RDF publication from this device.',
             ),
           ),
           const SizedBox(height: 16),

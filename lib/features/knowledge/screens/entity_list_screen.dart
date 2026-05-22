@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../../../core/state/gamelan_mvp_store.dart';
 import '../../../core/state/gamelan_scope.dart';
 import '../data/knowledge_item.dart';
 import 'entity_detail_screen.dart';
@@ -16,84 +17,130 @@ class _EntityListScreenState extends State<EntityListScreen> {
   final _searchController = TextEditingController();
   String? _selectedGamelanType;
   String? _selectedKnowledgeType;
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_runSearch());
+    });
+  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: GamelanScope.of(context),
+      builder: (context, _) {
+        final store = GamelanScope.of(context);
+        final results = _searchController.text.trim().isEmpty
+            ? store.knowledgeItems
+            : store.searchResults;
+
+        return Scaffold(
+          appBar: const _KnowledgeAppBar(title: 'Search knowledge'),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  labelText: 'Keyword',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) {
+                  _debounce?.cancel();
+                  _debounce = Timer(
+                    const Duration(milliseconds: 350),
+                    () => unawaited(_runSearch()),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _FilterMenu(
+                    label: 'Gamelan type',
+                    value: _selectedGamelanType,
+                    options: store.gamelanTypeLabels,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGamelanType = value;
+                      });
+                      unawaited(_runSearch());
+                    },
+                  ),
+                  _FilterMenu(
+                    label: 'Knowledge type',
+                    value: _selectedKnowledgeType,
+                    options: store.knowledgeTypeLabels,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedKnowledgeType = value;
+                      });
+                      unawaited(_runSearch());
+                    },
+                  ),
+                  if (_selectedGamelanType != null ||
+                      _selectedKnowledgeType != null)
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedGamelanType = null;
+                          _selectedKnowledgeType = null;
+                        });
+                        unawaited(_runSearch());
+                      },
+                      icon: const Icon(Icons.clear),
+                      label: const Text('Clear filters'),
+                    ),
+                ],
+              ),
+              if (store.isSearching) ...[
+                const SizedBox(height: 16),
+                const LinearProgressIndicator(),
+              ],
+              if (store.lastError != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  store.lastError!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Text(
+                '${results.length} knowledge items',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              if (results.isEmpty && !store.isSearching)
+                const Text(
+                  'No published knowledge matched this search. Unpublished or restricted content is not shown.',
+                ),
+              for (final item in results) _KnowledgeItemCard(item: item),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _runSearch() async {
     final store = GamelanScope.of(context);
-    final results = store.searchKnowledge(
+    await store.searchKnowledge(
       query: _searchController.text,
       gamelanType: _selectedGamelanType,
       knowledgeType: _selectedKnowledgeType,
-    );
-
-    return Scaffold(
-      appBar: const _KnowledgeAppBar(title: 'Search knowledge'),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _searchController,
-            decoration: const InputDecoration(
-              labelText: 'Keyword or relation',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _FilterMenu(
-                label: 'Gamelan type',
-                value: _selectedGamelanType,
-                options: GamelanMvpStore.gamelanTypes,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedGamelanType = value;
-                  });
-                },
-              ),
-              _FilterMenu(
-                label: 'Knowledge type',
-                value: _selectedKnowledgeType,
-                options: GamelanMvpStore.knowledgeTypes,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedKnowledgeType = value;
-                  });
-                },
-              ),
-              if (_selectedGamelanType != null ||
-                  _selectedKnowledgeType != null)
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _selectedGamelanType = null;
-                      _selectedKnowledgeType = null;
-                    });
-                  },
-                  icon: const Icon(Icons.clear),
-                  label: const Text('Clear filters'),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '${results.length} knowledge items',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          for (final item in results) _KnowledgeItemCard(item: item),
-        ],
-      ),
     );
   }
 }
@@ -140,7 +187,7 @@ class _KnowledgeItemCard extends StatelessWidget {
         trailing: item.isCommunityApproved
             ? const Icon(
                 Icons.verified_outlined,
-                semanticLabel: 'Community approved demo content',
+                semanticLabel: 'Published knowledge',
               )
             : null,
         onTap: () {

@@ -11,50 +11,60 @@ class ContributionListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = GamelanScope.of(context);
-    final contributions = store.contributions;
 
-    return Scaffold(
-      appBar: const _ContributionAppBar(title: 'Contributions'),
-      body: contributions.isEmpty
-          ? const Center(child: Text('No local contributions yet.'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: contributions.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return const Padding(
-                    padding: EdgeInsets.fromLTRB(4, 4, 4, 12),
-                    child: Text(
-                      'Local prototype: non-sensitive drafts are stored on this device. Sensitive drafts and submitted items are session-only.',
-                    ),
-                  );
-                }
-                final contribution = contributions[index - 1];
-                return ContributionCard(
-                  contribution: contribution,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => ContributionDetailScreen(
-                          contributionId: contribution.id,
+    return ListenableBuilder(
+      listenable: store,
+      builder: (context, _) {
+        final contributions = store.contributions;
+
+        return Scaffold(
+          appBar: const _ContributionAppBar(title: 'Contributions'),
+          body: contributions.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No contributions yet. Create a draft or submit knowledge for review.',
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: contributions.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return const Padding(
+                        padding: EdgeInsets.fromLTRB(4, 4, 4, 12),
+                        child: Text(
+                          'Contributions load from the Laravel API. Backend validation and authorization remain mandatory.',
                         ),
-                      ),
+                      );
+                    }
+                    final contribution = contributions[index - 1];
+                    return ContributionCard(
+                      contribution: contribution,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => ContributionDetailScreen(
+                              contributionId: contribution.id,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (context) => const ContributionFormScreen(),
-            ),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('New contribution'),
-      ),
+                ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (context) => const ContributionFormScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('New contribution'),
+          ),
+        );
+      },
     );
   }
 }

@@ -4,14 +4,19 @@ This document defines offline and synchronization behavior for the mobile app.
 
 ## Current Implementation
 
-Full offline sync is not implemented yet. The current app routes local
-contribution, review, and knowledge data through repository interfaces and can
-persist the contributor's own non-sensitive local drafts with
-`shared_preferences`, but it has no sync queue, no media upload queue, and no
-conflict resolution UI. Culturally sensitive drafts, submitted contributions,
-review decisions, and approved demo knowledge reset when the app restarts.
+Full offline sync is not implemented yet. Production app wiring uses Laravel
+API repositories with API-only contribution drafts. The server is the source of
+truth for draft, submitted, review, and published knowledge state.
+
+`LocalContributionRepository` still supports non-sensitive draft persistence in
+`shared_preferences`, but only for deterministic local tests through
+`GamelanMvpStore.local()`. It is not used by default production wiring.
+
+The mobile app has no sync queue, no media upload queue, and no dedicated
+conflict-resolution screen yet, although the contribution update API already
+supports `last_known_updated_at` and returns `409 Conflict` for stale edits.
 Authentication tokens are stored separately with secure device storage and are
-not part of the offline draft cache.
+not part of any offline draft cache.
 
 This guide defines the target behavior for future offline work.
 

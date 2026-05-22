@@ -9,9 +9,14 @@ class ReviewQueueScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final queue = GamelanScope.of(context).reviewQueue;
+    final store = GamelanScope.of(context);
 
-    return Scaffold(
+    return ListenableBuilder(
+      listenable: store,
+      builder: (context, _) {
+        final queue = store.reviewQueue;
+
+        return Scaffold(
       appBar: const _ReviewAppBar(title: 'Review queue'),
       body: queue.isEmpty
           ? const Center(child: Text('No submitted contributions need review.'))
@@ -23,7 +28,7 @@ class ReviewQueueScreen extends StatelessWidget {
                   return const Padding(
                     padding: EdgeInsets.fromLTRB(4, 4, 4, 12),
                     child: Text(
-                      'Curator demo queue. Review decisions are local and do not publish RDF.',
+                      'Review queue items load from the Laravel API. Backend authorization controls every decision.',
                     ),
                   );
                 }
@@ -34,7 +39,7 @@ class ReviewQueueScreen extends StatelessWidget {
                     subtitle: Text(
                       '${contribution.knowledgeType} • '
                       '${contribution.gamelanType} • '
-                      '${contribution.status.label}',
+                      '${contribution.statusDisplayLabel}',
                     ),
                     trailing: contribution.culturalSensitivity
                         ? const Icon(
@@ -55,6 +60,8 @@ class ReviewQueueScreen extends StatelessWidget {
                 );
               },
             ),
+        );
+      },
     );
   }
 }

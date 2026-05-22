@@ -73,13 +73,14 @@ The system may later support other Balinese gamelan types, but new domains must 
 
 Current Flutter implementation:
 
-- `GamelanApp` uses Material 3.
-- The app starts at `ContributionListScreen`.
+- `GamelanApp` uses Material 3 and starts behind `LoginScreen`.
 - Feature folders exist under `lib/features/` for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
-- `lib/core/api/` contains a lightweight API client and auth header helper.
-- `lib/core/constants/api_endpoints.dart` defines endpoint constants for auth, contributions, reviews, knowledge, audit logs, and users.
-- Repositories are placeholders and do not perform real network requests yet.
-- `TokenStorage` is in-memory development scaffolding and is not production secure storage.
+- `lib/core/api/` contains `ApiClient`, response parsing helpers, and auth headers.
+- `lib/core/constants/api_endpoints.dart` defines auth, contribution, review, knowledge, search, and admin route constants.
+- Production wiring uses `RemoteContributionRepository`, `RemoteReviewRepository`, and `RemoteKnowledgeRepository` against the Laravel API.
+- `GamelanMvpStore.local()` keeps local repositories for deterministic tests only.
+- `TokenStorage` uses `flutter_secure_storage` for bearer tokens.
+- Contribution drafts are API-only in production wiring; backend validation remains mandatory.
 
 When updating documentation, keep this current state separate from target
 architecture requirements.

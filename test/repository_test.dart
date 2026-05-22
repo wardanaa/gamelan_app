@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
-import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
+import 'package:gamelan_app/features/knowledge/data/local_knowledge_repository.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
+import 'package:gamelan_app/core/utils/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -13,7 +14,11 @@ void main() {
   test('local contribution repository includes initial demo seed', () async {
     final repository = LocalContributionRepository();
 
-    final contributions = await repository.fetchContributions();
+    final contributionsResult = await repository.fetchContributions();
+    final contributions = switch (contributionsResult) {
+      Success<List<ContributionModel>>(:final value) => value,
+      Failure<List<ContributionModel>>() => fail('Expected success'),
+    };
 
     expect(contributions, hasLength(1));
     expect(contributions.single.id, 'demo-sensitive-source');
@@ -32,7 +37,11 @@ void main() {
 
     final secondRepository = LocalContributionRepository();
     await secondRepository.loadPersistedDrafts();
-    final contributions = await secondRepository.fetchContributions();
+    final contributionsResult = await secondRepository.fetchContributions();
+    final contributions = switch (contributionsResult) {
+      Success<List<ContributionModel>>(:final value) => value,
+      Failure<List<ContributionModel>>() => fail('Expected success'),
+    };
 
     expect(
       contributions.map((contribution) => contribution.title),
@@ -62,7 +71,11 @@ void main() {
 
       final secondRepository = LocalContributionRepository();
       await secondRepository.loadPersistedDrafts();
-      final contributions = await secondRepository.fetchContributions();
+      final contributionsResult = await secondRepository.fetchContributions();
+      final contributions = switch (contributionsResult) {
+        Success<List<ContributionModel>>(:final value) => value,
+        Failure<List<ContributionModel>>() => fail('Expected success'),
+      };
 
       expect(
         contributions.map((contribution) => contribution.title),
@@ -81,7 +94,11 @@ void main() {
 
       final secondRepository = LocalContributionRepository();
       await secondRepository.loadPersistedDrafts();
-      final contributions = await secondRepository.fetchContributions();
+      final contributionsResult = await secondRepository.fetchContributions();
+      final contributions = switch (contributionsResult) {
+        Success<List<ContributionModel>>(:final value) => value,
+        Failure<List<ContributionModel>>() => fail('Expected success'),
+      };
 
       expect(
         contributions.map((contribution) => contribution.title),
@@ -103,16 +120,31 @@ void main() {
       await contributions.createContribution(
         contributionInput(title: 'Submitted note'),
       );
-      final approved = await contributions.createContribution(
+      final approvedResult = await contributions.createContribution(
         contributionInput(title: 'Approved note'),
       );
+      final approved = switch (approvedResult) {
+        Success<ContributionModel>(:final value) => value,
+        Failure<ContributionModel>() => fail('Expected success'),
+      };
       await reviewRepository.approveContribution(approved.id, 'Approved.');
-      final underReview = await contributions.createContribution(
+      final underReviewResult = await contributions.createContribution(
         contributionInput(title: 'Under-review note'),
       );
-      await reviewRepository.markUnderReview(underReview.id);
+      final underReview = switch (underReviewResult) {
+        Success<ContributionModel>(:final value) => value,
+        Failure<ContributionModel>() => fail('Expected success'),
+      };
+      await contributions.updateContributionStatus(
+        underReview.id,
+        ContributionStatus.underReview,
+      );
 
-      final queue = await reviewRepository.fetchReviewQueue();
+      final queueResult = await reviewRepository.fetchReviewQueue();
+      final queue = switch (queueResult) {
+        Success<List<ContributionModel>>(:final value) => value,
+        Failure<List<ContributionModel>>() => fail('Expected success'),
+      };
       final titles = queue.map((contribution) => contribution.title);
 
       expect(titles, contains('Ceremonial Gong Gede source note'));
@@ -128,46 +160,82 @@ void main() {
     final reviewRepository = LocalReviewRepository(
       contributions: contributions,
     );
-    final underReview = await contributions.createContribution(
+    final underReviewResult = await contributions.createContribution(
       contributionInput(title: 'Under review item'),
     );
-    final approved = await contributions.createContribution(
+    final approvedResult = await contributions.createContribution(
       contributionInput(title: 'Approved item'),
     );
-    final rejected = await contributions.createContribution(
+    final rejectedResult = await contributions.createContribution(
       contributionInput(title: 'Rejected item'),
     );
-    final changes = await contributions.createContribution(
+    final changesResult = await contributions.createContribution(
       contributionInput(title: 'Changes item'),
     );
 
-    await reviewRepository.markUnderReview(underReview.id);
+    final underReview = switch (underReviewResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+    final approved = switch (approvedResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+    final rejected = switch (rejectedResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+    final changes = switch (changesResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+
+    await contributions.updateContributionStatus(
+      underReview.id,
+      ContributionStatus.underReview,
+    );
     await reviewRepository.approveContribution(approved.id, 'Approved note.');
     await reviewRepository.rejectContribution(rejected.id, 'Rejected note.');
     await reviewRepository.requestChanges(changes.id, 'Clarify source.');
 
+    final underReviewLoaded = await contributions.findContribution(underReview.id);
+    final approvedLoaded = await contributions.findContribution(approved.id);
+    final rejectedLoaded = await contributions.findContribution(rejected.id);
+    final changesLoaded = await contributions.findContribution(changes.id);
+
     expect(
-      (await contributions.findContribution(underReview.id))?.status,
+      switch (underReviewLoaded) {
+        Success<ContributionModel?>(:final value) => value?.status,
+        Failure<ContributionModel?>() => null,
+      },
       ContributionStatus.underReview,
     );
     expect(
-      (await contributions.findContribution(approved.id))?.status,
-      ContributionStatus.approved,
+      switch (approvedLoaded) {
+        Success<ContributionModel?>(:final value) => value?.status,
+        Failure<ContributionModel?>() => null,
+      },
+      ContributionStatus.curatorApproved,
     );
     expect(
-      (await contributions.findContribution(approved.id))?.reviewNote,
+      switch (approvedLoaded) {
+        Success<ContributionModel?>(:final value) => value?.reviewNote,
+        Failure<ContributionModel?>() => null,
+      },
       'Approved note.',
     );
     expect(
-      (await contributions.findContribution(rejected.id))?.status,
+      switch (rejectedLoaded) {
+        Success<ContributionModel?>(:final value) => value?.status,
+        Failure<ContributionModel?>() => null,
+      },
       ContributionStatus.rejected,
     );
     expect(
-      (await contributions.findContribution(rejected.id))?.reviewNote,
-      'Rejected note.',
-    );
-    expect(
-      (await contributions.findContribution(changes.id))?.reviewNote,
+      switch (changesLoaded) {
+        Success<ContributionModel?>(:final value) => value?.reviewNote,
+        Failure<ContributionModel?>() => null,
+      },
       'Changes requested: Clarify source.',
     );
   });
@@ -182,12 +250,22 @@ void main() {
       final knowledgeRepository = LocalKnowledgeRepository(
         contributions: contributions,
       );
-      final contribution = await contributions.createContribution(
+      final contributionResult = await contributions.createContribution(
         contributionInput(title: 'Kempli pulse'),
       );
+      final contribution = switch (contributionResult) {
+        Success<ContributionModel>(:final value) => value,
+        Failure<ContributionModel>() => fail('Expected success'),
+      };
 
+      final emptySearch = await knowledgeRepository.searchKnowledge(
+        query: 'Kempli',
+      );
       expect(
-        await knowledgeRepository.searchKnowledge(query: 'Kempli'),
+        switch (emptySearch) {
+          Success<List<dynamic>>(:final value) => value,
+          Failure<List<dynamic>>() => fail('Expected success'),
+        },
         isEmpty,
       );
 
@@ -195,9 +273,13 @@ void main() {
         contribution.id,
         'Curator approved.',
       );
-      final results = await knowledgeRepository.searchKnowledge(
+      final resultsResult = await knowledgeRepository.searchKnowledge(
         query: 'Kempli',
       );
+      final results = switch (resultsResult) {
+        Success(:final value) => value,
+        Failure() => fail('Expected success'),
+      };
 
       expect(results, hasLength(1));
       expect(results.single.title, 'Kempli pulse');
@@ -225,5 +307,6 @@ ContributionInput contributionInput({
     culturalSensitivity: culturalSensitivity,
     consentGiven: true,
     submitForReview: submitForReview,
+    contributionIntent: 'new_entity',
   );
 }

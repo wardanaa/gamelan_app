@@ -21,6 +21,13 @@ class ReviewDetailScreen extends StatelessWidget {
       );
     }
 
+    final canApprove = _allowsAction(contribution, 'approve', 'recommend_approve');
+    final canReject = _allowsAction(contribution, 'reject', 'recommend_reject');
+    final canRequestRevision = _allowsAction(
+      contribution,
+      'request_revision',
+    );
+
     return Scaffold(
       appBar: const _ReviewDetailAppBar(title: 'Review details'),
       body: ListView(
@@ -35,7 +42,7 @@ class ReviewDetailScreen extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              Chip(label: Text(contribution.status.label)),
+              Chip(label: Text(contribution.statusDisplayLabel)),
               Chip(label: Text(contribution.knowledgeType)),
               Chip(label: Text(contribution.gamelanType)),
               if (contribution.culturalSensitivity)
@@ -45,6 +52,10 @@ class ReviewDetailScreen extends StatelessWidget {
                 ),
             ],
           ),
+          if (contribution.statusDescription != null) ...[
+            const SizedBox(height: 12),
+            Text(contribution.statusDescription!),
+          ],
           const SizedBox(height: 16),
           _ReviewSection(title: 'Description', body: contribution.description),
           _ReviewSection(title: 'Source note', body: contribution.sourceNote),
@@ -58,51 +69,65 @@ class ReviewDetailScreen extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                'AI triage is not implemented. Curator decisions here are local demo actions only.',
+                'Review actions are enforced by the backend. AI triage suggestions may appear in API responses but are not authoritative.',
               ),
             ),
           ),
           const SizedBox(height: 12),
-          if (contribution.status == ContributionStatus.submitted)
+          if (canApprove)
+            FilledButton.icon(
+              onPressed: () => _openDecision(
+                context,
+                ReviewDecisionAction.approve,
+                contribution.id,
+              ),
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text('Approve'),
+            ),
+          if (canApprove) const SizedBox(height: 8),
+          if (canRequestRevision)
             OutlinedButton.icon(
-              onPressed: () async {
-                await store.markUnderReview(contribution.id);
-              },
-              icon: const Icon(Icons.rate_review_outlined),
-              label: const Text('Mark under review'),
+              onPressed: () => _openDecision(
+                context,
+                ReviewDecisionAction.requestChanges,
+                contribution.id,
+              ),
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Request changes'),
             ),
-          FilledButton.icon(
-            onPressed: () => _openDecision(
-              context,
-              ReviewDecisionAction.approve,
-              contribution.id,
+          if (canRequestRevision) const SizedBox(height: 8),
+          if (canReject)
+            OutlinedButton.icon(
+              onPressed: () => _openDecision(
+                context,
+                ReviewDecisionAction.reject,
+                contribution.id,
+              ),
+              icon: const Icon(Icons.cancel_outlined),
+              label: const Text('Reject'),
             ),
-            icon: const Icon(Icons.check_circle_outline),
-            label: const Text('Approve'),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => _openDecision(
-              context,
-              ReviewDecisionAction.requestChanges,
-              contribution.id,
+          if (!canApprove && !canReject && !canRequestRevision)
+            const Text(
+              'No review actions are currently allowed for this contribution.',
             ),
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('Request changes'),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => _openDecision(
-              context,
-              ReviewDecisionAction.reject,
-              contribution.id,
-            ),
-            icon: const Icon(Icons.cancel_outlined),
-            label: const Text('Reject'),
-          ),
         ],
       ),
     );
+  }
+
+  bool _allowsAction(
+    ContributionModel contribution,
+    String action, [
+    String? alternateAction,
+  ]) {
+    if (contribution.allowedActions.isEmpty) {
+      return contribution.status == ContributionStatus.submitted ||
+          contribution.status == ContributionStatus.underReview ||
+          contribution.status == ContributionStatus.needsRevision;
+    }
+    return contribution.allowedActions.contains(action) ||
+        (alternateAction != null &&
+            contribution.allowedActions.contains(alternateAction));
   }
 
   void _openDecision(

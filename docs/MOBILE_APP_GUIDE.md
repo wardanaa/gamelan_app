@@ -4,7 +4,7 @@ This document defines standards for the Flutter mobile application.
 
 ## Current Implementation
 
-The current app is a local Flutter MVP:
+The current app is a backend-connected Flutter MVP:
 
 - `lib/main.dart` runs `GamelanApp`.
 - `lib/app.dart` configures a Material 3 `MaterialApp`, restores the saved
@@ -13,35 +13,38 @@ The current app is a local Flutter MVP:
 - Authenticated sessions open `GamelanHomeShell` with Home, Search, Contribute,
   Review, and Profile tabs.
 - Feature folders exist for `auth`, `contributions`, `knowledge`, `review`, and `admin`.
-- `GamelanMvpStore` and `GamelanScope` provide UI-facing local MVP state.
-- `ContributionRepository`, `ReviewRepository`, and `KnowledgeRepository`
-  define repository boundaries for contribution, review, and knowledge data.
+- `GamelanMvpStore` and `GamelanScope` provide UI-facing state over repository
+  interfaces.
+- Production wiring uses `RemoteContributionRepository`,
+  `RemoteReviewRepository`, and `RemoteKnowledgeRepository` against the Laravel
+  API configured by `API_BASE_URL`.
 - `LocalContributionRepository`, `LocalReviewRepository`, and
-  `LocalKnowledgeRepository` provide the current local demo data source.
-- Non-sensitive contribution drafts are persisted locally with
-  `shared_preferences`.
-- Search uses repository-backed seeded Gong Kebyar and Gong Gede knowledge plus
-  approved local contributions.
-- Contribution list, detail, form, and status screens are implemented for local
-  data and non-sensitive draft persistence.
-- Review queue, detail, and decision screens are implemented for local curator
-  simulation.
+  `LocalKnowledgeRepository` remain for deterministic offline widget and unit
+  tests through `GamelanMvpStore.local()`.
+- Contribution drafts, submissions, review queue items, and review decisions
+  are persisted by the backend in production wiring. The mobile app does not
+  keep API drafts in `shared_preferences`.
+- Search uses `GET /search` with optional taxonomy filters. Published browse
+  data uses `GET /knowledge-items`.
+- Contribution forms apply mobile UX validation, send API slug values for
+  knowledge and gamelan types, and surface backend `422`/`409` responses.
+- Review screens call backend review endpoints and render actions from API
+  `allowed_actions` when present.
 - `AuthRepository` performs real JSON registration, login, logout, and `/me`
   profile requests against the configured Laravel API base URL.
 - `TokenStorage` stores the access token through `flutter_secure_storage`.
 - Expired or invalid saved tokens are cleared when `/me` returns
   unauthenticated.
-- The local Review tab is hidden behind backend profile roles for reviewer,
-  curator, expert validator, or admin users. This is only UX gating; backend
-  policies remain authoritative.
-- Contribution, review, and knowledge repositories are local implementations
-  and do not perform real network requests yet.
-- The default Flutter widget tests use mocked HTTP responses. A separate
-  opt-in live Laravel-backed integration test can exercise only the implemented
+- The Review tab is hidden behind backend profile roles for reviewer, curator,
+  expert validator, or admin users. This is only UX gating; backend policies
+  remain authoritative.
+- `test/remote_repository_test.dart` covers mocked API parsing and error
+  handling. Widget tests inject local repositories for offline flows.
+- An opt-in live Laravel-backed integration test currently exercises only the
   authentication flow when backend test dart-defines are provided.
-- Culturally sensitive drafts, submitted items, review decisions, and approved
-  demo knowledge remain session-only even though data access is now
-  repository-backed.
+- Media upload, RDF publication, provenance/version screens, semantic-search
+  fallback UI, SPARQL proxy usage, encrypted sensitive draft storage, and full
+  offline sync remain target architecture.
 - Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -120,7 +123,7 @@ lib/
 └── ...
 ```
 
-Current local state flow:
+Current production state flow:
 
 ```txt
 Screens
@@ -129,12 +132,11 @@ GamelanScope / GamelanMvpStore
   ↓
 ContributionRepository / ReviewRepository / KnowledgeRepository
   ↓
-Local repository implementations and non-sensitive draft storage
+Remote Laravel API repositories (ApiClient + bearer token)
 ```
 
-The repository interfaces are the mobile boundary for future API-backed
-implementations. The current local implementations are not backend persistence,
-durable provenance, RDF publication, or SPARQL integration.
+Local repository implementations remain available for tests and offline demo
+flows, but they are not used by default production wiring.
 
 Target structure may add routing, theme extraction, shared widgets, profile,
 settings, search, and dedicated state-management layers when the app grows.

@@ -26,26 +26,22 @@ A normal database can store records, but it is weak at representing rich semanti
 
 ## Current Product State
 
-The current repository is a local Flutter MVP for this product. It implements a
-Material 3 mobile shell with local workflows for the main product areas:
+The current repository is a backend-connected Flutter MVP for this product. It
+implements a Material 3 mobile shell with Laravel API workflows for the main
+product areas:
 
 - Home, Search, Contribute, Review, and Profile tabs
 - backend registration/login/logout wiring with secure access-token storage
-- `/me` profile loading and role-aware local Review tab gating
-- seeded knowledge browsing for Gong Kebyar and Gong Gede
-- keyword search over local knowledge records and relation labels
-- contribution listing, details, form, and status
-- repository-backed local state for contribution, review, and knowledge data
-- non-sensitive local draft persistence
-- curator-style local review queue, details, and decisions
-- approved local contributions appearing in Search as community approved demo
-  content
+- `/me` profile loading and role-aware Review tab gating
+- API-backed contribution listing, draft creation, submission, and status display
+- API-backed review queue and curator/reviewer decision actions
+- API-backed published knowledge browse and keyword search
+- mobile UX validation with backend field errors and conflict handling
 
-The current app does not yet provide backend persistence for
-contribution/review/knowledge workflows, authoritative backend policy
-enforcement in this repository, semantic SPARQL search, media upload, full
-offline sync, encrypted sensitive draft storage, RDF generation, SPARQL
-querying, expert validation, or AI triage. Those remain target capabilities.
+The current app does not yet provide media upload, RDF publication UI, provenance
+and version screens, semantic-search fallback UI, full offline sync, encrypted
+sensitive draft storage, mobile expert-validation-specific flows, or AI triage
+presentation beyond API-provided suggestions. Those remain target capabilities.
 
 ## Goals
 

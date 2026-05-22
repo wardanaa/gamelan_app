@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/state/gamelan_scope.dart';
+import '../../../core/utils/result.dart';
 
 enum ReviewDecisionAction { approve, requestChanges, reject }
 
@@ -76,20 +77,33 @@ class _ReviewDecisionScreenState extends State<ReviewDecisionScreen> {
 
     final store = GamelanScope.of(context);
     final note = _noteController.text.trim();
-    switch (widget.action) {
-      case ReviewDecisionAction.approve:
-        await store.approveContribution(widget.contributionId, note);
-      case ReviewDecisionAction.requestChanges:
-        await store.requestChanges(widget.contributionId, note);
-      case ReviewDecisionAction.reject:
-        await store.rejectContribution(widget.contributionId, note);
-    }
+    final Result<void> result = switch (widget.action) {
+      ReviewDecisionAction.approve => await store.approveContribution(
+        widget.contributionId,
+        note,
+      ),
+      ReviewDecisionAction.requestChanges => await store.requestChanges(
+        widget.contributionId,
+        note,
+      ),
+      ReviewDecisionAction.reject => await store.rejectContribution(
+        widget.contributionId,
+        note,
+      ),
+    };
 
     if (!mounted) {
       return;
     }
 
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    switch (result) {
+      case Success<void>():
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      case Failure<void>(:final message):
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 }
 
@@ -105,11 +119,11 @@ extension on ReviewDecisionAction {
   String get explanation {
     return switch (this) {
       ReviewDecisionAction.approve =>
-        'Approved contributions become searchable community approved demo content.',
+        'Approval is recorded through the backend review API. Publication still requires backend workflow and ontology mapping.',
       ReviewDecisionAction.requestChanges =>
-        'Change requests keep the contribution out of public knowledge browsing.',
+        'The contributor can revise and resubmit when the backend allows it.',
       ReviewDecisionAction.reject =>
-        'Rejected contributions remain private to this local workflow.',
+        'Rejected contributions remain unavailable in public knowledge browsing.',
     };
   }
 

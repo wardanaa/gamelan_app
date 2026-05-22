@@ -35,7 +35,7 @@ class ContributionDetailScreen extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              Chip(label: Text(contribution.status.label)),
+              Chip(label: Text(contribution.statusDisplayLabel)),
               Chip(label: Text(contribution.knowledgeType)),
               Chip(label: Text(contribution.gamelanType)),
               if (contribution.culturalSensitivity)
@@ -103,8 +103,8 @@ class _BoundaryNotice extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Text(
-          'Only approved contributions appear in public knowledge browsing. '
-          'This local MVP only persists non-sensitive drafts and does not publish RDF or sync data.',
+          'Only published knowledge appears in public browsing. '
+          'This app does not publish RDF directly or bypass curator review.',
         ),
       ),
     );

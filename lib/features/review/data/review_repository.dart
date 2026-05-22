@@ -1,56 +1,59 @@
 import '../../contributions/data/contribution_model.dart';
 import '../../contributions/data/contribution_repository.dart';
+import '../../../core/utils/result.dart';
 
 abstract class ReviewRepository {
-  Future<List<ContributionModel>> fetchReviewQueue();
+  Future<Result<List<ContributionModel>>> fetchReviewQueue();
 
-  Future<void> markUnderReview(String contributionId);
+  Future<Result<void>> approveContribution(String contributionId, String note);
 
-  Future<void> approveContribution(String contributionId, String note);
+  Future<Result<void>> rejectContribution(String contributionId, String note);
 
-  Future<void> rejectContribution(String contributionId, String note);
-
-  Future<void> requestChanges(String contributionId, String note);
+  Future<Result<void>> requestChanges(String contributionId, String note);
 }
 
 class LocalReviewRepository implements ReviewRepository {
-  const LocalReviewRepository({required ContributionRepository contributions})
+  LocalReviewRepository({required LocalContributionRepository contributions})
     : _contributions = contributions;
 
-  final ContributionRepository _contributions;
+  final LocalContributionRepository _contributions;
 
   @override
-  Future<List<ContributionModel>> fetchReviewQueue() async {
-    final contributions = await _contributions.fetchContributions();
-    return contributions
-        .where(
-          (contribution) =>
-              contribution.status == ContributionStatus.submitted ||
-              contribution.status == ContributionStatus.underReview,
-        )
-        .toList(growable: false);
+  Future<Result<List<ContributionModel>>> fetchReviewQueue() async {
+    final contributionsResult = await _contributions.fetchContributions();
+    return switch (contributionsResult) {
+      Success<List<ContributionModel>>(:final value) => Success(
+        value
+            .where(
+              (contribution) =>
+                  contribution.status == ContributionStatus.submitted ||
+                  contribution.status == ContributionStatus.underReview,
+            )
+            .toList(growable: false),
+      ),
+      Failure<List<ContributionModel>>(:final message, :final exception) =>
+        Failure(message, exception: exception),
+    };
   }
 
   @override
-  Future<void> markUnderReview(String contributionId) async {
-    await _contributions.updateContributionStatus(
+  Future<Result<void>> approveContribution(
+    String contributionId,
+    String note,
+  ) async {
+    return _contributions.updateContributionStatus(
       contributionId,
-      ContributionStatus.underReview,
-    );
-  }
-
-  @override
-  Future<void> approveContribution(String contributionId, String note) async {
-    await _contributions.updateContributionStatus(
-      contributionId,
-      ContributionStatus.approved,
+      ContributionStatus.curatorApproved,
       reviewNote: note,
     );
   }
 
   @override
-  Future<void> rejectContribution(String contributionId, String note) async {
-    await _contributions.updateContributionStatus(
+  Future<Result<void>> rejectContribution(
+    String contributionId,
+    String note,
+  ) async {
+    return _contributions.updateContributionStatus(
       contributionId,
       ContributionStatus.rejected,
       reviewNote: note,
@@ -58,10 +61,13 @@ class LocalReviewRepository implements ReviewRepository {
   }
 
   @override
-  Future<void> requestChanges(String contributionId, String note) async {
-    await _contributions.updateContributionStatus(
+  Future<Result<void>> requestChanges(
+    String contributionId,
+    String note,
+  ) async {
+    return _contributions.updateContributionStatus(
       contributionId,
-      ContributionStatus.rejected,
+      ContributionStatus.needsRevision,
       reviewNote: 'Changes requested: $note',
     );
   }

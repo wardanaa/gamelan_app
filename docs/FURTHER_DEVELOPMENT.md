@@ -4,29 +4,24 @@ This document suggests practical next steps after the current local Flutter MVP.
 
 ## Current Baseline
 
-The current app is a local Flutter MVP. It demonstrates:
+The current app is a backend-connected Flutter MVP. It demonstrates:
 
 - Home, Search, Contribute, Review, and Profile tabs
-- seeded Gong Kebyar and Gong Gede knowledge
-- local keyword search
-- local persistence for non-sensitive contribution drafts
-- repository-backed local demo state for contributions, review queue, and
-  knowledge browsing
-- session-only submitted contributions and review decisions
-- local curator-style review decisions
-- approved local contributions appearing in Search as community approved demo
-  content
 - backend login/logout/registration client wiring
 - `/me` profile loading for new and restored sessions
 - expired or invalid saved-token handling when `/me` returns unauthenticated
-- mobile UX gating for the local Review workflow based on backend profile roles
 - secure device storage for the access token
+- Laravel API-backed contributions, review queue, and knowledge browse/search
+- API-only contribution drafts in production wiring
+- mobile UX validation with backend `422` and `409` error handling
+- role-aware Review tab gating from backend profile roles
+- repository interfaces with remote production implementations and local test
+  implementations
 
-The current app does not include backend persistence for contribution/review
-data, encrypted sensitive draft storage, media upload, RDF/OWL generation,
-SPARQL-backed search, expert validation, or AI triage.
-
-*Note: The Laravel backend repository (`gamelan-api`) has now implemented these target features. The primary next step for this mobile application is API integration.*
+The current app does not include media upload, RDF publication UI, provenance
+and version screens, semantic-search fallback UI, encrypted sensitive draft
+storage, full offline sync, expert-validation-specific mobile flows, or AI
+triage display beyond API-provided suggestions.
 
 ## Recommended Next Steps
 
@@ -38,16 +33,16 @@ SPARQL-backed search, expert validation, or AI triage.
    and culturally sensitive data. Keep backend authorization as the source of
    truth.
 
-2. Replace the in-memory store with repository-backed state. Implemented for
-   the local MVP. `GamelanMvpStore` now coordinates UI-facing state while
-   contribution, review, and knowledge data access lives behind repository
-   interfaces with local demo implementations. These repositories do not call
-   the backend yet.
+2. Replace the in-memory store with repository-backed state. Implemented.
+   `GamelanMvpStore` coordinates UI-facing state while contribution, review,
+   and knowledge data access lives behind repository interfaces.
 
-3. Implement Laravel API integration.
-   Connect contributions, review queue, knowledge browsing, and authentication
-   to the target REST contract. Mobile validation should improve UX, but backend
-   validation must remain mandatory.
+3. Implement Laravel API integration. Implemented for authentication,
+   contributions, review queue actions, and public knowledge browse/search.
+   Production wiring uses remote repositories with API-only drafts. Mobile
+   validation improves UX, but backend validation remains mandatory. Next mobile
+   follow-up: broader live integration coverage and conflict-resolution UI for
+   concurrent edits.
 
 4. Add media metadata and upload flow.
    Start with media metadata and consent handling before enabling file upload.

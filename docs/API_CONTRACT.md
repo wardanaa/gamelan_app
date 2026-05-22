@@ -6,10 +6,10 @@ Endpoint examples describe the intended API v1 contract. Some endpoints may be p
 
 ## Current Implementation
 
-The current Flutter app performs real HTTP requests for authentication only.
-`ApiClient` builds JSON requests from the configured API base URL and
-`AuthRepository` calls backend registration, login, logout, and `/me` profile
-endpoints. The base URL is read from:
+The current Flutter app performs real HTTP requests for authentication,
+contributions, review, and public knowledge browsing/search through the Laravel
+API. `ApiClient` builds JSON requests from the configured API base URL. The
+base URL is read from:
 
 ```txt
 --dart-define=API_BASE_URL=https://127.0.0.1:8000/api/v1
@@ -21,7 +21,7 @@ If no value is provided, local development defaults to:
 http://127.0.0.1:8000/api/v1
 ```
 
-Existing mobile constants are:
+Production mobile endpoint constants include:
 
 ```txt
 /auth/login
@@ -29,8 +29,14 @@ Existing mobile constants are:
 /auth/logout
 /me
 /contributions
-/reviews
-/knowledge
+/reviews/queue
+/reviews/{uuid}/approve
+/reviews/{uuid}/reject
+/reviews/{uuid}/request-revision
+/knowledge-items
+/knowledge-types
+/gamelan-types
+/search
 /admin/audit-logs
 /admin/users
 ```
@@ -41,15 +47,25 @@ Registration and login expect the standard response envelope and a token at
 bearer token for authenticated API requests. If `/me` returns `401`, the mobile
 app clears the stored token and returns to the auth screen.
 
-The local MVP now routes contribution, review, and knowledge data through
-repository interfaces coordinated by `GamelanMvpStore`. The current repository
-implementations are local demo data sources and do not call the contribution,
-review, or knowledge API endpoints. Only non-sensitive draft contributions are
-persisted locally; broader API integration remains target architecture.
+`GamelanMvpStore` coordinates UI-facing state through repository interfaces.
+Production wiring uses:
 
-The Flutter test suite includes an opt-in live Laravel-backed integration test
-for the implemented authentication contract. The test is skipped unless the
-following dart-defines are supplied:
+- `RemoteContributionRepository` for list/create/update/submit/archive
+- `RemoteReviewRepository` for queue and review decisions
+- `RemoteKnowledgeRepository` for browse, detail, search, and taxonomy labels
+
+Contribution drafts are API-only in production wiring. The server is the source
+of truth; local `shared_preferences` draft persistence remains only in
+`LocalContributionRepository` for deterministic tests.
+
+Mobile forms apply UX validation before requests, but backend validation remains
+mandatory. The app maps `422` field errors and `409` conflict responses to form
+and snackbar feedback.
+
+The Flutter test suite includes mocked remote repository tests and widget tests
+that inject `GamelanMvpStore.local()` for offline demo flows. An opt-in live
+Laravel-backed integration test is skipped unless these dart-defines are
+supplied:
 
 ```txt
 GAMELAN_TEST_API_BASE_URL
@@ -57,12 +73,10 @@ GAMELAN_TEST_EMAIL
 GAMELAN_TEST_PASSWORD
 ```
 
-That live test signs in through `POST /auth/login`, confirms the app can load
-the authenticated profile through `GET /me`, and signs out through
-`POST /auth/logout`. It does not exercise contribution, review, knowledge,
-semantic search, ontology, SPARQL, media, RDF publication, or provenance
-endpoints because those mobile workflows are not yet API-backed in this
-repository.
+That live test currently exercises authentication only (`POST /auth/login`,
+`GET /me`, `POST /auth/logout`). Media upload, RDF publication, provenance
+screens, semantic-search fallback UI, SPARQL proxy usage, and full offline sync
+remain target architecture in the mobile app.
 
 Chrome web execution of the live authentication test should use the Flutter
 driver entrypoint at `test_driver/integration_test.dart`:
@@ -80,7 +94,8 @@ flutter drive \
 Use local shell values or CI secrets for live credentials. Do not store them in
 repository files or print backend tokens from the test.
 
-The contract below is the target REST API contract for the future backend.
+The contract below is the shared REST API contract for the Laravel backend and
+external clients such as this Flutter app.
 
 ## Base URL
 
