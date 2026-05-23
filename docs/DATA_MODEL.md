@@ -21,6 +21,7 @@ ContributionModel
 - consentGiven
 - createdAt
 - reviewNote
+- rdfPublication
 
 ReviewModel
 - id
@@ -39,6 +40,24 @@ KnowledgeItem
 - provenanceSummary
 - isCommunityApproved
 ```
+
+The Flutter data layer also now includes typed ontology and RDF publication
+DTOs used by the mobile client:
+
+```txt
+OntologyClass
+OntologyProperty
+OntologyEntity
+OntologyMapping
+OntologyRelation
+RdfPublicationModel
+RdfPublicationPublisher
+```
+
+`ContributionModel` may now carry an optional `rdfPublication` summary and a
+client-side `isPublishable` hint derived from contribution status and cultural
+sensitivity. These additions are read-only client conveniences; backend
+authorization remains the source of truth for publication.
 
 There is no relational database, migration set, backend model, or persisted
 schema in this repository yet. Local contribution, review, and knowledge

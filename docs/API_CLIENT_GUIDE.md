@@ -141,6 +141,11 @@ POST /api/v1/contributions/{uuid}/rdf-publications
 
 Publication is asynchronous. A successful request means the RDF publication job was queued, not that the triplestore insert has already completed. Clients must not call SPARQL update endpoints directly.
 
+Contribution detail responses may also include a nested `rdf_publication`
+summary and a client-side `isPublishable` hint. Clients should treat
+`isPublishable` as a convenience only; backend authorization and workflow
+status remain authoritative.
+
 ## Error Handling
 
 Clients must handle:

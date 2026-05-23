@@ -1,5 +1,6 @@
 import '../../../core/api/api_parsers.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
+import 'rdf_publication_model.dart';
 import 'media_asset_model.dart';
 import '../../review/data/triage_suggestion.dart';
 
@@ -72,6 +73,7 @@ class ContributionModel {
     this.knowledgeTypeSlug,
     this.gamelanTypeSlug,
     this.mediaAssets = const [],
+    this.rdfPublication,
   });
 
   final String id;
@@ -95,6 +97,7 @@ class ContributionModel {
   final String? knowledgeTypeSlug;
   final String? gamelanTypeSlug;
   final List<MediaAssetModel> mediaAssets;
+  final RdfPublicationModel? rdfPublication;
 
   bool get canEdit => allowedActions.contains('edit');
   bool get canSubmit => allowedActions.contains('submit');
@@ -103,6 +106,10 @@ class ContributionModel {
       canEdit &&
       (status == ContributionStatus.draft ||
           status == ContributionStatus.needsRevision);
+  bool get isPublishable =>
+      (status == ContributionStatus.curatorApproved ||
+          status == ContributionStatus.expertApproved) &&
+      !culturalSensitivity;
 
   String get statusDisplayLabel => status.labelFor(this);
 
@@ -126,6 +133,7 @@ class ContributionModel {
       'updatedAt': updatedAt?.toIso8601String(),
       'reviewNote': reviewNote,
       'triageSuggestion': triageSuggestion?.toJson(),
+      'rdfPublication': rdfPublication?.toJson(),
     };
   }
 
@@ -191,6 +199,9 @@ class ContributionModel {
       triageSuggestion: TriageSuggestion.fromApi(
         json['triageSuggestion'] ?? json['triage_suggestion'],
       ),
+      rdfPublication: RdfPublicationModel.fromApi(
+        json['rdfPublication'] ?? json['rdf_publication'],
+      ),
     );
   }
 
@@ -247,6 +258,11 @@ class ContributionModel {
       ]),
       triageSuggestion: TriageSuggestion.fromApi(source),
       mediaAssets: MediaAssetModel.listFromApi(source['media_assets']),
+      rdfPublication: RdfPublicationModel.fromApi(
+        nestedObject(source, const ['rdf_publication', 'rdfPublication']) ??
+            source['rdf_publication'] ??
+            source['rdfPublication'],
+      ),
     );
   }
 
@@ -309,6 +325,7 @@ class ContributionModel {
     String? knowledgeTypeSlug,
     String? gamelanTypeSlug,
     List<MediaAssetModel>? mediaAssets,
+    RdfPublicationModel? rdfPublication,
   }) {
     return ContributionModel(
       id: id ?? this.id,
@@ -332,6 +349,7 @@ class ContributionModel {
       knowledgeTypeSlug: knowledgeTypeSlug ?? this.knowledgeTypeSlug,
       gamelanTypeSlug: gamelanTypeSlug ?? this.gamelanTypeSlug,
       mediaAssets: mediaAssets ?? this.mediaAssets,
+      rdfPublication: rdfPublication ?? this.rdfPublication,
     );
   }
 }
