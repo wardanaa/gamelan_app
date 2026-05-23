@@ -7,10 +7,12 @@ import 'package:gamelan_app/core/mapping/taxonomy_mapper.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
+import 'package:gamelan_app/features/contributions/data/rdf_publication_model.dart';
 import 'package:gamelan_app/features/contributions/screens/contribution_detail_screen.dart';
 import 'package:gamelan_app/features/contributions/widgets/status_badge.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_item.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
+import 'package:gamelan_app/features/ontology/data/ontology_mapping.dart';
 import 'package:gamelan_app/features/provenance/data/provenance_timeline_entry.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:gamelan_app/features/review/screens/review_detail_screen.dart';
@@ -495,6 +497,19 @@ class FakeContributionRepository implements ContributionRepository {
         return Success(contribution);
       }
     }
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<RdfPublicationModel>> queueRdfPublication(
+    String uuid,
+    OntologyMapping mapping,
+  ) async {
+    return const Failure('Not implemented.');
+  }
+
+  @override
+  Future<Result<RdfPublicationModel?>> getRdfPublication(String uuid) async {
     return const Success(null);
   }
 

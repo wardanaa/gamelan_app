@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
+import 'package:gamelan_app/features/contributions/data/rdf_publication_model.dart';
 import 'package:gamelan_app/features/knowledge/data/local_knowledge_repository.dart';
+import 'package:gamelan_app/features/ontology/data/ontology_mapping.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:gamelan_app/core/utils/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -206,6 +208,67 @@ void main() {
         Failure<ContributionModel?>() => fail('Expected success'),
       };
       expect(persisted?.mediaAssets, isEmpty);
+    },
+  );
+
+  test(
+    'local contribution repository keeps rdf publication state in memory only',
+    () async {
+      final repository = LocalContributionRepository();
+      final contributionResult = await repository.createContribution(
+        contributionInput(
+          title: 'Publishable local note',
+          submitForReview: false,
+        ),
+      );
+      final contribution = switch (contributionResult) {
+        Success<ContributionModel>(:final value) => value,
+        Failure<ContributionModel>() => fail('Expected success'),
+      };
+
+      await repository.updateContributionStatus(
+        contribution.id,
+        ContributionStatus.curatorApproved,
+      );
+
+      final mapping = OntologyMapping(
+        id: 'mapping-uuid',
+        contributionId: contribution.id,
+        knowledgeItemId: null,
+        ontologyClass: 'Instrument',
+        subjectSlug: 'publishable-local-note',
+        preferredLabel: 'Publishable local note',
+        language: 'id',
+        relations: const [],
+        status: 'pending',
+        createdAt: DateTime(2026, 5, 22, 10),
+      );
+
+      final queueResult = await repository.queueRdfPublication(
+        contribution.id,
+        mapping,
+      );
+      final publication = switch (queueResult) {
+        Success<RdfPublicationModel>(:final value) => value,
+        Failure<RdfPublicationModel>(:final message) => fail(message),
+      };
+
+      final loadedResult = await repository.findContribution(contribution.id);
+      final loaded = switch (loadedResult) {
+        Success<ContributionModel?>(:final value) => value,
+        Failure<ContributionModel?>() => fail('Expected success'),
+      };
+      expect(loaded?.rdfPublication?.id, publication.id);
+
+      final publicationResult = await repository.getRdfPublication(
+        contribution.id,
+      );
+      final loadedPublication = switch (publicationResult) {
+        Success<RdfPublicationModel?>(:final value) => value,
+        Failure<RdfPublicationModel?>() => fail('Expected success'),
+      };
+      expect(loadedPublication?.status, RdfPublicationStatus.pending);
+      expect(loadedPublication?.ontologyMappingId, 'mapping-uuid');
     },
   );
 

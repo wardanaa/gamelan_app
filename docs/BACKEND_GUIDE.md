@@ -7,6 +7,10 @@ This document defines backend development rules for the Laravel API.
 No Laravel backend exists in this repository yet. The current codebase contains
 only the Flutter app scaffold and lightweight mobile endpoint constants.
 
+The Flutter mobile repositories now consume the documented ontology collection
+routes and the RDF publication queue route, while `getRdfPublication` reads the
+publication summary back through contribution detail payloads.
+
 Use this guide when adding a backend service or when aligning the mobile API
 client with the future backend contract.
 

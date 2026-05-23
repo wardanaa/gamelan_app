@@ -17,6 +17,8 @@ class ApiEndpoints {
   static String contributionMedia(String uuid) => '/contributions/$uuid/media';
   static String contributionMediaItem(String uuid, String mediaAssetUuid) =>
       '/contributions/$uuid/media/$mediaAssetUuid';
+  static String contributionRdfPublications(String uuid) =>
+      '/contributions/$uuid/rdf-publications';
 
   static const String reviewQueue = '/reviews/queue';
   static String review(String uuid) => '/reviews/$uuid';
@@ -36,6 +38,13 @@ class ApiEndpoints {
       '/knowledge-items/$id/relations';
   static const String knowledgeTypes = '/knowledge-types';
   static const String gamelanTypes = '/gamelan-types';
+
+  static const String ontologyClasses = '/ontology/classes';
+  static const String ontologyProperties = '/ontology/properties';
+  static const String ontologyEntities = '/ontology/entities';
+  static String ontologyEntity(String id) => '/ontology/entities/$id';
+  static String ontologyEntityGraph(String id) =>
+      '/ontology/entities/$id/graph';
 
   static const String search = '/search';
 

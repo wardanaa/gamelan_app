@@ -146,6 +146,24 @@ summary and a client-side `isPublishable` hint. Clients should treat
 `isPublishable` as a convenience only; backend authorization and workflow
 status remain authoritative.
 
+The Flutter mobile repositories also consume the ontology collection routes
+directly:
+
+```txt
+GET /api/v1/ontology/classes
+GET /api/v1/ontology/properties
+GET /api/v1/ontology/entities
+GET /api/v1/ontology/entities/{id}
+```
+
+Clients should treat empty or malformed ontology collections as backend
+failures, not as valid empty state. Entity list responses may include pagination
+metadata, and the mobile repository preserves it for deterministic paging.
+
+`getRdfPublication` on the mobile side is a read-through convenience over the
+contribution detail payload. It does not imply a dedicated
+`GET /api/v1/contributions/{uuid}/rdf-publications` endpoint.
+
 ## Error Handling
 
 Clients must handle:

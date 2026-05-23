@@ -30,6 +30,8 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - role-aware Review tab gating from backend profile roles
 - repository interfaces with remote production implementations and local test
   implementations
+- ontology DTOs and repository access for classes, properties, entities, and
+  RDF publication lookup/queueing
 
 The current app does not include RDF publication UI, semantic-search fallback
 UI, encrypted sensitive draft storage, full offline sync, offline media upload
@@ -75,10 +77,10 @@ queues, or broader offline-first expert-validation flows.
 
 7. Add ontology mapping and RDF publication after approval.
    Approved contributions should be mapped to stable ontology classes and
-   properties before any RDF publication. The mobile DTO layer for ontology
-   mapping and RDF publication is now implemented; backend contract verification
-   and future UI/repository wiring remain the remaining phases. The mobile app
-   must not write directly to the triplestore.
+   properties before any RDF publication. The mobile DTO and repository layers
+   for ontology mapping and RDF publication are now implemented; backend
+   contract verification and future UI wiring remain the remaining phases. The
+   mobile app must not write directly to the triplestore.
 
 8. Add SPARQL-backed semantic search.
    Expose predefined semantic search endpoints through the backend. Public users

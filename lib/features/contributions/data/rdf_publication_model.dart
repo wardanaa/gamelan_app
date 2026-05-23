@@ -37,9 +37,10 @@ class RdfPublicationPublisher {
   }
 
   static RdfPublicationPublisher? fromJson(Map<String, Object?> json) {
-    final id = stringFrom(json, const ['id', 'uuid']);
+    final idValue = json['id'] ?? json['uuid'];
+    final id = idValue?.toString().trim();
     final name = stringFrom(json, const ['name', 'display_name']);
-    if (id == null || name == null) {
+    if (id == null || id.isEmpty || name == null) {
       return null;
     }
 

@@ -1,4 +1,6 @@
 import '../../../core/utils/result.dart';
+import '../../ontology/data/ontology_mapping.dart';
+import 'rdf_publication_model.dart';
 import '../../provenance/data/provenance_timeline_entry.dart';
 import 'contribution_draft_storage.dart';
 import 'contribution_model.dart';
@@ -41,6 +43,13 @@ abstract class ContributionRepository {
 
   Future<Result<ContributionModel?>> findContribution(String id);
 
+  Future<Result<RdfPublicationModel>> queueRdfPublication(
+    String uuid,
+    OntologyMapping mapping,
+  );
+
+  Future<Result<RdfPublicationModel?>> getRdfPublication(String uuid);
+
   Future<Result<Map<ContributionStatus, int>>> fetchStatusCounts();
 
   Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionVersions(
@@ -76,6 +85,7 @@ class LocalContributionRepository implements ContributionRepository {
     : _draftStorage = draftStorage ?? ContributionDraftStorage();
 
   final ContributionDraftStorage _draftStorage;
+  final Map<String, RdfPublicationModel> _rdfPublicationsByContributionId = {};
 
   final List<ContributionModel> _contributions = [
     ContributionModel(
@@ -117,10 +127,68 @@ class LocalContributionRepository implements ContributionRepository {
   Future<Result<ContributionModel?>> findContribution(String id) async {
     for (final contribution in _contributions) {
       if (contribution.id == id) {
-        return Success(contribution);
+        return Success(_attachRdfPublication(contribution));
       }
     }
     return const Success(null);
+  }
+
+  @override
+  Future<Result<RdfPublicationModel>> queueRdfPublication(
+    String uuid,
+    OntologyMapping mapping,
+  ) async {
+    final index = _contributions.indexWhere((item) => item.id == uuid);
+    if (index == -1) {
+      return const Failure('Contribution not found.');
+    }
+
+    final contribution = _contributions[index];
+    if (!contribution.isPublishable) {
+      return const Failure('Contribution is not eligible for RDF publication.');
+    }
+
+    final publication = RdfPublicationModel(
+      id: 'local-rdf-publication-${DateTime.now().microsecondsSinceEpoch}',
+      contributionId: uuid,
+      ontologyMappingId: mapping.id,
+      rdfSubjectUri:
+          'https://example.org/gamelan/entity/${mapping.subjectSlug}',
+      rdfGraphUri: 'graph/published',
+      status: RdfPublicationStatus.pending,
+      publishedBy: const RdfPublicationPublisher(
+        id: 'local-curator',
+        name: 'Local Curator',
+      ),
+      metadata: {
+        'ontology_class': mapping.ontologyClass,
+        'subject_slug': mapping.subjectSlug,
+        'relations_count': mapping.relations.length,
+      },
+      createdAt: DateTime.now(),
+    );
+
+    _rdfPublicationsByContributionId[uuid] = publication;
+    _contributions[index] = contribution.copyWith(
+      rdfPublication: publication,
+      updatedAt: DateTime.now(),
+    );
+    await _persistDrafts();
+    return Success(publication);
+  }
+
+  @override
+  Future<Result<RdfPublicationModel?>> getRdfPublication(String uuid) async {
+    final contribution = await findContribution(uuid);
+    return switch (contribution) {
+      Success<ContributionModel?>(:final value) => Success(
+        value?.rdfPublication,
+      ),
+      Failure<ContributionModel?>(:final message, :final exception) => Failure(
+        message,
+        exception: exception,
+      ),
+    };
   }
 
   @override
@@ -350,5 +418,15 @@ class LocalContributionRepository implements ContributionRepository {
         )
         .toList(growable: false);
     await _draftStorage.saveDrafts(drafts);
+  }
+
+  ContributionModel _attachRdfPublication(ContributionModel contribution) {
+    final publication = _rdfPublicationsByContributionId[contribution.id];
+    if (publication == null) {
+      return contribution;
+    }
+    return contribution.rdfPublication == publication
+        ? contribution
+        : contribution.copyWith(rdfPublication: publication);
   }
 }

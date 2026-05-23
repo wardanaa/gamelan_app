@@ -7,8 +7,10 @@ import 'package:gamelan_app/core/utils/result.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
+import 'package:gamelan_app/features/contributions/data/rdf_publication_model.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_item.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
+import 'package:gamelan_app/features/ontology/data/ontology_mapping.dart';
 import 'package:gamelan_app/features/provenance/data/provenance_timeline_entry.dart';
 import 'package:gamelan_app/features/provenance/screens/provenance_timeline_screen.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
@@ -155,6 +157,19 @@ class _NoopContributionRepository implements ContributionRepository {
 
   @override
   Future<Result<ContributionModel?>> findContribution(String id) async {
+    return const Success(null);
+  }
+
+  @override
+  Future<Result<RdfPublicationModel>> queueRdfPublication(
+    String uuid,
+    OntologyMapping mapping,
+  ) async {
+    return const Failure('Not implemented.');
+  }
+
+  @override
+  Future<Result<RdfPublicationModel?>> getRdfPublication(String uuid) async {
     return const Success(null);
   }
 

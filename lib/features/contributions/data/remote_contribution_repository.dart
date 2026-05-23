@@ -1,8 +1,11 @@
 import '../../../core/api/api_client.dart';
+import '../../../core/api/api_parsers.dart';
 import '../../../core/api/repository_errors.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
 import '../../../core/utils/result.dart';
+import '../../ontology/data/ontology_mapping.dart';
+import 'rdf_publication_model.dart';
 import '../../provenance/data/provenance_timeline_entry.dart';
 import 'contribution_model.dart';
 import 'contribution_repository.dart';
@@ -44,16 +47,65 @@ class RemoteContributionRepository implements ContributionRepository {
   @override
   Future<Result<ContributionModel?>> findContribution(String id) async {
     return _runAuthenticated((token) async {
-      final response = await _apiClient.getJson(
-        ApiEndpoints.contribution(id),
-        token: token,
-      );
-      final contribution = ContributionModel.fromApi(
-        response.dataMap,
-        taxonomy: _taxonomyMapper,
-      );
-      return Success(contribution);
+      try {
+        final response = await _apiClient.getJson(
+          ApiEndpoints.contribution(id),
+          token: token,
+        );
+        final contribution = ContributionModel.fromApi(
+          response.dataMap,
+          taxonomy: _taxonomyMapper,
+        );
+        return Success(contribution);
+      } on ApiException catch (exception) {
+        if (exception.statusCode == 404) {
+          return const Success(null);
+        }
+        rethrow;
+      }
     });
+  }
+
+  @override
+  Future<Result<RdfPublicationModel>> queueRdfPublication(
+    String uuid,
+    OntologyMapping mapping,
+  ) async {
+    return _runAuthenticated((token) async {
+      final body = await _rdfPublicationPayload(uuid, mapping);
+      final response = await _apiClient.postJson(
+        ApiEndpoints.contributionRdfPublications(uuid),
+        token: token,
+        body: body,
+      );
+      final publication = RdfPublicationModel.fromApi(
+        nestedObject(response.dataMap, const [
+              'rdf_publication',
+              'rdfPublication',
+            ]) ??
+            response.dataMap['rdf_publication'] ??
+            response.dataMap['rdfPublication'] ??
+            response.data,
+      );
+      if (publication == null) {
+        return const Failure('The server returned an invalid RDF publication.');
+      }
+      return Success(publication);
+    });
+  }
+
+  @override
+  Future<Result<RdfPublicationModel?>> getRdfPublication(String uuid) async {
+    final contribution = await findContribution(uuid);
+    return switch (contribution) {
+      Success<ContributionModel?>(:final value) => Success(
+        value?.rdfPublication,
+      ),
+      Failure<ContributionModel?>(:final message, :final exception) => Failure(
+        message,
+        exception: exception,
+      ),
+    };
   }
 
   @override
@@ -264,6 +316,35 @@ class RemoteContributionRepository implements ContributionRepository {
     }
 
     return payload;
+  }
+
+  Future<Map<String, Object?>> _rdfPublicationPayload(
+    String contributionId,
+    OntologyMapping mapping,
+  ) async {
+    final body = <String, Object?>{
+      'ontology_class': mapping.ontologyClass,
+      'subject_slug': mapping.subjectSlug,
+      'preferred_label': mapping.preferredLabel,
+      'language': mapping.language,
+      'relations': mapping.relations
+          .map((relation) => relation.toJson())
+          .toList(),
+    };
+
+    final contributionResult = await findContribution(contributionId);
+    final contribution = switch (contributionResult) {
+      Success<ContributionModel?>(:final value) => value,
+      Failure<ContributionModel?>() => null,
+    };
+    final sourceSummary = contribution?.sourceNote.trim().isNotEmpty == true
+        ? contribution!.sourceNote.trim()
+        : contribution?.description.trim();
+    if (sourceSummary != null && sourceSummary.trim().isNotEmpty) {
+      body['source_summary'] = sourceSummary.trim();
+    }
+
+    return body;
   }
 
   Future<Result<T>> _runAuthenticated<T>(
