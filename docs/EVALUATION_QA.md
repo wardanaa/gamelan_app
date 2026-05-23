@@ -35,6 +35,31 @@ review detail navigation, provenance timeline display, expert-required
 escalation, expert validation, and status transitions against the configured
 Laravel API.
 
+A separate opt-in live ontology/RDF verification test exists at:
+
+```txt
+integration_test/live_ontology_rdf_backend_test.dart
+```
+
+It is skipped unless `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_EMAIL`, and
+`GAMELAN_TEST_PASSWORD` are supplied with `--dart-define`. Optional fixture
+defines enable deeper checks when the backend has known UUIDs available:
+
+```txt
+GAMELAN_TEST_PUBLIC_ONTOLOGY_ENTITY_UUID
+GAMELAN_TEST_RDF_ELIGIBLE_CONTRIBUTION_UUID
+GAMELAN_TEST_RDF_INELIGIBLE_CONTRIBUTION_UUID
+GAMELAN_TEST_RDF_SENSITIVE_CONTRIBUTION_UUID
+GAMELAN_TEST_RDF_SELF_PUBLISH_CONTRIBUTION_UUID
+GAMELAN_TEST_RDF_SELF_PUBLISH_EMAIL
+GAMELAN_TEST_RDF_SELF_PUBLISH_PASSWORD
+```
+
+The live ontology/RDF test verifies published ontology classes and properties,
+ontology entity detail retrieval, RDF publication queueing for an approved
+non-sensitive contribution, safe rejection of sensitive and ineligible
+publication attempts, and SPARQL proxy restrictions against raw SPARQL text.
+
 Chrome web execution uses the Flutter integration driver at:
 
 ```txt
@@ -66,12 +91,25 @@ flutter drive \
   --dart-define=GAMELAN_TEST_REVIEW_UUID=00000000-0000-0000-0000-000000000000
 ```
 
+Run the live ontology/RDF verification test on Chrome with:
+
+```sh
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/live_ontology_rdf_backend_test.dart \
+  -d chrome \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://127.0.0.1:8000/api/v1 \
+  --dart-define=GAMELAN_TEST_EMAIL=curator@example.com \
+  --dart-define=GAMELAN_TEST_PASSWORD=secret
+```
+
 The same test targets may still be run with `flutter test
 integration_test/live_laravel_backend_test.dart` or `flutter test
-integration_test/review_workflow_test.dart` for non-Chrome/local integration
-execution where supported. Live credentials must come from local command-line
-values or CI secrets and must not be stored in repository files. The tests must
-not print backend tokens.
+integration_test/review_workflow_test.dart` or `flutter test
+integration_test/live_ontology_rdf_backend_test.dart` for non-Chrome/local
+integration execution where supported. Live credentials must come from local
+command-line values or CI secrets and must not be stored in repository files.
+The tests must not print backend tokens.
 
 ## Evaluation Dimensions
 
@@ -116,6 +154,10 @@ Current schema foundation tests cover:
 - default workflow status, UUID assignment, JSON casts, boolean casts, and date/time casts
 
 Workflow endpoint tests now cover contribution submission, review queue visibility, peer-review recommendation boundaries, curator approval/rejection, expert-required routing, expert validation, self-review blocking, private-note privacy, safe provenance/version timeline access, review provenance/audit records, contribution lifecycle audit records, idempotent trace behavior, stale contribution update conflicts, consent-aware media upload/removal, RDF publication queue/job behavior, published knowledge browsing, keyword search, semantic search fallback behavior, protected predefined SPARQL proxy filtering, and the critical contribution-to-publication flow.
+The live ontology/RDF verification test covers ontology class and property
+retrieval, ontology entity detail retrieval, RDF publication queueing for an
+approved non-sensitive contribution, rejection of sensitive and ineligible
+publication attempts, and SPARQL proxy enforcement for predefined query keys.
 
 ## Ontology Evaluation
 
@@ -176,6 +218,9 @@ API evaluation should include:
 - retry-safe idempotency behavior for write endpoints
 - safe trace timeline responses for provenance and version endpoints
 - protected RDF publication queueing and failed-publication safety
+- live ontology endpoint coverage for classes, properties, and entity detail
+- live RDF publication queueing coverage for approved, non-sensitive contributions
+- live SPARQL proxy enforcement for predefined query keys only
 - optional AI triage dispatch, review-only suggestion visibility, and suggestion-only side effects
 - public knowledge browsing and search filtering for published, non-sensitive content only
 - semantic search unavailable behavior when the SPARQL query endpoint is not configured

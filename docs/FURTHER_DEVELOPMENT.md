@@ -75,8 +75,10 @@ queues, or broader offline-first expert-validation flows.
 
 7. Add ontology mapping and RDF publication after approval.
    Approved contributions should be mapped to stable ontology classes and
-   properties before any RDF publication. The mobile app must not write directly
-   to the triplestore.
+   properties before any RDF publication. Phase 1 of this work is a backend
+   contract verification pass only: the mobile app must not write directly to
+   the triplestore, and no ontology/RDF UI or repository wiring should be added
+   until the backend contract is confirmed.
 
 8. Add SPARQL-backed semantic search.
    Expose predefined semantic search endpoints through the backend. Public users
