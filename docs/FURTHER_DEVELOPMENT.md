@@ -10,6 +10,7 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - backend login/logout/registration client wiring
 - `/me` profile loading for new and restored sessions
 - live integration verification of `/me` roles/permissions and gated expert-review contract checks
+- remote review repository methods now cover expert-required and expert-validation payloads
 - expired or invalid saved-token handling when `/me` returns unauthenticated
 - secure device storage for the access token
 - Laravel API-backed contributions, contribution media upload/removal, review
@@ -52,10 +53,11 @@ flows, or AI triage display beyond API-provided suggestions.
    submission. Sensitive or restricted media is not publicly exposed by default.
    Offline media upload queues remain future work.
 
-5. Add role-aware review and expert validation.
-   Replace demo role labels with backend roles and policies. Add a distinct
-   expert-required and expert-validated path for sensitive or authoritative
-   knowledge.
+5. Add role-aware review and expert validation UI.
+   The mobile data/repository contract is now aligned with backend expert
+   workflow endpoints. Build the UI layer on top of `allowed_actions` and the
+   expert-validation repository methods without reintroducing local role-based
+   authorization rules.
 
 6. Add provenance and version records.
    Persist contributor attribution, source notes, review decisions, edit

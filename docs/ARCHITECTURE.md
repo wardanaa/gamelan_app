@@ -55,8 +55,9 @@ Current implementation:
   and `shared_preferences`.
 - Seeded knowledge records and approved local contributions appear in Search
   through `LocalKnowledgeRepository`.
-- Draft, submitted, under-review, approved, and rejected contribution states are
-  simulated locally. Only non-sensitive drafts persist across app restart.
+- Draft, submitted, under-review, curator-approved, expert-required,
+  expert-approved, and rejected contribution states are simulated locally.
+  Only non-sensitive drafts persist across app restart.
 - Local contribution, review, and knowledge repositories do not perform real
   network requests yet.
 
@@ -92,9 +93,10 @@ Local curator review action
 Approved local contribution appears in Search
 ```
 
-Draft, submitted, under-review, request-changes, and rejected contributions do
-not appear in public knowledge browsing. Approved local content is labeled as
-community approved demo content and is not RDF publication.
+Draft, submitted, under-review, request-changes, expert-required,
+expert-approved, and rejected contributions do not appear in public knowledge
+browsing. Approved local content is labeled as community approved demo content
+and is not RDF publication.
 
 ### Laravel REST API
 

@@ -65,6 +65,46 @@ class RemoteReviewRepository implements ReviewRepository {
     );
   }
 
+  @override
+  Future<Result<void>> markExpertRequired(
+    String contributionId,
+    String note,
+    List<String> reasons,
+  ) async {
+    return _runAuthenticated((token) async {
+      await _apiClient.postJson(
+        ApiEndpoints.reviewMarkExpertRequired(contributionId),
+        token: token,
+        body: {
+          'note': note.trim(),
+          'expert_required_reasons': _normalizeReasons(reasons),
+        },
+      );
+      return const Success(null);
+    });
+  }
+
+  @override
+  Future<Result<void>> expertValidate(
+    String contributionId,
+    String decision,
+    String note,
+    String privateNote,
+  ) async {
+    return _runAuthenticated((token) async {
+      await _apiClient.postJson(
+        ApiEndpoints.reviewExpertValidate(contributionId),
+        token: token,
+        body: {
+          'decision': decision.trim(),
+          'note': note.trim(),
+          'private_note': privateNote.trim(),
+        },
+      );
+      return const Success(null);
+    });
+  }
+
   Future<Result<void>> _postDecision(
     String path, {
     required String note,
@@ -103,5 +143,13 @@ class RemoteReviewRepository implements ReviewRepository {
     } on Object catch (exception) {
       return Failure('Unable to reach the server.', exception: exception);
     }
+  }
+
+  static List<String> _normalizeReasons(List<String> reasons) {
+    return reasons
+        .map((reason) => reason.trim())
+        .where((reason) => reason.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
   }
 }

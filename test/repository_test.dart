@@ -12,6 +12,38 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  test(
+    'contribution status values and labels include expert workflow states',
+    () {
+      expect(ContributionStatus.expertRequired.apiValue, 'expert_required');
+      expect(ContributionStatus.expertApproved.apiValue, 'expert_approved');
+      expect(ContributionStatus.published.apiValue, 'published');
+      expect(ContributionStatus.archived.apiValue, 'archived');
+
+      expect(ContributionStatus.expertRequired.label, 'Expert required');
+      expect(ContributionStatus.expertApproved.label, 'Expert approved');
+      expect(ContributionStatus.published.label, 'Published');
+      expect(ContributionStatus.archived.label, 'Archived');
+
+      expect(
+        ContributionStatus.fromApiValue('expert_required'),
+        ContributionStatus.expertRequired,
+      );
+      expect(
+        ContributionStatus.fromApiValue('expert_approved'),
+        ContributionStatus.expertApproved,
+      );
+      expect(
+        ContributionStatus.fromApiValue('published'),
+        ContributionStatus.published,
+      );
+      expect(
+        ContributionStatus.fromApiValue('archived'),
+        ContributionStatus.archived,
+      );
+    },
+  );
+
   test('local contribution repository includes initial demo seed', () async {
     final repository = LocalContributionRepository();
 

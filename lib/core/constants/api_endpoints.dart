@@ -19,6 +19,10 @@ class ApiEndpoints {
   static String reviewReject(String uuid) => '/reviews/$uuid/reject';
   static String reviewRequestRevision(String uuid) =>
       '/reviews/$uuid/request-revision';
+  static String reviewMarkExpertRequired(String uuid) =>
+      '/reviews/$uuid/mark-expert-required';
+  static String reviewExpertValidate(String uuid) =>
+      '/reviews/$uuid/expert-validate';
 
   static const String knowledgeItems = '/knowledge-items';
   static String knowledgeItem(String id) => '/knowledge-items/$id';

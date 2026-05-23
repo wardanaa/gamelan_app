@@ -258,6 +258,8 @@ void main() {
 
   test('remote review repository posts approve decisions', () async {
     var approveCalled = false;
+    var markExpertRequiredCalled = false;
+    var expertValidateCalled = false;
     final client = MockClient((request) async {
       if (request.method == 'GET' &&
           request.url.path.endsWith('/reviews/queue')) {
@@ -300,6 +302,36 @@ void main() {
           'data': {},
         });
       }
+      if (request.method == 'POST' &&
+          request.url.path.endsWith(
+            '/reviews/queue-item/mark-expert-required',
+          )) {
+        markExpertRequiredCalled = true;
+        final body = jsonDecode(request.body) as Map<String, Object?>;
+        expect(body['note'], 'Needs expert validation.');
+        expect(body['expert_required_reasons'], [
+          'origin_claim',
+          'curator_flagged',
+        ]);
+        return jsonResponse({
+          'success': true,
+          'message': 'Marked for expert validation',
+          'data': {},
+        });
+      }
+      if (request.method == 'POST' &&
+          request.url.path.endsWith('/reviews/queue-item/expert-validate')) {
+        expertValidateCalled = true;
+        final body = jsonDecode(request.body) as Map<String, Object?>;
+        expect(body['decision'], 'approve');
+        expect(body['note'], 'Expert validated.');
+        expect(body['private_note'], 'Private review context.');
+        return jsonResponse({
+          'success': true,
+          'message': 'Validated',
+          'data': {},
+        });
+      }
       return jsonResponse({'success': false, 'message': 'Not found'}, 404);
     });
 
@@ -327,6 +359,23 @@ void main() {
     );
     expect(approveResult, isA<Success<void>>());
     expect(approveCalled, isTrue);
+
+    final markExpertRequiredResult = await repository.markExpertRequired(
+      'queue-item',
+      'Needs expert validation.',
+      ['origin_claim', 'curator_flagged'],
+    );
+    expect(markExpertRequiredResult, isA<Success<void>>());
+    expect(markExpertRequiredCalled, isTrue);
+
+    final expertValidateResult = await repository.expertValidate(
+      'queue-item',
+      'approve',
+      'Expert validated.',
+      'Private review context.',
+    );
+    expect(expertValidateResult, isA<Success<void>>());
+    expect(expertValidateCalled, isTrue);
   });
 
   test(

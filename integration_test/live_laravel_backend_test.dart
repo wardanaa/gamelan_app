@@ -156,7 +156,7 @@ void main() {
       final markExpertRequiredUuid = reviewConfig.markExpertRequiredUuid;
       if (markExpertRequiredUuid != null) {
         final markResponse = await apiClient.postJson(
-          '/reviews/$markExpertRequiredUuid/mark-expert-required',
+          ApiEndpoints.reviewMarkExpertRequired(markExpertRequiredUuid),
           token: reviewSession.accessToken,
           body: {
             'note': 'Marked for expert validation during live contract check.',
@@ -181,7 +181,7 @@ void main() {
       final expertValidateUuid = reviewConfig.expertValidateUuid;
       if (expertValidateUuid != null) {
         final expertValidateResponse = await apiClient.postJson(
-          '/reviews/$expertValidateUuid/expert-validate',
+          ApiEndpoints.reviewExpertValidate(expertValidateUuid),
           token: reviewSession.accessToken,
           body: {
             'decision': 'approve',

@@ -112,6 +112,11 @@ Contribution responses include `status_label`, `status_description`, and `allowe
 
 Review and expert clients may receive role-aware actions such as `view_review`, `recommend_approve`, `recommend_reject`, `approve`, `reject`, `request_revision`, `mark_expert_required`, and `expert_validate`. These actions are hints from backend authorization and workflow status; clients must still submit decisions to the backend for enforcement.
 
+Client repositories should serialize expert workflow payloads exactly as documented:
+
+- `mark_expert_required` with `note` and `expert_required_reasons`
+- `expert_validate` with `decision`, `note`, and `private_note`
+
 Curator and admin clients may receive `publish_rdf` for non-sensitive contributions in `curator_approved` or `expert_approved` status. Clients trigger publication with:
 
 ```txt

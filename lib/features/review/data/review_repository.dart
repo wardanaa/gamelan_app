@@ -10,6 +10,19 @@ abstract class ReviewRepository {
   Future<Result<void>> rejectContribution(String contributionId, String note);
 
   Future<Result<void>> requestChanges(String contributionId, String note);
+
+  Future<Result<void>> markExpertRequired(
+    String contributionId,
+    String note,
+    List<String> reasons,
+  );
+
+  Future<Result<void>> expertValidate(
+    String contributionId,
+    String decision,
+    String note,
+    String privateNote,
+  );
 }
 
 class LocalReviewRepository implements ReviewRepository {
@@ -74,6 +87,52 @@ class LocalReviewRepository implements ReviewRepository {
       contributionId,
       ContributionStatus.needsRevision,
       reviewNote: 'Changes requested: $note',
+    );
+  }
+
+  @override
+  Future<Result<void>> markExpertRequired(
+    String contributionId,
+    String note,
+    List<String> reasons,
+  ) async {
+    final formattedReasons = reasons
+        .map((reason) => reason.trim())
+        .where((reason) => reason.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    return _contributions.updateContributionStatus(
+      contributionId,
+      ContributionStatus.expertRequired,
+      reviewNote: formattedReasons.isEmpty
+          ? note
+          : '$note (${formattedReasons.join(', ')})',
+    );
+  }
+
+  @override
+  Future<Result<void>> expertValidate(
+    String contributionId,
+    String decision,
+    String note,
+    String privateNote,
+  ) async {
+    final normalizedDecision = decision.trim().toLowerCase();
+    final status = switch (normalizedDecision) {
+      'approve' => ContributionStatus.expertApproved,
+      'reject' => ContributionStatus.rejected,
+      'request_revision' => ContributionStatus.needsRevision,
+      _ => ContributionStatus.expertApproved,
+    };
+
+    final combinedNote = privateNote.trim().isEmpty
+        ? note
+        : '$note\nPrivate note: ${privateNote.trim()}';
+
+    return _contributions.updateContributionStatus(
+      contributionId,
+      status,
+      reviewNote: combinedNote,
     );
   }
 }

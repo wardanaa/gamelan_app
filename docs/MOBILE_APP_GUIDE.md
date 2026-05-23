@@ -33,6 +33,9 @@ The current app is a backend-connected Flutter MVP:
   visibility, cultural sensitivity, and descriptive metadata.
 - Review screens call backend review endpoints and render actions from API
   `allowed_actions` when present.
+- `RemoteReviewRepository` exposes expert-workflow methods for
+  `markExpertRequired` and `expertValidate`, matching the backend contract for
+  curator and expert flows.
 - Review and knowledge detail screens render safe read-only media metadata when
   the API includes `media_assets`.
 - `AuthRepository` performs real JSON registration, login, logout, and `/me`
@@ -187,9 +190,14 @@ Current Dart contribution statuses:
 ```txt
 draft
 submitted
+needsRevision
 underReview
-approved
+curatorApproved
+expertRequired
+expertApproved
+published
 rejected
+archived
 ```
 
 Target backend workflow statuses:
