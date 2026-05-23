@@ -39,6 +39,10 @@ Expected behavior:
 - handle `401` by clearing invalid local session state
 - handle `403` by hiding or disabling unauthorized actions
 
+The Flutter mobile client also expects `GET /api/v1/me` to return backend
+`roles` and `permissions`, so review and expert-approval UX can stay aligned
+with backend policy instead of inferring authorization locally.
+
 The API remains responsible for all authentication and authorization decisions.
 Plain text tokens are returned only in register and login responses. Clients should not expect token values from `GET /api/v1/me`.
 

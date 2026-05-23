@@ -98,6 +98,13 @@ repository files or print backend tokens from the test.
 The contract below is the shared REST API contract for the Laravel backend and
 external clients such as this Flutter app.
 
+The live integration coverage in this repository now verifies that `GET /me`
+returns backend `roles` and `permissions` consumable by the mobile app. When
+opt-in review credentials and target UUIDs are provided, the same live test also
+checks the documented expert-review endpoints and workflow-status transitions,
+while keeping contributor-facing trace/privacy expectations explicit in the test
+fixtures.
+
 ## Base URL
 
 ```txt

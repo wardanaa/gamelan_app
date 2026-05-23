@@ -102,6 +102,9 @@ Current trace API behavior:
 - Authorized reviewer, curator, expert, and admin users may retrieve provenance timelines only when review authorization allows access to the contribution.
 - Contributor-facing trace responses hide reviewer and expert identities.
 - Trace responses must not expose private notes, IP address, user agent, media storage paths, file URLs, raw AI prompts, raw AI responses, or restricted cultural details.
+- Live contract fixtures and integration checks in this repository mirror the same
+  safe-field boundary so private review notes or reviewer/expert identities are
+  caught during backend verification instead of leaking into client-facing code.
 - Optional stale-update checks use `last_known_updated_at` only after owner authorization, so conflict responses do not reveal another user's unpublished contribution.
 
 Current RDF publication behavior:

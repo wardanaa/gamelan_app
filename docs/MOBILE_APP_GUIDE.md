@@ -45,8 +45,10 @@ The current app is a backend-connected Flutter MVP:
   remain authoritative.
 - `test/remote_repository_test.dart` covers mocked API parsing and error
   handling. Widget tests inject local repositories for offline flows.
-- An opt-in live Laravel-backed integration test currently exercises only the
-  authentication flow when backend test dart-defines are provided.
+- An opt-in live Laravel-backed integration test exercises the authentication
+  flow and verifies that `GET /me` returns backend `roles` and `permissions`.
+  When review credentials and target UUIDs are supplied, it also checks the
+  documented expert-review endpoints and safe workflow metadata.
 - RDF publication, provenance/version screens, semantic-search fallback UI,
   SPARQL proxy usage, encrypted sensitive draft storage, offline media upload
   queues, and full offline sync remain target architecture.

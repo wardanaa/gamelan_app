@@ -281,6 +281,10 @@ void main() {
               'created_at': '2026-05-22T10:00:00.000000Z',
               'updated_at': '2026-05-22T10:00:00.000000Z',
               'allowed_actions': ['approve', 'reject'],
+              'private_note':
+                  'Should not be exposed to contributor-facing clients.',
+              'reviewer': {'id': 'reviewer-uuid', 'name': 'Curator Reviewer'},
+              'expert': {'id': 'expert-uuid', 'name': 'Expert Validator'},
             },
           ],
         });
@@ -308,7 +312,14 @@ void main() {
     );
 
     final queueResult = await repository.fetchReviewQueue();
-    expect(queueResult, isA<Success<List<ContributionModel>>>());
+    final queue = switch (queueResult) {
+      Success<List<ContributionModel>>(:final value) => value,
+      Failure<List<ContributionModel>>() => fail('Expected success'),
+    };
+    expect(queue, hasLength(1));
+    expect(queue.single.toJson().containsKey('private_note'), isFalse);
+    expect(queue.single.toJson().containsKey('reviewer'), isFalse);
+    expect(queue.single.toJson().containsKey('expert'), isFalse);
 
     final approveResult = await repository.approveContribution(
       'queue-item',
@@ -317,6 +328,43 @@ void main() {
     expect(approveResult, isA<Success<void>>());
     expect(approveCalled, isTrue);
   });
+
+  test(
+    'remote review repository surfaces 403 authorization failures',
+    () async {
+      final client = MockClient((request) async {
+        if (request.method == 'POST' &&
+            request.url.path.endsWith('/reviews/queue-item/approve')) {
+          return jsonResponse({
+            'success': false,
+            'message': 'You do not have permission to perform this action.',
+            'errors': {},
+          }, 403);
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteReviewRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+        tokenResolver: () async => 'test-token',
+      );
+
+      final result = await repository.approveContribution(
+        'queue-item',
+        'Approved for publication workflow.',
+      );
+
+      expect(result, isA<Failure<void>>());
+      final failure = result as Failure<void>;
+      expect(
+        failure.message,
+        'You do not have permission to perform this action.',
+      );
+    },
+  );
 
   test('remote knowledge repository parses search results', () async {
     final client = MockClient((request) async {

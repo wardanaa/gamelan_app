@@ -9,6 +9,7 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - Home, Search, Contribute, Review, and Profile tabs
 - backend login/logout/registration client wiring
 - `/me` profile loading for new and restored sessions
+- live integration verification of `/me` roles/permissions and gated expert-review contract checks
 - expired or invalid saved-token handling when `/me` returns unauthenticated
 - secure device storage for the access token
 - Laravel API-backed contributions, contribution media upload/removal, review
