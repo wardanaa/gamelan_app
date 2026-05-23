@@ -161,12 +161,12 @@ flutter pub get
 
 # Build APK (for testing/distribution)
 flutter build apk --release \
-  --dart-define=API_BASE_URL=https://api.gamelan.app/api/v1 \
+  --dart-define=API_BASE_URL=https://gamelan.madewardana.com/api/v1 \
   --dart-define=ENVIRONMENT=production
 
 # Build App Bundle (for Google Play Store)
 flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://api.gamelan.app/api/v1 \
+  --dart-define=API_BASE_URL=https://gamelan.madewardana.com/api/v1 \
   --dart-define=ENVIRONMENT=production
 ```
 
@@ -258,7 +258,7 @@ flutter pub get
 
 # Build iOS
 flutter build ios --release \
-  --dart-define=API_BASE_URL=https://api.gamelan.app/api/v1 \
+  --dart-define=API_BASE_URL=https://gamelan.madewardana.com/api/v1 \
   --dart-define=ENVIRONMENT=production
 ```
 
