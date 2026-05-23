@@ -13,6 +13,7 @@ import 'features/auth/screens/login_screen.dart';
 import 'features/contributions/data/contribution_model.dart';
 import 'features/contributions/data/remote_contribution_repository.dart';
 import 'features/contributions/screens/contribution_list_screen.dart';
+import 'features/contributions/widgets/status_badge.dart';
 import 'features/knowledge/data/remote_knowledge_repository.dart';
 import 'features/knowledge/screens/entity_list_screen.dart';
 import 'features/review/data/remote_review_repository.dart';
@@ -314,8 +315,10 @@ class _HomeTab extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   for (final status in ContributionStatus.values)
-                    Chip(
-                      label: Text('${status.label}: ${counts[status] ?? 0}'),
+                    StatusBadge(
+                      status: status,
+                      label: '${status.label}: ${counts[status] ?? 0}',
+                      dense: true,
                     ),
                 ],
               ),

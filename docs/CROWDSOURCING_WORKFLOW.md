@@ -31,7 +31,9 @@ Implemented local behavior:
 
 No backend workflow persistence, backend role authorization for workflow
 actions, durable curation decision persistence, expert validation, RDF
-publication, or durable provenance storage is implemented yet.
+publication, or durable provenance storage is implemented in the local Flutter
+app itself yet. The mobile client reads backend trace data and shows it in a
+safe read-only provenance timeline route.
 
 The workflow below is the target application workflow.
 
@@ -142,6 +144,9 @@ Expert validation is required for:
 - Review and expert validation actions create provenance and audit records.
 - Contribution owners and authorized review roles can retrieve safe provenance/version timelines without exposing private notes, reviewer or expert identities to contributors, media storage paths, or operational audit internals.
 - The Flutter mobile review detail screen now renders standard and expert action groups directly from backend `allowed_actions`, opening dedicated dialogs for expert escalation and expert validation.
+- The Flutter mobile review detail screen also shows backend `triage_suggestion`
+  data as a review-only helper card, and contribution/review detail screens can
+  open the safe provenance timeline route for version and provenance history.
 - Contributor-facing contribution detail screens do not render reviewer notes or private expert notes. The expert validation dialog is the only mobile UI surface that accepts a private note.
 
 ## Implemented RDF Publication Behavior
@@ -167,4 +172,4 @@ AI may produce:
 
 AI output must be shown as suggestion, not decision.
 
-Implemented MVP 9 triage runs as `RunContributionTriageJob` after successful submission when `AI_TRIAGE_ENABLED=true`. It uses local rule-based preprocessing only, stores `triage_results`, mirrors the latest `contributions.ai_*` fields, records `ai_triage_suggested` provenance/audit metadata, and never changes workflow status or publishes knowledge.
+Implemented MVP 9 triage runs as `RunContributionTriageJob` after successful submission when `AI_TRIAGE_ENABLED=true`. It uses local rule-based preprocessing only, stores `triage_results`, mirrors the latest `contributions.ai_*` fields, records `ai_triage_suggested` provenance/audit metadata, and never changes workflow status or publishes knowledge. The mobile client only displays the suggestion on review-capable screens and never on contributor-facing views.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/state/gamelan_scope.dart';
+import '../../contributions/widgets/status_badge.dart';
 import 'review_detail_screen.dart';
 
 class ReviewQueueScreen extends StatelessWidget {
@@ -38,16 +39,25 @@ class ReviewQueueScreen extends StatelessWidget {
                       child: ListTile(
                         title: Text(contribution.title),
                         subtitle: Text(
-                          '${contribution.knowledgeType} • '
-                          '${contribution.gamelanType} • '
-                          '${contribution.statusDisplayLabel}',
+                          '${contribution.knowledgeType} • ${contribution.gamelanType}',
                         ),
-                        trailing: contribution.culturalSensitivity
-                            ? const Icon(
-                                Icons.warning_amber_outlined,
-                                semanticLabel: 'Culturally sensitive',
-                              )
-                            : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (contribution.culturalSensitivity)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 8),
+                                child: Icon(
+                                  Icons.warning_amber_outlined,
+                                  semanticLabel: 'Culturally sensitive',
+                                ),
+                              ),
+                            StatusBadge(
+                              status: contribution.status,
+                              dense: true,
+                            ),
+                          ],
+                        ),
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(

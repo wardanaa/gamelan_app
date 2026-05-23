@@ -18,16 +18,19 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - review detail screens now render standard and expert action groups from
   backend `allowed_actions`, with dedicated dialogs for expert escalation and
   validation
+- contribution and review detail screens now open a safe, read-only provenance
+  timeline route backed by Laravel trace endpoints
+- review detail screens now render backend `triage_suggestion` payloads as a
+  review-only helper card labeled `AI suggestion, not validated.`
 - API-only contribution drafts in production wiring
 - mobile UX validation with backend `422` and `409` error handling
 - role-aware Review tab gating from backend profile roles
 - repository interfaces with remote production implementations and local test
   implementations
 
-The current app does not include RDF publication UI, provenance and version
-screens, semantic-search fallback UI, encrypted sensitive draft storage, full
-offline sync, offline media upload queues, expert-validation-specific mobile
-flows, or AI triage display beyond API-provided suggestions.
+The current app does not include RDF publication UI, semantic-search fallback
+UI, encrypted sensitive draft storage, full offline sync, offline media upload
+queues, or broader offline-first expert-validation flows.
 
 ## Recommended Next Steps
 
@@ -63,9 +66,9 @@ flows, or AI triage display beyond API-provided suggestions.
    authorization out of the widget layer.
 
 6. Add provenance and version records.
-   Persist contributor attribution, source notes, review decisions, edit
-   history, and publication state. Important edits should create version
-   snapshots.
+   Implemented in the mobile client as safe read-only timelines backed by the
+   Laravel trace endpoints. Remaining work is backend publication and any
+   future write-side audit expansion.
 
 7. Add ontology mapping and RDF publication after approval.
    Approved contributions should be mapped to stable ontology classes and
@@ -79,7 +82,9 @@ flows, or AI triage display beyond API-provided suggestions.
 9. Add AI triage as suggestions only.
    AI may suggest entity types, relations, duplicates, metadata, or summaries
    for curator review. AI must not publish knowledge, validate cultural claims,
-   invent sources, or generate final RDF triples without human approval.
+   invent sources, or generate final RDF triples without human approval. The
+   mobile app already renders backend triage suggestions as review-only helper
+   cards and keeps them out of contributor-facing screens.
 
 ## Suggested Acceptance Criteria
 

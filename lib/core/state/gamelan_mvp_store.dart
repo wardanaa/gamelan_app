@@ -6,6 +6,7 @@ import '../../features/contributions/data/media_asset_model.dart';
 import '../../features/knowledge/data/knowledge_item.dart';
 import '../../features/knowledge/data/knowledge_repository.dart';
 import '../../features/knowledge/data/local_knowledge_repository.dart';
+import '../../features/provenance/data/provenance_timeline_entry.dart';
 import '../../features/review/data/review_repository.dart';
 import '../api/repository_errors.dart';
 import '../mapping/taxonomy_mapper.dart';
@@ -287,6 +288,24 @@ class GamelanMvpStore extends ChangeNotifier {
     return _runReviewAction(
       () => _reviewRepository.expertValidate(id, decision, note, privateNote),
     );
+  }
+
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionVersions(
+    String contributionId,
+  ) {
+    return _contributionRepository.fetchContributionVersions(contributionId);
+  }
+
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionProvenance(
+    String contributionId,
+  ) {
+    return _contributionRepository.fetchContributionProvenance(contributionId);
+  }
+
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchReviewProvenance(
+    String contributionId,
+  ) {
+    return _reviewRepository.fetchReviewProvenance(contributionId);
   }
 
   Map<String, List<String>>? validationErrorsFromFailure(

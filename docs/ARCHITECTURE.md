@@ -50,6 +50,12 @@ Current implementation:
 - Review detail screens render action groups from backend `allowed_actions`
   and open dedicated expert dialogs for escalation and validation when those
   actions are present.
+- Contribution and review detail screens can open a safe, read-only
+  provenance timeline route that merges contribution versions and provenance
+  events from backend trace endpoints.
+- Review detail screens can render backend triage suggestions as a helper card,
+  but only on review-capable views and only when the API includes
+  `triage_suggestion`.
 - UI-facing local MVP state is coordinated by `GamelanMvpStore` and exposed
   through `GamelanScope`.
 - Contribution, review, and knowledge data access is behind repository

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/contribution_model.dart';
+import 'status_badge.dart';
 
 class ContributionCard extends StatelessWidget {
   const ContributionCard({required this.contribution, this.onTap, super.key});
@@ -23,7 +24,7 @@ class ContributionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(contribution.statusDisplayLabel),
+            StatusBadge(status: contribution.status, dense: true),
             if (contribution.culturalSensitivity)
               const Icon(
                 Icons.warning_amber_outlined,

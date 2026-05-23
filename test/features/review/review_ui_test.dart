@@ -8,10 +8,13 @@ import 'package:gamelan_app/features/contributions/data/contribution_model.dart'
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
 import 'package:gamelan_app/features/contributions/screens/contribution_detail_screen.dart';
+import 'package:gamelan_app/features/contributions/widgets/status_badge.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_item.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
+import 'package:gamelan_app/features/provenance/data/provenance_timeline_entry.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:gamelan_app/features/review/screens/review_detail_screen.dart';
+import 'package:gamelan_app/features/review/data/triage_suggestion.dart';
 import 'package:gamelan_app/features/review/widgets/expert_validation_dialog.dart';
 import 'package:gamelan_app/features/review/widgets/mark_expert_required_dialog.dart';
 
@@ -68,6 +71,53 @@ void main() {
       findsOneWidget,
     );
     expect(find.widgetWithText(FilledButton, 'Validate'), findsOneWidget);
+  });
+
+  testWidgets('status badges distinguish expert workflow states', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Row(
+            children: [
+              StatusBadge(status: ContributionStatus.curatorApproved),
+              StatusBadge(status: ContributionStatus.expertRequired),
+              StatusBadge(status: ContributionStatus.expertApproved),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final curatorBadge = tester.widget<DecoratedBox>(
+      find.ancestor(
+        of: find.text('Curator approved'),
+        matching: find.byType(DecoratedBox),
+      ),
+    );
+    final expertRequiredBadge = tester.widget<DecoratedBox>(
+      find.ancestor(
+        of: find.text('Expert required'),
+        matching: find.byType(DecoratedBox),
+      ),
+    );
+    final expertApprovedBadge = tester.widget<DecoratedBox>(
+      find.ancestor(
+        of: find.text('Expert approved'),
+        matching: find.byType(DecoratedBox),
+      ),
+    );
+
+    final curatorColor = (curatorBadge.decoration as BoxDecoration).color;
+    final requiredColor =
+        (expertRequiredBadge.decoration as BoxDecoration).color;
+    final approvedColor =
+        (expertApprovedBadge.decoration as BoxDecoration).color;
+
+    expect(requiredColor, isNot(curatorColor));
+    expect(approvedColor, isNot(curatorColor));
+    expect(requiredColor, isNot(approvedColor));
   });
 
   testWidgets('review detail falls back when allowed_actions is absent', (
@@ -289,6 +339,61 @@ void main() {
     expect(find.text('Review note'), findsNothing);
     expect(find.text('Private note'), findsNothing);
   });
+
+  testWidgets(
+    'review detail shows triage summary while contributor detail does not',
+    (WidgetTester tester) async {
+      final triageSuggestion = TriageSuggestion(
+        label: 'AI suggestion, not validated.',
+        provider: 'rules',
+        status: 'suggested',
+        modelName: 'rule-based-v1',
+        processedAt: DateTime(2026, 5, 23),
+        confidenceScore: '0.7600',
+        suggestedEntityType: 'instrument',
+        suggestedRelations: const [],
+        duplicateCandidates: const [],
+        missingMetadata: const [],
+        languageNormalization: const {'suggested_language': 'id'},
+        curatorSummary: 'Extractive summary from submitted text.',
+        uncertaintyNotes: const ['Human validation is still required.'],
+      );
+      final store = _buildStore(
+        contributions: [
+          _reviewContribution(
+            id: 'review-7',
+            status: ContributionStatus.submitted,
+            triageSuggestion: triageSuggestion,
+            allowedActions: const ['approve', 'reject'],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamelanScope(
+            store: store,
+            child: const ReviewDetailScreen(contributionId: 'review-7'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('AI suggestion, not validated.'), findsOneWidget);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamelanScope(
+            store: store,
+            child: const ContributionDetailScreen(contributionId: 'review-7'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('AI suggestion, not validated.'), findsNothing);
+    },
+  );
 }
 
 GamelanMvpStore _buildStore({
@@ -402,6 +507,20 @@ class FakeContributionRepository implements ContributionRepository {
   }
 
   @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionVersions(
+    String contributionId,
+  ) async {
+    return const Success(<ProvenanceTimelineEntry>[]);
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionProvenance(
+    String contributionId,
+  ) async {
+    return const Success(<ProvenanceTimelineEntry>[]);
+  }
+
+  @override
   Future<Result<ContributionModel>> createContribution(
     ContributionInput input,
   ) async {
@@ -470,6 +589,13 @@ class FakeReviewRepository implements ReviewRepository {
   @override
   Future<Result<List<ContributionModel>>> fetchReviewQueue() async {
     return Success(List.unmodifiable(queue));
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchReviewProvenance(
+    String contributionId,
+  ) async {
+    return const Success(<ProvenanceTimelineEntry>[]);
   }
 
   @override
@@ -560,6 +686,7 @@ ContributionModel _reviewContribution({
   List<String> allowedActions = const [],
   bool culturalSensitivity = false,
   String? reviewNote,
+  TriageSuggestion? triageSuggestion,
 }) {
   return ContributionModel(
     id: id,
@@ -576,5 +703,6 @@ ContributionModel _reviewContribution({
     statusLabel: status.label,
     allowedActions: allowedActions,
     reviewNote: reviewNote,
+    triageSuggestion: triageSuggestion,
   );
 }

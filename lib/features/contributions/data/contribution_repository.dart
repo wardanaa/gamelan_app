@@ -1,4 +1,5 @@
 import '../../../core/utils/result.dart';
+import '../../provenance/data/provenance_timeline_entry.dart';
 import 'contribution_draft_storage.dart';
 import 'contribution_model.dart';
 import 'media_asset_model.dart';
@@ -41,6 +42,14 @@ abstract class ContributionRepository {
   Future<Result<ContributionModel?>> findContribution(String id);
 
   Future<Result<Map<ContributionStatus, int>>> fetchStatusCounts();
+
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionVersions(
+    String contributionId,
+  );
+
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionProvenance(
+    String contributionId,
+  );
 
   Future<Result<ContributionModel>> createContribution(ContributionInput input);
 
@@ -120,6 +129,40 @@ class LocalContributionRepository implements ContributionRepository {
       for (final status in ContributionStatus.values)
         status: _contributions.where((item) => item.status == status).length,
     });
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionVersions(
+    String contributionId,
+  ) async {
+    final contribution = await findContribution(contributionId);
+    return switch (contribution) {
+      Success<ContributionModel?>(:final value) when value != null => Success(
+        const <ProvenanceTimelineEntry>[],
+      ),
+      Success<ContributionModel?>() => const Failure('Contribution not found.'),
+      Failure<ContributionModel?>(:final message, :final exception) => Failure(
+        message,
+        exception: exception,
+      ),
+    };
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionProvenance(
+    String contributionId,
+  ) async {
+    final contribution = await findContribution(contributionId);
+    return switch (contribution) {
+      Success<ContributionModel?>(:final value) when value != null => Success(
+        const <ProvenanceTimelineEntry>[],
+      ),
+      Success<ContributionModel?>() => const Failure('Contribution not found.'),
+      Failure<ContributionModel?>(:final message, :final exception) => Failure(
+        message,
+        exception: exception,
+      ),
+    };
   }
 
   @override

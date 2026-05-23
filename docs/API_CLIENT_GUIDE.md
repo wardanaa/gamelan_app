@@ -87,6 +87,11 @@ GET /api/v1/reviews/{uuid}/provenance
 
 Contribution owners receive safe workflow trace entries for their own submissions. Review, curator, expert, and admin clients receive trace timelines only when backend review authorization permits access. Clients must not infer missing actor fields as missing data; contributor-facing responses intentionally hide reviewer and expert identities.
 
+The Flutter mobile client now exposes those trace endpoints through a dedicated
+read-only provenance timeline route. It merges contribution versions and safe
+provenance events and shows a neutral placeholder when actor identity is
+withheld by the backend.
+
 ## Status Display
 
 Clients should display contribution statuses exactly as returned by the API.
@@ -118,6 +123,10 @@ The Flutter mobile client now renders those actions as two UI groups:
 - expert workflow actions for `mark_expert_required` and `expert_validate`
 
 Contributor-facing screens must never surface `private_note` fields or reviewer/expert identities. The public note and private note are separate fields in the expert validation dialog, and the private note is write-only from the contributor’s point of view.
+
+When review responses include `triage_suggestion`, the mobile review detail
+screen shows it as a review-only helper card labeled `AI suggestion, not
+validated.`. Contributor-facing screens do not render that card.
 
 Client repositories should serialize expert workflow payloads exactly as documented:
 

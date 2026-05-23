@@ -39,11 +39,12 @@ product areas:
 - API-backed published knowledge browse and keyword search
 - mobile UX validation with backend field errors and conflict handling
 
-The current app does not yet provide RDF publication UI, provenance and version
-screens, semantic-search fallback UI, full offline sync, offline media upload
-queues, encrypted sensitive draft storage, mobile expert-validation-specific
-flows, or AI triage presentation beyond API-provided suggestions. Those remain
-target capabilities.
+The current app does not yet provide RDF publication UI, semantic-search
+fallback UI, full offline sync, offline media upload queues, encrypted
+sensitive draft storage, or broader offline-first expert-validation flows. Safe
+read-only provenance timelines and review-only AI triage summaries are
+implemented in the mobile app, but they remain backend-authorized and
+non-authoritative.
 
 ## Goals
 

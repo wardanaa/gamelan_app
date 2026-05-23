@@ -3,6 +3,7 @@ import '../../../core/api/repository_errors.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
 import '../../../core/utils/result.dart';
+import '../../provenance/data/provenance_timeline_entry.dart';
 import 'contribution_model.dart';
 import 'contribution_repository.dart';
 import 'media_asset_model.dart';
@@ -66,6 +67,40 @@ class RemoteContributionRepository implements ContributionRepository {
       Failure<List<ContributionModel>>(:final message, :final exception) =>
         Failure(message, exception: exception),
     };
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionVersions(
+    String contributionId,
+  ) async {
+    return _runAuthenticated((token) async {
+      final response = await _apiClient.getJson(
+        ApiEndpoints.contributionVersions(contributionId),
+        token: token,
+      );
+      final versions = ProvenanceTimelineEntry.listFromApi(
+        response.data,
+        kind: ProvenanceTimelineEntryKind.version,
+      );
+      return Success(versions);
+    });
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchContributionProvenance(
+    String contributionId,
+  ) async {
+    return _runAuthenticated((token) async {
+      final response = await _apiClient.getJson(
+        ApiEndpoints.contributionProvenance(contributionId),
+        token: token,
+      );
+      final provenance = ProvenanceTimelineEntry.listFromApi(
+        response.data,
+        kind: ProvenanceTimelineEntryKind.event,
+      );
+      return Success(provenance);
+    });
   }
 
   @override

@@ -4,17 +4,20 @@ This document defines provenance and versioning rules.
 
 ## Current Implementation
 
-The current Flutter MVP displays lightweight provenance-like text in local
-knowledge detail screens:
+The current Flutter app now exposes safe, read-only provenance and version
+timelines in contribution and review detail flows. It still does not persist
+provenance locally, but it can display backend trace data when the Laravel API
+returns it.
 
-- seeded knowledge includes a source summary and provenance summary
-- approved local contributions include contributor note and source note text
-- approved local contributions are labeled as community approved demo content
+Implemented client behavior:
 
-The current app does not persist contribution versions, provenance records,
-review history, RDF publication status, or ontology mapping history. These
-concepts are target requirements for the future backend and semantic publication
-workflow.
+- contribution detail screens can open a full-screen provenance timeline route
+- review detail screens can open the same safe timeline for review-authorized
+  users
+- missing actor identity is shown as a neutral placeholder rather than
+  inferred locally
+- private notes, storage paths, URLs, IP address, user agent, and raw AI
+  content are omitted from the mobile display
 
 ## Why Provenance Matters
 

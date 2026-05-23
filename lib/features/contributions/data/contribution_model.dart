@@ -1,6 +1,7 @@
 import '../../../core/api/api_parsers.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
 import 'media_asset_model.dart';
+import '../../review/data/triage_suggestion.dart';
 
 enum ContributionStatus {
   draft,
@@ -67,6 +68,7 @@ class ContributionModel {
     this.allowedActions = const [],
     this.updatedAt,
     this.reviewNote,
+    this.triageSuggestion,
     this.knowledgeTypeSlug,
     this.gamelanTypeSlug,
     this.mediaAssets = const [],
@@ -89,6 +91,7 @@ class ContributionModel {
   final List<String> allowedActions;
   final DateTime? updatedAt;
   final String? reviewNote;
+  final TriageSuggestion? triageSuggestion;
   final String? knowledgeTypeSlug;
   final String? gamelanTypeSlug;
   final List<MediaAssetModel> mediaAssets;
@@ -122,6 +125,7 @@ class ContributionModel {
       'allowedActions': allowedActions,
       'updatedAt': updatedAt?.toIso8601String(),
       'reviewNote': reviewNote,
+      'triageSuggestion': triageSuggestion?.toJson(),
     };
   }
 
@@ -184,6 +188,9 @@ class ContributionModel {
       reviewNote: json['reviewNote'] is String
           ? json['reviewNote'] as String
           : null,
+      triageSuggestion: TriageSuggestion.fromApi(
+        json['triageSuggestion'] ?? json['triage_suggestion'],
+      ),
     );
   }
 
@@ -238,6 +245,7 @@ class ContributionModel {
         'review_note',
         'latest_review_note',
       ]),
+      triageSuggestion: TriageSuggestion.fromApi(source),
       mediaAssets: MediaAssetModel.listFromApi(source['media_assets']),
     );
   }
@@ -297,6 +305,7 @@ class ContributionModel {
     List<String>? allowedActions,
     DateTime? updatedAt,
     String? reviewNote,
+    TriageSuggestion? triageSuggestion,
     String? knowledgeTypeSlug,
     String? gamelanTypeSlug,
     List<MediaAssetModel>? mediaAssets,
@@ -319,6 +328,7 @@ class ContributionModel {
       allowedActions: allowedActions ?? this.allowedActions,
       updatedAt: updatedAt ?? this.updatedAt,
       reviewNote: reviewNote ?? this.reviewNote,
+      triageSuggestion: triageSuggestion ?? this.triageSuggestion,
       knowledgeTypeSlug: knowledgeTypeSlug ?? this.knowledgeTypeSlug,
       gamelanTypeSlug: gamelanTypeSlug ?? this.gamelanTypeSlug,
       mediaAssets: mediaAssets ?? this.mediaAssets,

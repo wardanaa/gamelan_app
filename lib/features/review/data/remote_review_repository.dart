@@ -5,6 +5,7 @@ import '../../../core/api/repository_errors.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
 import '../../../core/utils/result.dart';
+import '../../provenance/data/provenance_timeline_entry.dart';
 import 'review_repository.dart';
 
 class RemoteReviewRepository implements ReviewRepository {
@@ -32,6 +33,23 @@ class RemoteReviewRepository implements ReviewRepository {
         taxonomy: _taxonomyMapper,
       );
       return Success(queue);
+    });
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchReviewProvenance(
+    String contributionId,
+  ) async {
+    return _runAuthenticated((token) async {
+      final response = await _apiClient.getJson(
+        ApiEndpoints.reviewProvenance(contributionId),
+        token: token,
+      );
+      final provenance = ProvenanceTimelineEntry.listFromApi(
+        response.data,
+        kind: ProvenanceTimelineEntryKind.event,
+      );
+      return Success(provenance);
     });
   }
 

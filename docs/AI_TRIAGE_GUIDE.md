@@ -4,11 +4,13 @@ This document defines safe AI-assisted preprocessing rules.
 
 ## Current Implementation
 
-AI triage is not implemented in the current local Flutter MVP. There is no AI
-provider configuration, prompt workflow, triage result model, or curator UI for
-AI suggestions yet.
+AI triage in the mobile app is review-only and non-authoritative. The Flutter
+client renders backend-provided `triage_suggestion` payloads on the review
+detail screen when the API includes them, but it never shows those suggestions
+on contributor-facing screens and never treats them as workflow decisions.
 
-This guide defines boundaries for future AI-assisted preprocessing.
+This guide defines boundaries for the backend triage pipeline and for the
+review-only mobile display.
 
 ## Purpose
 
@@ -82,7 +84,7 @@ ai_processed_at
 
 ## Human Review Requirement
 
-Curator UI must clearly label AI output:
+Curator and review UI must clearly label AI output:
 
 ```txt
 AI suggestion, not validated.
@@ -99,7 +101,7 @@ Implemented rule-based triage may suggest:
 - language normalization for simple spacing and language metadata defaults
 - curator summaries extracted from submitted text only
 
-The backend stores one `triage_results` record per run and mirrors the latest suggestion into `contributions.ai_*` fields for operational convenience. Review-facing resources expose `triage_suggestion` only to authorized non-owner review roles. Public endpoints, normal contributor contribution endpoints, RDF publication responses, and SPARQL responses do not expose triage suggestions.
+The backend stores one `triage_results` record per run and mirrors the latest suggestion into `contributions.ai_*` fields for operational convenience. Review-facing resources expose `triage_suggestion` only to authorized non-owner review roles. The mobile review detail screen renders that suggestion as `AI suggestion, not validated.` and keeps it subordinate to human validation. Public endpoints, normal contributor contribution endpoints, RDF publication responses, and SPARQL responses do not expose triage suggestions.
 
 Triage must not:
 

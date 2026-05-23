@@ -39,6 +39,16 @@ The current app is a backend-connected Flutter MVP:
 - `RemoteReviewRepository` exposes expert-workflow methods for
   `markExpertRequired` and `expertValidate`, matching the backend contract for
   curator and expert flows.
+- Contribution and review detail screens now open a dedicated, read-only
+  provenance timeline route. The screen merges contribution versions and safe
+  provenance events from backend trace endpoints, and it hides actor identity
+  when the API withholds that field.
+- Review detail screens display `triage_suggestion` only when the backend
+  includes it. The UI labels it `AI suggestion, not validated.` and keeps it
+  subordinate to human review actions.
+- Status badges reuse a shared presentation component so `expert_required`
+  and `expert_approved` are visually distinct from curator states across
+  contribution and review lists.
 - Contributor-facing contribution detail screens do not render reviewer notes
   or private expert notes. Private note entry is limited to the expert
   validation dialog.
@@ -59,9 +69,9 @@ The current app is a backend-connected Flutter MVP:
   flow and verifies that `GET /me` returns backend `roles` and `permissions`.
   When review credentials and target UUIDs are supplied, it also checks the
   documented expert-review endpoints and safe workflow metadata.
-- RDF publication, provenance/version screens, semantic-search fallback UI,
-  SPARQL proxy usage, encrypted sensitive draft storage, offline media upload
-  queues, and full offline sync remain target architecture.
+- RDF publication, semantic-search fallback UI, SPARQL proxy usage, encrypted
+  sensitive draft storage, offline media upload queues, and full offline sync
+  remain target architecture.
 - Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -273,6 +283,7 @@ Current local search supports:
 - filter by gamelan type
 - filter by knowledge type
 - detail view with relations, source summary, and provenance summary
+- provenance timeline route for safe version and provenance history
 
 The target search interface should support:
 
@@ -306,6 +317,7 @@ Target curator/expert screens should show:
 - source note
 - media assets
 - AI triage suggestion
+- review-only AI triage summary
 - duplicate candidates
 - ontology mapping suggestion
 - review history

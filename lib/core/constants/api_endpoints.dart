@@ -8,6 +8,10 @@ class ApiEndpoints {
 
   static const String contributions = '/contributions';
   static String contribution(String uuid) => '/contributions/$uuid';
+  static String contributionVersions(String uuid) =>
+      '/contributions/$uuid/versions';
+  static String contributionProvenance(String uuid) =>
+      '/contributions/$uuid/provenance';
   static String contributionSubmit(String uuid) =>
       '/contributions/$uuid/submit';
   static String contributionMedia(String uuid) => '/contributions/$uuid/media';
@@ -19,6 +23,7 @@ class ApiEndpoints {
   static String reviewReject(String uuid) => '/reviews/$uuid/reject';
   static String reviewRequestRevision(String uuid) =>
       '/reviews/$uuid/request-revision';
+  static String reviewProvenance(String uuid) => '/reviews/$uuid/provenance';
   static String reviewMarkExpertRequired(String uuid) =>
       '/reviews/$uuid/mark-expert-required';
   static String reviewExpertValidate(String uuid) =>

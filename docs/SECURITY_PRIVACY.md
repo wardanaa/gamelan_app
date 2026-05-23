@@ -96,6 +96,8 @@ Current review workflow:
 - Contributor-facing review history omits private reviewer notes, private expert notes, and reviewer or expert identity fields.
 - Contribution lifecycle, review, expert validation, and media actions create audit records without storing private notes in audit metadata.
 - The Flutter mobile review detail screen uses backend `allowed_actions` to decide which action buttons to show. Expert note entry is limited to the expert validation dialog, and contributor-facing contribution detail screens do not render reviewer notes or private expert notes at all.
+- The Flutter mobile provenance timeline route shows only safe version and provenance fields. It uses a neutral placeholder when the backend withholds actor identity.
+- The Flutter mobile review detail screen shows `triage_suggestion` only when the backend returns it and only on review-capable views. Contributor-facing screens never render AI triage summaries.
 
 Current trace API behavior:
 
@@ -103,6 +105,7 @@ Current trace API behavior:
 - Authorized reviewer, curator, expert, and admin users may retrieve provenance timelines only when review authorization allows access to the contribution.
 - Contributor-facing trace responses hide reviewer and expert identities.
 - Trace responses must not expose private notes, IP address, user agent, media storage paths, file URLs, raw AI prompts, raw AI responses, or restricted cultural details.
+- The mobile provenance timeline route mirrors that safe-field boundary and never surfaces raw operational metadata or hidden identity information.
 - Live contract fixtures and integration checks in this repository mirror the same
   safe-field boundary so private review notes or reviewer/expert identities are
   caught during backend verification instead of leaking into client-facing code.

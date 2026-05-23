@@ -10,6 +10,7 @@ import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
 import 'package:gamelan_app/features/contributions/data/remote_contribution_repository.dart';
 import 'package:gamelan_app/features/knowledge/data/knowledge_item.dart';
 import 'package:gamelan_app/features/knowledge/data/remote_knowledge_repository.dart';
+import 'package:gamelan_app/features/provenance/data/provenance_timeline_entry.dart';
 import 'package:gamelan_app/features/review/data/remote_review_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -218,6 +219,196 @@ void main() {
     expect(deleteCalled, isTrue);
   });
 
+  test(
+    'remote contribution repository parses safe version and provenance traces',
+    () async {
+      final client = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/contributions/contribution-uuid')) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': {
+              'contribution': {
+                'id': 'contribution-uuid',
+                'title': 'Gangsa note',
+                'description': 'Practice note',
+                'status': 'submitted',
+                'knowledge_type': 'instrument',
+                'knowledge_type_label': 'Instrument',
+                'gamelan_type': 'gong_kebyar',
+                'gamelan_type_label': 'Gong Kebyar',
+                'source_note': 'Interview',
+                'contributor_note': 'Community note',
+                'cultural_sensitivity': false,
+                'consent_status': 'granted',
+                'created_at': '2026-05-22T10:00:00.000000Z',
+              },
+            },
+          });
+        }
+        if (request.method == 'GET' &&
+            request.url.path.endsWith(
+              '/contributions/contribution-uuid/versions',
+            )) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': [
+              {
+                'version_number': 2,
+                'status': 'submitted',
+                'change_note': 'Submitted for review.',
+                'editor': {'id': 1, 'name': 'Made Contributor'},
+                'snapshot': {'title': 'Gangsa note', 'status': 'submitted'},
+                'edited_at': '2026-05-22T10:00:00.000000Z',
+              },
+            ],
+          });
+        }
+        if (request.method == 'GET' &&
+            request.url.path.endsWith(
+              '/contributions/contribution-uuid/provenance',
+            )) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': [
+              {
+                'id': 'provenance-uuid',
+                'event_type': 'contribution_submitted',
+                'summary': 'Contribution submitted for review.',
+                'actor': null,
+                'source': {'type': 'Contribution'},
+                'contribution_version_number': 2,
+                'metadata': {
+                  'status': 'submitted',
+                  'private_note': 'Hidden note',
+                  'ip_address': '127.0.0.1',
+                  'user_agent': 'test-agent',
+                },
+                'occurred_at': '2026-05-22T10:00:00.000000Z',
+              },
+            ],
+          });
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteContributionRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+        tokenResolver: () async => 'test-token',
+      );
+
+      final contributionResult = await repository.findContribution(
+        'contribution-uuid',
+      );
+      final contribution = switch (contributionResult) {
+        Success<ContributionModel?>(:final value) => value,
+        Failure<ContributionModel?>() => fail('Expected success'),
+      };
+      expect(contribution?.triageSuggestion, isNull);
+
+      final versionsResult = await repository.fetchContributionVersions(
+        'contribution-uuid',
+      );
+      final versions = switch (versionsResult) {
+        Success<List<ProvenanceTimelineEntry>>(:final value) => value,
+        Failure<List<ProvenanceTimelineEntry>>() => fail('Expected success'),
+      };
+      expect(versions, hasLength(1));
+      expect(versions.single.title, 'Version 2');
+      expect(versions.single.safeActorLabel, 'Made Contributor');
+
+      final provenanceResult = await repository.fetchContributionProvenance(
+        'contribution-uuid',
+      );
+      final provenance = switch (provenanceResult) {
+        Success<List<ProvenanceTimelineEntry>>(:final value) => value,
+        Failure<List<ProvenanceTimelineEntry>>() => fail('Expected success'),
+      };
+      expect(provenance, hasLength(1));
+      expect(
+        provenance.single.safeActorLabel,
+        'Actor withheld by backend policy',
+      );
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        contains('Status'),
+      );
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        isNot(contains('Private note')),
+      );
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        isNot(contains('Ip Address')),
+      );
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        isNot(contains('User Agent')),
+      );
+    },
+  );
+
+  test(
+    'remote contribution repository tolerates malformed provenance payloads',
+    () async {
+      final client = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path.endsWith(
+              '/contributions/contribution-uuid/versions',
+            )) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': {'unexpected': 'shape'},
+          });
+        }
+        if (request.method == 'GET' &&
+            request.url.path.endsWith(
+              '/contributions/contribution-uuid/provenance',
+            )) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': {'unexpected': 'shape'},
+          });
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteContributionRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+        tokenResolver: () async => 'test-token',
+      );
+
+      final versionsResult = await repository.fetchContributionVersions(
+        'contribution-uuid',
+      );
+      final versions = switch (versionsResult) {
+        Success<List<ProvenanceTimelineEntry>>(:final value) => value,
+        Failure<List<ProvenanceTimelineEntry>>() => fail('Expected success'),
+      };
+      expect(versions, isEmpty);
+
+      final provenanceResult = await repository.fetchContributionProvenance(
+        'contribution-uuid',
+      );
+      final provenance = switch (provenanceResult) {
+        Success<List<ProvenanceTimelineEntry>>(:final value) => value,
+        Failure<List<ProvenanceTimelineEntry>>() => fail('Expected success'),
+      };
+      expect(provenance, isEmpty);
+    },
+  );
+
   test('remote contribution repository maps validation failures', () async {
     final client = MockClient((request) async {
       return jsonResponse({
@@ -377,6 +568,120 @@ void main() {
     expect(expertValidateResult, isA<Success<void>>());
     expect(expertValidateCalled, isTrue);
   });
+
+  test(
+    'remote review repository parses triage suggestions and review provenance',
+    () async {
+      final client = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/reviews/queue')) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': [
+              {
+                'id': 'queue-item',
+                'title': 'Submitted item',
+                'description': 'Description',
+                'status': 'submitted',
+                'knowledge_type': 'instrument',
+                'knowledge_type_label': 'Instrument',
+                'gamelan_type': 'gong_kebyar',
+                'gamelan_type_label': 'Gong Kebyar',
+                'source_note': 'Source',
+                'contributor_note': 'Note',
+                'cultural_sensitivity': false,
+                'consent_status': 'granted',
+                'created_at': '2026-05-22T10:00:00.000000Z',
+                'updated_at': '2026-05-22T10:00:00.000000Z',
+                'allowed_actions': ['approve', 'reject'],
+                'triage_suggestion': {
+                  'label': 'AI suggestion, not validated.',
+                  'provider': 'rules',
+                  'status': 'suggested',
+                  'model_name': 'rule-based-v1',
+                  'processed_at': '2026-05-22T10:00:00.000000Z',
+                  'confidence_score': '0.7600',
+                  'suggested_entity_type': 'instrument',
+                  'suggested_relations': [],
+                  'duplicate_candidates': [],
+                  'missing_metadata': [],
+                  'language_normalization': {'suggested_language': 'id'},
+                  'curator_summary': 'Extractive summary from submitted text.',
+                  'uncertainty_notes': ['Human validation is still required.'],
+                },
+              },
+            ],
+          });
+        }
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/reviews/queue-item/provenance')) {
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': [
+              {
+                'id': 'review-provenance-uuid',
+                'event_type': 'review_recorded',
+                'summary': 'Review recorded.',
+                'actor': {'id': 1, 'name': 'Curator Reviewer'},
+                'source': {'type': 'Review'},
+                'contribution_version_number': 2,
+                'metadata': {
+                  'status': 'under_review',
+                  'private_note': 'Hidden review note',
+                  'raw_response': 'Hidden AI response',
+                },
+                'occurred_at': '2026-05-22T10:00:00.000000Z',
+              },
+            ],
+          });
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteReviewRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+        tokenResolver: () async => 'test-token',
+      );
+
+      final queueResult = await repository.fetchReviewQueue();
+      final queue = switch (queueResult) {
+        Success<List<ContributionModel>>(:final value) => value,
+        Failure<List<ContributionModel>>() => fail('Expected success'),
+      };
+      expect(queue.single.triageSuggestion, isNotNull);
+      expect(
+        queue.single.triageSuggestion!.label,
+        'AI suggestion, not validated.',
+      );
+
+      final provenanceResult = await repository.fetchReviewProvenance(
+        'queue-item',
+      );
+      final provenance = switch (provenanceResult) {
+        Success<List<ProvenanceTimelineEntry>>(:final value) => value,
+        Failure<List<ProvenanceTimelineEntry>>() => fail('Expected success'),
+      };
+      expect(provenance, hasLength(1));
+      expect(provenance.single.safeActorLabel, 'Curator Reviewer');
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        contains('Status'),
+      );
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        isNot(contains('Private note')),
+      );
+      expect(
+        provenance.single.metadata.map((field) => field.label),
+        isNot(contains('Raw Response')),
+      );
+    },
+  );
 
   test(
     'remote review repository surfaces 403 authorization failures',

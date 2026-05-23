@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/state/gamelan_scope.dart';
 import '../data/contribution_model.dart';
+import '../widgets/status_badge.dart';
 
 class ContributionStatusScreen extends StatelessWidget {
   const ContributionStatusScreen({super.key});
@@ -17,6 +18,7 @@ class ContributionStatusScreen extends StatelessWidget {
         children: [
           for (final status in ContributionStatus.values)
             ListTile(
+              leading: StatusBadge(status: status, dense: true),
               title: Text(status.label),
               trailing: Text('${counts[status] ?? 0}'),
             ),

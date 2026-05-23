@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../core/state/gamelan_scope.dart';
 import '../../contributions/data/contribution_model.dart';
 import '../../contributions/widgets/media_asset_list.dart';
+import '../../contributions/widgets/status_badge.dart';
+import '../../provenance/screens/provenance_timeline_screen.dart';
+import '../widgets/ai_triage_summary.dart';
 import '../widgets/expert_validation_dialog.dart';
 import '../widgets/mark_expert_required_dialog.dart';
 import 'review_decision_screen.dart';
@@ -54,7 +57,7 @@ class ReviewDetailScreen extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  Chip(label: Text(contribution.statusDisplayLabel)),
+                  StatusBadge(status: contribution.status),
                   Chip(label: Text(contribution.knowledgeType)),
                   Chip(label: Text(contribution.gamelanType)),
                   if (contribution.culturalSensitivity)
@@ -68,7 +71,17 @@ class ReviewDetailScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(contribution.statusDescription!),
               ],
+              if (contribution.triageSuggestion != null) ...[
+                const SizedBox(height: 16),
+                AiTriageSummary(suggestion: contribution.triageSuggestion!),
+              ],
               const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () => _openProvenance(context, contribution),
+                icon: const Icon(Icons.timeline_outlined),
+                label: const Text('View provenance timeline'),
+              ),
+              const SizedBox(height: 8),
               _ReviewSection(
                 title: 'Description',
                 body: contribution.description,
@@ -225,6 +238,17 @@ class ReviewDetailScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (context) =>
           ExpertValidationDialog(contributionId: contributionId),
+    );
+  }
+
+  void _openProvenance(BuildContext context, ContributionModel contribution) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => ProvenanceTimelineScreen.review(
+          contributionId: contribution.id,
+          subjectTitle: contribution.title,
+        ),
+      ),
     );
   }
 }

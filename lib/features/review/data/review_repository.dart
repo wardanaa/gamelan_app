@@ -1,9 +1,14 @@
 import '../../contributions/data/contribution_model.dart';
 import '../../contributions/data/contribution_repository.dart';
 import '../../../core/utils/result.dart';
+import '../../provenance/data/provenance_timeline_entry.dart';
 
 abstract class ReviewRepository {
   Future<Result<List<ContributionModel>>> fetchReviewQueue();
+
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchReviewProvenance(
+    String contributionId,
+  );
 
   Future<Result<void>> approveContribution(String contributionId, String note);
 
@@ -51,6 +56,23 @@ class LocalReviewRepository implements ReviewRepository {
       ),
       Failure<List<ContributionModel>>(:final message, :final exception) =>
         Failure(message, exception: exception),
+    };
+  }
+
+  @override
+  Future<Result<List<ProvenanceTimelineEntry>>> fetchReviewProvenance(
+    String contributionId,
+  ) async {
+    final contribution = await _contributions.findContribution(contributionId);
+    return switch (contribution) {
+      Success<ContributionModel?>(:final value) when value != null => Success(
+        const <ProvenanceTimelineEntry>[],
+      ),
+      Success<ContributionModel?>() => const Failure('Contribution not found.'),
+      Failure<ContributionModel?>(:final message, :final exception) => Failure(
+        message,
+        exception: exception,
+      ),
     };
   }
 

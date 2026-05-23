@@ -5,6 +5,8 @@ import '../../../core/utils/result.dart';
 import '../data/contribution_model.dart';
 import '../data/media_asset_model.dart';
 import '../widgets/media_asset_list.dart';
+import '../widgets/status_badge.dart';
+import '../../provenance/screens/provenance_timeline_screen.dart';
 import 'media_upload_screen.dart';
 
 class ContributionDetailScreen extends StatelessWidget {
@@ -44,7 +46,7 @@ class ContributionDetailScreen extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  Chip(label: Text(contribution.statusDisplayLabel)),
+                  StatusBadge(status: contribution.status),
                   Chip(label: Text(contribution.knowledgeType)),
                   Chip(label: Text(contribution.gamelanType)),
                   if (contribution.culturalSensitivity)
@@ -53,6 +55,12 @@ class ContributionDetailScreen extends StatelessWidget {
                       label: Text('Culturally sensitive'),
                     ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () => _openProvenance(context, contribution),
+                icon: const Icon(Icons.timeline_outlined),
+                label: const Text('View provenance timeline'),
               ),
               const SizedBox(height: 16),
               _DetailSection(
@@ -101,6 +109,17 @@ class ContributionDetailScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (context) => MediaUploadScreen(contributionId: contributionId),
+      ),
+    );
+  }
+
+  void _openProvenance(BuildContext context, ContributionModel contribution) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => ProvenanceTimelineScreen.contribution(
+          contributionId: contribution.id,
+          subjectTitle: contribution.title,
+        ),
       ),
     );
   }

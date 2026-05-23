@@ -125,6 +125,11 @@ GET /api/v1/reviews/{uuid}/provenance
 
 Trace entries are intentionally safe for display. A missing `actor` means the backend hid identity information for privacy, not that the workflow event is untraceable internally.
 
+The mobile app renders these endpoints in a dedicated full-screen provenance
+timeline. It merges safe version and provenance events, uses a neutral
+placeholder when actor identity is withheld, and keeps private notes and raw
+operational details out of the client view.
+
 ## Accessibility Support
 
 The API should help clients build accessible interfaces by returning:
