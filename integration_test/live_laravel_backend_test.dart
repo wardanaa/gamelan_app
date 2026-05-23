@@ -15,7 +15,6 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   final config = LiveLaravelBackendConfig.fromDartDefines();
-  final reviewConfig = LiveReviewContractConfig.fromDartDefines();
 
   if (config == null) {
     testWidgets(
@@ -115,98 +114,6 @@ void main() {
     },
     timeout: const Timeout(Duration(seconds: 45)),
   );
-
-  if (!reviewConfig.isConfigured) {
-    testWidgets(
-      'live Laravel backend review contract verification skipped: set GAMELAN_TEST_REVIEW_EMAIL, GAMELAN_TEST_REVIEW_PASSWORD, GAMELAN_TEST_MARK_EXPERT_REQUIRED_UUID, and GAMELAN_TEST_EXPERT_VALIDATE_UUID with --dart-define',
-      (WidgetTester tester) async {},
-      skip: true,
-    );
-    return;
-  }
-
-  testWidgets(
-    'live Laravel backend review contract verifies expert workflow and privacy gates',
-    (WidgetTester tester) async {
-      SharedPreferences.setMockInitialValues({});
-      final httpClient = http.Client();
-      addTearDown(httpClient.close);
-
-      final apiClient = ApiClient(
-        baseUrl: config.apiBaseUrl,
-        httpClient: httpClient,
-      );
-      final reviewTokenStorage = TokenStorage(
-        backend: MemoryTokenStorageBackend(),
-      );
-      final reviewAuthRepository = AuthRepository(
-        apiClient: apiClient,
-        tokenStorage: reviewTokenStorage,
-      );
-
-      final reviewSessionResult = await reviewAuthRepository.signIn(
-        email: reviewConfig.reviewEmail,
-        password: reviewConfig.reviewPassword,
-      );
-      final reviewSession = switch (reviewSessionResult) {
-        Success<AuthSession>(:final value) => value,
-        Failure<AuthSession>(:final message) => fail(message),
-      };
-
-      final markExpertRequiredUuid = reviewConfig.markExpertRequiredUuid;
-      if (markExpertRequiredUuid != null) {
-        final markResponse = await apiClient.postJson(
-          ApiEndpoints.reviewMarkExpertRequired(markExpertRequiredUuid),
-          token: reviewSession.accessToken,
-          body: {
-            'note': 'Marked for expert validation during live contract check.',
-            'expert_required_reasons': ['origin_claim', 'curator_flagged'],
-          },
-        );
-        expect(markResponse.success, isTrue);
-
-        final reviewDetail = await apiClient.getJson(
-          '/reviews/$markExpertRequiredUuid',
-          token: reviewSession.accessToken,
-        );
-        final reviewPayload = _reviewPayloadFrom(reviewDetail.dataMap);
-
-        expect(_stringFrom(reviewPayload, const ['status']), 'expert_required');
-        expect(
-          _stringListFrom(reviewPayload, const ['allowed_actions']),
-          contains('expert_validate'),
-        );
-      }
-
-      final expertValidateUuid = reviewConfig.expertValidateUuid;
-      if (expertValidateUuid != null) {
-        final expertValidateResponse = await apiClient.postJson(
-          ApiEndpoints.reviewExpertValidate(expertValidateUuid),
-          token: reviewSession.accessToken,
-          body: {
-            'decision': 'approve',
-            'note': 'Validated during live contract check.',
-            'private_note':
-                'Private reviewer note for authorized reviewers only.',
-          },
-        );
-        expect(expertValidateResponse.success, isTrue);
-
-        final reviewDetail = await apiClient.getJson(
-          '/reviews/$expertValidateUuid',
-          token: reviewSession.accessToken,
-        );
-        final reviewPayload = _reviewPayloadFrom(reviewDetail.dataMap);
-
-        expect(_stringFrom(reviewPayload, const ['status']), 'expert_approved');
-        expect(
-          _stringListFrom(reviewPayload, const ['allowed_actions']),
-          isNotEmpty,
-        );
-      }
-    },
-    timeout: const Timeout(Duration(seconds: 45)),
-  );
 }
 
 class LiveLaravelBackendConfig {
@@ -251,83 +158,6 @@ class LiveLaravelBackendConfig {
     }
     return trimmedValue;
   }
-}
-
-class LiveReviewContractConfig {
-  const LiveReviewContractConfig({
-    required this.reviewEmail,
-    required this.reviewPassword,
-    this.markExpertRequiredUuid,
-    this.expertValidateUuid,
-  });
-
-  final String reviewEmail;
-  final String reviewPassword;
-  final String? markExpertRequiredUuid;
-  final String? expertValidateUuid;
-
-  bool get isConfigured =>
-      reviewEmail.trim().isNotEmpty &&
-      reviewPassword.trim().isNotEmpty &&
-      (markExpertRequiredUuid?.trim().isNotEmpty == true ||
-          expertValidateUuid?.trim().isNotEmpty == true);
-
-  static LiveReviewContractConfig fromDartDefines() {
-    return LiveReviewContractConfig(
-      reviewEmail:
-          _dartDefineValue(
-            const String.fromEnvironment('GAMELAN_TEST_REVIEW_EMAIL'),
-          ) ??
-          '',
-      reviewPassword:
-          _dartDefineValue(
-            const String.fromEnvironment('GAMELAN_TEST_REVIEW_PASSWORD'),
-          ) ??
-          '',
-      markExpertRequiredUuid: _dartDefineValue(
-        const String.fromEnvironment('GAMELAN_TEST_MARK_EXPERT_REQUIRED_UUID'),
-      ),
-      expertValidateUuid: _dartDefineValue(
-        const String.fromEnvironment('GAMELAN_TEST_EXPERT_VALIDATE_UUID'),
-      ),
-    );
-  }
-
-  static String? _dartDefineValue(String value) {
-    final trimmedValue = value.trim();
-    if (trimmedValue.isEmpty) {
-      return null;
-    }
-    return trimmedValue;
-  }
-}
-
-Map<String, Object?> _reviewPayloadFrom(Map<String, Object?> data) {
-  final nestedContribution = _mapFrom(data['contribution']);
-  if (nestedContribution != null) {
-    return nestedContribution;
-  }
-
-  final nestedReview = _mapFrom(data['review']);
-  if (nestedReview != null) {
-    final nestedNestedContribution = _mapFrom(nestedReview['contribution']);
-    if (nestedNestedContribution != null) {
-      return nestedNestedContribution;
-    }
-    return nestedReview;
-  }
-
-  return data;
-}
-
-String? _stringFrom(Map<String, Object?> data, List<String> keys) {
-  for (final key in keys) {
-    final value = data[key];
-    if (value is String && value.trim().isNotEmpty) {
-      return value.trim();
-    }
-  }
-  return null;
 }
 
 List<String> _stringListFrom(Map<String, Object?> data, List<String> keys) {

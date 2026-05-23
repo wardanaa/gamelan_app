@@ -6,20 +6,34 @@ This document defines software, ontology, and research evaluation rules.
 
 The current default test suite contains deterministic Flutter widget tests for
 the local MVP, mocked authentication HTTP responses, and focused repository
-tests for local contribution, review, draft persistence, and knowledge-search
-behavior. Backend persistence, ontology, SPARQL, offline sync, media, and AI
-triage tests are not applicable until those capabilities are implemented.
+tests for local contribution, review, draft persistence, provenance, and
+knowledge-search behavior. Backend persistence, ontology, SPARQL, offline
+sync, media, and AI triage tests are not applicable until those capabilities
+are implemented.
 
-An opt-in live Laravel-backed integration test exists at:
+An opt-in live Laravel-backed authentication smoke test exists at:
 
 ```txt
 integration_test/live_laravel_backend_test.dart
 ```
 
 It is skipped unless `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_EMAIL`, and
-`GAMELAN_TEST_PASSWORD` are supplied with `--dart-define`. The live test covers
-only login, `/me` profile loading, token storage through the test-only
+`GAMELAN_TEST_PASSWORD` are supplied with `--dart-define`. The live smoke test
+covers login, `/me` profile loading, token storage through the test-only
 in-memory backend, and logout against the configured Laravel API.
+
+A separate opt-in live reviewer workflow test exists at:
+
+```txt
+integration_test/review_workflow_test.dart
+```
+
+It is skipped unless `GAMELAN_TEST_API_BASE_URL`, `GAMELAN_TEST_REVIEW_EMAIL`,
+`GAMELAN_TEST_REVIEW_PASSWORD`, and `GAMELAN_TEST_REVIEW_UUID` are supplied
+with `--dart-define`. The live workflow test covers review queue navigation,
+review detail navigation, provenance timeline display, expert-required
+escalation, expert validation, and status transitions against the configured
+Laravel API.
 
 Chrome web execution uses the Flutter integration driver at:
 
@@ -39,11 +53,25 @@ flutter drive \
   --dart-define=GAMELAN_TEST_PASSWORD=secret
 ```
 
-The same test target may still be run with `flutter test
-integration_test/live_laravel_backend_test.dart` for non-Chrome/local
-integration execution where supported. Live credentials must come from local
-command-line values or CI secrets and must not be stored in repository files.
-The test must not print backend tokens.
+Run the live reviewer workflow integration test on Chrome with:
+
+```sh
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/review_workflow_test.dart \
+  -d chrome \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://127.0.0.1:8000/api/v1 \
+  --dart-define=GAMELAN_TEST_REVIEW_EMAIL=reviewer@example.com \
+  --dart-define=GAMELAN_TEST_REVIEW_PASSWORD=secret \
+  --dart-define=GAMELAN_TEST_REVIEW_UUID=00000000-0000-0000-0000-000000000000
+```
+
+The same test targets may still be run with `flutter test
+integration_test/live_laravel_backend_test.dart` or `flutter test
+integration_test/review_workflow_test.dart` for non-Chrome/local integration
+execution where supported. Live credentials must come from local command-line
+values or CI secrets and must not be stored in repository files. The tests must
+not print backend tokens.
 
 ## Evaluation Dimensions
 

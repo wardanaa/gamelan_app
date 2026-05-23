@@ -9,7 +9,10 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - Home, Search, Contribute, Review, and Profile tabs
 - backend login/logout/registration client wiring
 - `/me` profile loading for new and restored sessions
-- live integration verification of `/me` roles/permissions and gated expert-review contract checks
+- live integration verification of `/me` roles/permissions
+- opt-in live reviewer workflow integration coverage that exercises queue
+  navigation, provenance, expert escalation, and expert validation against a
+  configured Laravel backend
 - remote review repository methods now cover expert-required and expert-validation payloads
 - expired or invalid saved-token handling when `/me` returns unauthenticated
 - secure device storage for the access token
@@ -98,7 +101,16 @@ queues, or broader offline-first expert-validation flows.
 - Approved content has traceable provenance before it appears in public search.
 - RDF publication occurs only after human validation and ontology mapping.
 - Semantic search excludes unpublished, rejected, and restricted knowledge.
-- Widget and integration tests cover the contribution and review workflow.
+- Widget and integration tests cover the contribution and review workflow,
+  provenance timeline safety, triage visibility, and shared expert status
+  presentation.
+
+## Testing Status
+
+Phase 5 test-hardening is implemented. The repo now keeps the auth smoke test
+separate from the live reviewer workflow test, so auth/profile verification
+stays fast while the review-specific integration path can use reviewer
+credentials and a target UUID when available.
 
 ## Development Priorities
 

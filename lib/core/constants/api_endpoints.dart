@@ -19,6 +19,7 @@ class ApiEndpoints {
       '/contributions/$uuid/media/$mediaAssetUuid';
 
   static const String reviewQueue = '/reviews/queue';
+  static String review(String uuid) => '/reviews/$uuid';
   static String reviewApprove(String uuid) => '/reviews/$uuid/approve';
   static String reviewReject(String uuid) => '/reviews/$uuid/reject';
   static String reviewRequestRevision(String uuid) =>

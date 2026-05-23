@@ -65,10 +65,15 @@ The current app is a backend-connected Flutter MVP:
   are still driven by backend `allowed_actions`.
 - `test/remote_repository_test.dart` covers mocked API parsing and error
   handling. Widget tests inject local repositories for offline flows.
-- An opt-in live Laravel-backed integration test exercises the authentication
-  flow and verifies that `GET /me` returns backend `roles` and `permissions`.
-  When review credentials and target UUIDs are supplied, it also checks the
-  documented expert-review endpoints and safe workflow metadata.
+- An opt-in live Laravel-backed integration test at
+  `integration_test/live_laravel_backend_test.dart` exercises the
+  authentication flow and verifies that `GET /me` returns backend `roles` and
+  `permissions`.
+- A separate opt-in live reviewer workflow test at
+  `integration_test/review_workflow_test.dart` covers queue navigation, review
+  detail navigation, provenance timeline display, expert escalation, and
+  expert validation when reviewer credentials and a target review UUID are
+  supplied.
 - RDF publication, semantic-search fallback UI, SPARQL proxy usage, encrypted
   sensitive draft storage, offline media upload queues, and full offline sync
   remain target architecture.
@@ -96,11 +101,18 @@ Current testing:
   Laravel authentication coverage when `GAMELAN_TEST_API_BASE_URL`,
   `GAMELAN_TEST_EMAIL`, and `GAMELAN_TEST_PASSWORD` are supplied with
   `--dart-define`.
+- `integration_test/review_workflow_test.dart` provides opt-in live reviewer
+  workflow coverage when `GAMELAN_TEST_API_BASE_URL`,
+  `GAMELAN_TEST_REVIEW_EMAIL`, `GAMELAN_TEST_REVIEW_PASSWORD`, and
+  `GAMELAN_TEST_REVIEW_UUID` are supplied with `--dart-define`.
 - `test_driver/integration_test.dart` provides the `integrationDriver()`
   entrypoint required to run the live Laravel integration target on Chrome web
   with `flutter drive`.
-- Live Laravel integration coverage currently verifies login, `/me` profile
-  loading, in-memory test token storage, and logout only.
+- Live auth smoke coverage currently verifies login, `/me` profile loading,
+  in-memory test token storage, and logout only.
+- Live reviewer workflow coverage verifies queue navigation, provenance
+  timeline display, expert-required escalation, expert validation, and status
+  transitions.
 
 Chrome web live integration tests should be run with `flutter drive`:
 
@@ -114,10 +126,24 @@ flutter drive \
   --dart-define=GAMELAN_TEST_PASSWORD=secret
 ```
 
+Run the live reviewer workflow integration target with:
+
+```sh
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/review_workflow_test.dart \
+  -d chrome \
+  --dart-define=GAMELAN_TEST_API_BASE_URL=https://127.0.0.1:8000/api/v1 \
+  --dart-define=GAMELAN_TEST_REVIEW_EMAIL=reviewer@example.com \
+  --dart-define=GAMELAN_TEST_REVIEW_PASSWORD=secret \
+  --dart-define=GAMELAN_TEST_REVIEW_UUID=00000000-0000-0000-0000-000000000000
+```
+
 Use local shell values or CI secrets for the `GAMELAN_TEST_*` values. Do not
 store live backend credentials in the repository. `flutter test
-integration_test/live_laravel_backend_test.dart` remains useful for
-non-Chrome/local integration execution where supported.
+integration_test/live_laravel_backend_test.dart` and `flutter test
+integration_test/review_workflow_test.dart` remain useful for non-Chrome/local
+integration execution where supported.
 
 Target additions when needed:
 
