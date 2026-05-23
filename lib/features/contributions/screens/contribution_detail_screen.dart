@@ -75,11 +75,6 @@ class ContributionDetailScreen extends StatelessWidget {
                     ? 'Contributor consent confirmed.'
                     : 'Consent has not been confirmed.',
               ),
-              if (contribution.reviewNote != null)
-                _DetailSection(
-                  title: 'Review note',
-                  body: contribution.reviewNote!,
-                ),
               _MediaSection(
                 contribution: contribution,
                 onAdd: () => _openUpload(context, contribution.id),

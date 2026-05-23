@@ -141,6 +141,8 @@ Expert validation is required for:
 - Contributors cannot review, approve, reject, or validate their own submissions.
 - Review and expert validation actions create provenance and audit records.
 - Contribution owners and authorized review roles can retrieve safe provenance/version timelines without exposing private notes, reviewer or expert identities to contributors, media storage paths, or operational audit internals.
+- The Flutter mobile review detail screen now renders standard and expert action groups directly from backend `allowed_actions`, opening dedicated dialogs for expert escalation and expert validation.
+- Contributor-facing contribution detail screens do not render reviewer notes or private expert notes. The expert validation dialog is the only mobile UI surface that accepts a private note.
 
 ## Implemented RDF Publication Behavior
 

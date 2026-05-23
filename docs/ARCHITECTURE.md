@@ -47,6 +47,9 @@ Current implementation:
 - The local Review workflow is UX-gated by backend profile roles or the
   `review.contributions` permission. Backend policies remain the source of
   truth for protected actions.
+- Review detail screens render action groups from backend `allowed_actions`
+  and open dedicated expert dialogs for escalation and validation when those
+  actions are present.
 - UI-facing local MVP state is coordinated by `GamelanMvpStore` and exposed
   through `GamelanScope`.
 - Contribution, review, and knowledge data access is behind repository

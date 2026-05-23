@@ -268,6 +268,27 @@ class GamelanMvpStore extends ChangeNotifier {
     return _runReviewAction(() => _reviewRepository.requestChanges(id, note));
   }
 
+  Future<Result<void>> markExpertRequired(
+    String id,
+    String note,
+    List<String> reasons,
+  ) async {
+    return _runReviewAction(
+      () => _reviewRepository.markExpertRequired(id, note, reasons),
+    );
+  }
+
+  Future<Result<void>> expertValidate(
+    String id,
+    String decision,
+    String note,
+    String privateNote,
+  ) async {
+    return _runReviewAction(
+      () => _reviewRepository.expertValidate(id, decision, note, privateNote),
+    );
+  }
+
   Map<String, List<String>>? validationErrorsFromFailure(
     Result<ContributionModel> result,
   ) {

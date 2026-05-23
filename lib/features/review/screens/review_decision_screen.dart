@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/state/gamelan_scope.dart';
 import '../../../core/utils/result.dart';
+import '../widgets/review_note_field.dart';
 
 enum ReviewDecisionAction { approve, requestChanges, reject }
 
@@ -43,20 +44,9 @@ class _ReviewDecisionScreenState extends State<ReviewDecisionScreen> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _noteController,
-              decoration: const InputDecoration(
-                labelText: 'Review note',
-                border: OutlineInputBorder(),
-              ),
-              minLines: 3,
-              maxLines: 5,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'A review note is required.';
-                }
-                return null;
-              },
+            ReviewNoteField(
+              noteController: _noteController,
+              noteFieldKey: const Key('review_decision_note_field'),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(

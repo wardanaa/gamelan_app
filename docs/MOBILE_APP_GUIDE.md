@@ -31,11 +31,17 @@ The current app is a backend-connected Flutter MVP:
 - Editable contribution detail screens support media attachment and removal
   through the Laravel media API. The upload form captures file, consent,
   visibility, cultural sensitivity, and descriptive metadata.
-- Review screens call backend review endpoints and render actions from API
-  `allowed_actions` when present.
+- Review screens call backend review endpoints and render action groups from
+  API `allowed_actions` when present. Standard approve/reject/request-change
+  actions open the existing review decision screen, while expert workflow
+  actions open dedicated dialogs for `markExpertRequired` and
+  `expertValidate`.
 - `RemoteReviewRepository` exposes expert-workflow methods for
   `markExpertRequired` and `expertValidate`, matching the backend contract for
   curator and expert flows.
+- Contributor-facing contribution detail screens do not render reviewer notes
+  or private expert notes. Private note entry is limited to the expert
+  validation dialog.
 - Review and knowledge detail screens render safe read-only media metadata when
   the API includes `media_assets`.
 - `AuthRepository` performs real JSON registration, login, logout, and `/me`
@@ -45,7 +51,8 @@ The current app is a backend-connected Flutter MVP:
   unauthenticated.
 - The Review tab is hidden behind backend profile roles for reviewer, curator,
   expert validator, or admin users. This is only UX gating; backend policies
-  remain authoritative.
+  remain authoritative. Within the review surface itself, individual buttons
+  are still driven by backend `allowed_actions`.
 - `test/remote_repository_test.dart` covers mocked API parsing and error
   handling. Widget tests inject local repositories for offline flows.
 - An opt-in live Laravel-backed integration test exercises the authentication

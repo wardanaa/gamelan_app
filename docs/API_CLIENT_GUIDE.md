@@ -112,6 +112,13 @@ Contribution responses include `status_label`, `status_description`, and `allowe
 
 Review and expert clients may receive role-aware actions such as `view_review`, `recommend_approve`, `recommend_reject`, `approve`, `reject`, `request_revision`, `mark_expert_required`, and `expert_validate`. These actions are hints from backend authorization and workflow status; clients must still submit decisions to the backend for enforcement.
 
+The Flutter mobile client now renders those actions as two UI groups:
+
+- standard review actions for approve, reject, and request revision
+- expert workflow actions for `mark_expert_required` and `expert_validate`
+
+Contributor-facing screens must never surface `private_note` fields or reviewer/expert identities. The public note and private note are separate fields in the expert validation dialog, and the private note is write-only from the contributor’s point of view.
+
 Client repositories should serialize expert workflow payloads exactly as documented:
 
 - `mark_expert_required` with `note` and `expert_required_reasons`

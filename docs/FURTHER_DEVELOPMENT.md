@@ -15,6 +15,9 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - secure device storage for the access token
 - Laravel API-backed contributions, contribution media upload/removal, review
   queue, and knowledge browse/search
+- review detail screens now render standard and expert action groups from
+  backend `allowed_actions`, with dedicated dialogs for expert escalation and
+  validation
 - API-only contribution drafts in production wiring
 - mobile UX validation with backend `422` and `409` error handling
 - role-aware Review tab gating from backend profile roles
@@ -54,10 +57,10 @@ flows, or AI triage display beyond API-provided suggestions.
    Offline media upload queues remain future work.
 
 5. Add role-aware review and expert validation UI.
-   The mobile data/repository contract is now aligned with backend expert
-   workflow endpoints. Build the UI layer on top of `allowed_actions` and the
-   expert-validation repository methods without reintroducing local role-based
-   authorization rules.
+   Implemented. The mobile data/repository contract is aligned with backend
+   expert workflow endpoints, and the review detail screen now builds its
+   action groups from `allowed_actions` while keeping local role-based
+   authorization out of the widget layer.
 
 6. Add provenance and version records.
    Persist contributor attribution, source notes, review decisions, edit
@@ -86,6 +89,7 @@ flows, or AI triage display beyond API-provided suggestions.
   notes.
 - Sensitive contributions require explicit review and can trigger expert
   validation.
+- Review screens render backend-driven standard and expert action groups.
 - Approved content has traceable provenance before it appears in public search.
 - RDF publication occurs only after human validation and ontology mapping.
 - Semantic search excludes unpublished, rejected, and restricted knowledge.

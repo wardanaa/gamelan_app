@@ -95,6 +95,7 @@ Current review workflow:
 - Contributors cannot review, approve, reject, or validate their own submissions.
 - Contributor-facing review history omits private reviewer notes, private expert notes, and reviewer or expert identity fields.
 - Contribution lifecycle, review, expert validation, and media actions create audit records without storing private notes in audit metadata.
+- The Flutter mobile review detail screen uses backend `allowed_actions` to decide which action buttons to show. Expert note entry is limited to the expert validation dialog, and contributor-facing contribution detail screens do not render reviewer notes or private expert notes at all.
 
 Current trace API behavior:
 
