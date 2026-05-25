@@ -185,6 +185,10 @@ Register and login responses return the token once:
       "id": 1,
       "name": "Made Contributor",
       "email": "made@example.com",
+      "roles": [
+        "contributor"
+      ],
+      "permissions": [],
       "email_verified_at": null,
       "created_at": "2026-05-20T10:00:00.000000Z",
       "updated_at": "2026-05-20T10:00:00.000000Z"
