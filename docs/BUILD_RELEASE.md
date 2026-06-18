@@ -592,6 +592,7 @@ Create `CHANGELOG.md` entries following this format:
 - Knowledge browsing and search
 - Media attachment support
 - Role-aware review UI
+- Backend-authorized RDF publication queueing UI
 
 ### Security
 - HTTPS enforced for all API calls
@@ -600,7 +601,7 @@ Create `CHANGELOG.md` entries following this format:
 
 ### Known Issues
 - Offline sync not yet implemented (target: v1.1.0)
-- RDF publication UI not yet implemented (target: v1.2.0)
+- Semantic-search fallback UI not yet implemented
 ```
 
 ---

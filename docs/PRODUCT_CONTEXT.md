@@ -39,12 +39,13 @@ product areas:
 - API-backed published knowledge browse and keyword search
 - mobile UX validation with backend field errors and conflict handling
 
-The current app does not yet provide curator-facing RDF publication UI,
-semantic-search fallback UI, full offline sync, offline media upload queues,
-encrypted sensitive draft storage, richer stale-update conflict resolution UI,
-production admin screens, or broader offline-first expert-validation flows.
-Safe read-only provenance timelines and review-only AI triage summaries are
-implemented in the mobile app, but they remain backend-authorized and
+The current app provides a curator/admin RDF publication queueing form from
+Review detail when the backend returns `publish_rdf` in `allowed_actions`.
+It does not yet provide semantic-search fallback UI, full offline sync, offline
+media upload queues, encrypted sensitive draft storage, richer stale-update
+conflict resolution UI, production admin screens, or broader offline-first
+expert-validation flows. Safe read-only provenance timelines, review-only AI
+triage summaries, and RDF publication queueing remain backend-authorized and
 non-authoritative.
 
 ## Goals

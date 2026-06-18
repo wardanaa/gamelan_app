@@ -35,9 +35,11 @@ Implemented mobile behavior:
   timelines
 - review detail screens can render backend `triage_suggestion` as
   `AI suggestion, not validated.`
+- review detail screens can queue RDF publication through the backend when
+  `allowed_actions` includes `publish_rdf`
 - published knowledge and keyword search results load from backend APIs
-- ontology and RDF publication DTO/repository contracts exist, but no
-  curator-facing RDF publication UI is implemented yet
+- ontology and RDF publication DTO/repository contracts support the
+  curator/admin publication form
 
 Backend authorization remains the source of truth for contribution ownership,
 workflow status, review permissions, expert validation, RDF publication

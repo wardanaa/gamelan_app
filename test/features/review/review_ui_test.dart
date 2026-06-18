@@ -16,6 +16,7 @@ import 'package:gamelan_app/features/ontology/data/ontology_mapping.dart';
 import 'package:gamelan_app/features/provenance/data/provenance_timeline_entry.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:gamelan_app/features/review/screens/review_detail_screen.dart';
+import 'package:gamelan_app/features/review/screens/rdf_publication_screen.dart';
 import 'package:gamelan_app/features/review/data/triage_suggestion.dart';
 import 'package:gamelan_app/features/review/widgets/expert_validation_dialog.dart';
 import 'package:gamelan_app/features/review/widgets/mark_expert_required_dialog.dart';
@@ -167,6 +168,192 @@ void main() {
       findsOneWidget,
     );
     expect(find.widgetWithText(FilledButton, 'Validate'), findsNothing);
+  });
+
+  testWidgets('review detail renders RDF publication action from publish_rdf', (
+    WidgetTester tester,
+  ) async {
+    final store = _buildStore(
+      contributions: [
+        _reviewContribution(
+          id: 'review-rdf',
+          status: ContributionStatus.curatorApproved,
+          allowedActions: const ['view_review', 'publish_rdf'],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamelanScope(
+          store: store,
+          child: const ReviewDetailScreen(contributionId: 'review-rdf'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('RDF publication'),
+      200,
+      scrollable: find.byType(Scrollable),
+    );
+
+    expect(find.text('RDF publication'), findsOneWidget);
+    expect(
+      find.widgetWithText(FilledButton, 'Prepare RDF publication'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'review detail hides RDF publication action without publish_rdf',
+    (WidgetTester tester) async {
+      final store = _buildStore(
+        contributions: [
+          _reviewContribution(
+            id: 'review-approved-no-rdf',
+            status: ContributionStatus.curatorApproved,
+            allowedActions: const ['view_review'],
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GamelanScope(
+            store: store,
+            child: const ReviewDetailScreen(
+              contributionId: 'review-approved-no-rdf',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(FilledButton, 'Prepare RDF publication'),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets('RDF publication form validates required mapping fields', (
+    WidgetTester tester,
+  ) async {
+    final contribution = _reviewContribution(
+      id: 'review-rdf-validation',
+      status: ContributionStatus.curatorApproved,
+      allowedActions: const ['publish_rdf'],
+    );
+    final repository = FakeContributionRepository([contribution]);
+    final store = _buildStore(
+      contributions: [contribution],
+      contributionRepository: repository,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamelanScope(
+          store: store,
+          child: RdfPublicationScreen(contribution: contribution),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('rdf_subject_slug_field')), '');
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('rdf_queue_publication_button')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('rdf_queue_publication_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a slug.'), findsOneWidget);
+    expect(repository.lastQueuedMapping, isNull);
+  });
+
+  testWidgets('RDF publication form queues mapping through the store', (
+    WidgetTester tester,
+  ) async {
+    final contribution = _reviewContribution(
+      id: 'review-rdf-success',
+      title: 'Gangsa in Gong Kebyar',
+      status: ContributionStatus.curatorApproved,
+      allowedActions: const ['publish_rdf'],
+    );
+    final publication = _rdfPublication(contribution.id);
+    final repository = FakeContributionRepository([
+      contribution,
+    ], queueResult: Success(publication));
+    final store = _buildStore(
+      contributions: [contribution],
+      contributionRepository: repository,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamelanScope(
+          store: store,
+          child: RdfPublicationScreen(contribution: contribution),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('rdf_queue_publication_button')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('rdf_queue_publication_button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(repository.lastQueuedContributionId, contribution.id);
+    expect(repository.lastQueuedMapping?.ontologyClass, 'Instrument');
+    expect(repository.lastQueuedMapping?.subjectSlug, 'gangsa-in-gong-kebyar');
+    expect(repository.lastQueuedMapping?.preferredLabel, contribution.title);
+    expect(find.text('RDF publication queued.'), findsOneWidget);
+  });
+
+  testWidgets('RDF publication failure shows safe backend message', (
+    WidgetTester tester,
+  ) async {
+    final contribution = _reviewContribution(
+      id: 'review-rdf-failure',
+      status: ContributionStatus.curatorApproved,
+      allowedActions: const ['publish_rdf'],
+    );
+    final repository = FakeContributionRepository([
+      contribution,
+    ], queueResult: const Failure('This contribution cannot be published.'));
+    final store = _buildStore(
+      contributions: [contribution],
+      contributionRepository: repository,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamelanScope(
+          store: store,
+          child: RdfPublicationScreen(contribution: contribution),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('rdf_queue_publication_button')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('rdf_queue_publication_button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This contribution cannot be published.'), findsOneWidget);
+    expect(contribution.rdfPublication, isNull);
   });
 
   testWidgets(
@@ -400,14 +587,16 @@ void main() {
 
 GamelanMvpStore _buildStore({
   List<ContributionModel> contributions = const [],
+  FakeContributionRepository? contributionRepository,
   FakeReviewRepository? reviewRepository,
 }) {
-  final contributionRepository = FakeContributionRepository(contributions);
+  final repository =
+      contributionRepository ?? FakeContributionRepository(contributions);
   return TestReviewStore(
     contributionsById: {
       for (final contribution in contributions) contribution.id: contribution,
     },
-    contributionRepository: contributionRepository,
+    contributionRepository: repository,
     reviewRepository: reviewRepository ?? FakeReviewRepository(),
     knowledgeRepository: FakeKnowledgeRepository(),
   );
@@ -478,9 +667,16 @@ class TestReviewStore extends GamelanMvpStore {
 }
 
 class FakeContributionRepository implements ContributionRepository {
-  FakeContributionRepository(this._contributions);
+  FakeContributionRepository(
+    this._contributions, {
+    this.queueResult = const Failure('Not implemented.'),
+  });
 
   final List<ContributionModel> _contributions;
+  final Result<RdfPublicationModel> queueResult;
+
+  String? lastQueuedContributionId;
+  OntologyMapping? lastQueuedMapping;
 
   @override
   Future<void> loadPersistedDrafts() async {}
@@ -505,7 +701,17 @@ class FakeContributionRepository implements ContributionRepository {
     String uuid,
     OntologyMapping mapping,
   ) async {
-    return const Failure('Not implemented.');
+    lastQueuedContributionId = uuid;
+    lastQueuedMapping = mapping;
+    if (queueResult case Success<RdfPublicationModel>(:final value)) {
+      final index = _contributions.indexWhere((item) => item.id == uuid);
+      if (index != -1) {
+        _contributions[index] = _contributions[index].copyWith(
+          rdfPublication: value,
+        );
+      }
+    }
+    return queueResult;
   }
 
   @override
@@ -697,6 +903,7 @@ class FakeKnowledgeRepository implements KnowledgeRepository {
 
 ContributionModel _reviewContribution({
   required String id,
+  String? title,
   ContributionStatus status = ContributionStatus.submitted,
   List<String> allowedActions = const [],
   bool culturalSensitivity = false,
@@ -705,7 +912,7 @@ ContributionModel _reviewContribution({
 }) {
   return ContributionModel(
     id: id,
-    title: 'Review title $id',
+    title: title ?? 'Review title $id',
     description: 'Review description for $id',
     status: status,
     knowledgeType: 'Instrument',
@@ -719,5 +926,26 @@ ContributionModel _reviewContribution({
     allowedActions: allowedActions,
     reviewNote: reviewNote,
     triageSuggestion: triageSuggestion,
+  );
+}
+
+RdfPublicationModel _rdfPublication(String contributionId) {
+  return RdfPublicationModel(
+    id: 'rdf-publication-$contributionId',
+    contributionId: contributionId,
+    ontologyMappingId: 'mapping-$contributionId',
+    rdfSubjectUri: 'https://example.org/gamelan/entity/gangsa-in-gong-kebyar',
+    rdfGraphUri: 'graph/published',
+    status: RdfPublicationStatus.pending,
+    publishedBy: const RdfPublicationPublisher(
+      id: 'curator-1',
+      name: 'Made Curator',
+    ),
+    metadata: const {
+      'ontology_class': 'Instrument',
+      'subject_slug': 'gangsa-in-gong-kebyar',
+      'relations_count': 0,
+    },
+    createdAt: DateTime(2026, 5, 23, 12),
   );
 }

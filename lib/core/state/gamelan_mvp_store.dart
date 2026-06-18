@@ -3,9 +3,16 @@ import 'package:flutter/foundation.dart';
 import '../../features/contributions/data/contribution_model.dart';
 import '../../features/contributions/data/contribution_repository.dart';
 import '../../features/contributions/data/media_asset_model.dart';
+import '../../features/contributions/data/rdf_publication_model.dart';
 import '../../features/knowledge/data/knowledge_item.dart';
 import '../../features/knowledge/data/knowledge_repository.dart';
 import '../../features/knowledge/data/local_knowledge_repository.dart';
+import '../../features/ontology/data/local_ontology_repository.dart';
+import '../../features/ontology/data/ontology_class.dart';
+import '../../features/ontology/data/ontology_entity_page.dart';
+import '../../features/ontology/data/ontology_mapping.dart';
+import '../../features/ontology/data/ontology_property.dart';
+import '../../features/ontology/data/ontology_repository.dart';
 import '../../features/provenance/data/provenance_timeline_entry.dart';
 import '../../features/review/data/review_repository.dart';
 import '../api/repository_errors.dart';
@@ -21,6 +28,7 @@ class GamelanMvpStore extends ChangeNotifier {
       knowledgeRepository: LocalKnowledgeRepository(
         contributions: contributions,
       ),
+      ontologyRepository: LocalOntologyRepository(),
       taxonomyMapper: taxonomyMapper ?? TaxonomyMapper(),
     );
   }
@@ -29,11 +37,13 @@ class GamelanMvpStore extends ChangeNotifier {
     required ContributionRepository contributionRepository,
     required ReviewRepository reviewRepository,
     required KnowledgeRepository knowledgeRepository,
+    OntologyRepository? ontologyRepository,
     TaxonomyMapper? taxonomyMapper,
   }) : this._(
          contributionRepository: contributionRepository,
          reviewRepository: reviewRepository,
          knowledgeRepository: knowledgeRepository,
+         ontologyRepository: ontologyRepository ?? LocalOntologyRepository(),
          taxonomyMapper: taxonomyMapper ?? TaxonomyMapper(),
        );
 
@@ -41,15 +51,18 @@ class GamelanMvpStore extends ChangeNotifier {
     required ContributionRepository contributionRepository,
     required ReviewRepository reviewRepository,
     required KnowledgeRepository knowledgeRepository,
+    required OntologyRepository ontologyRepository,
     required TaxonomyMapper taxonomyMapper,
   }) : _contributionRepository = contributionRepository,
        _reviewRepository = reviewRepository,
        _knowledgeRepository = knowledgeRepository,
+       _ontologyRepository = ontologyRepository,
        _taxonomyMapper = taxonomyMapper;
 
   final ContributionRepository _contributionRepository;
   final ReviewRepository _reviewRepository;
   final KnowledgeRepository _knowledgeRepository;
+  final OntologyRepository _ontologyRepository;
   TaxonomyMapper _taxonomyMapper;
 
   List<ContributionModel> _contributions = const [];
@@ -306,6 +319,45 @@ class GamelanMvpStore extends ChangeNotifier {
     String contributionId,
   ) {
     return _reviewRepository.fetchReviewProvenance(contributionId);
+  }
+
+  Future<Result<List<OntologyClass>>> getOntologyClasses() {
+    return _ontologyRepository.getClasses();
+  }
+
+  Future<Result<List<OntologyProperty>>> getOntologyProperties() {
+    return _ontologyRepository.getProperties();
+  }
+
+  Future<Result<OntologyEntityPage>> getOntologyEntities({
+    String? type,
+    int page = 1,
+    int perPage = 10,
+  }) {
+    return _ontologyRepository.getEntities(
+      type: type,
+      page: page,
+      perPage: perPage,
+    );
+  }
+
+  Future<Result<RdfPublicationModel>> queueRdfPublication(
+    String contributionId,
+    OntologyMapping mapping,
+  ) async {
+    final result = await _contributionRepository.queueRdfPublication(
+      contributionId,
+      mapping,
+    );
+    switch (result) {
+      case Success<RdfPublicationModel>():
+        _lastError = null;
+        await _refreshState();
+      case Failure<RdfPublicationModel>(:final message):
+        _lastError = message;
+        notifyListeners();
+    }
+    return result;
   }
 
   Map<String, List<String>>? validationErrorsFromFailure(

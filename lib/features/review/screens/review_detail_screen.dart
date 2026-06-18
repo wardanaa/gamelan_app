@@ -8,6 +8,7 @@ import '../../provenance/screens/provenance_timeline_screen.dart';
 import '../widgets/ai_triage_summary.dart';
 import '../widgets/expert_validation_dialog.dart';
 import '../widgets/mark_expert_required_dialog.dart';
+import 'rdf_publication_screen.dart';
 import 'review_decision_screen.dart';
 
 class ReviewDetailScreen extends StatelessWidget {
@@ -42,6 +43,7 @@ class ReviewDetailScreen extends StatelessWidget {
           'mark_expert_required',
         );
         final canExpertValidate = allowedActions.contains('expert_validate');
+        final canPublishRdf = contribution.canPublishRdf;
 
         return Scaffold(
           appBar: const _ReviewDetailAppBar(title: 'Review details'),
@@ -171,11 +173,32 @@ class ReviewDetailScreen extends StatelessWidget {
                   ],
                 ),
               ],
+              if (contribution.rdfPublication != null) ...[
+                const SizedBox(height: 12),
+                _RdfPublicationSummary(contribution: contribution),
+              ] else if (canPublishRdf) ...[
+                const SizedBox(height: 12),
+                _ActionGroup(
+                  title: 'RDF publication',
+                  description:
+                      'Queue this validated contribution for backend RDF publication. The backend remains authoritative for eligibility and publication state.',
+                  children: [
+                    FilledButton.icon(
+                      onPressed: () =>
+                          _openRdfPublication(context, contribution),
+                      icon: const Icon(Icons.cloud_upload_outlined),
+                      label: const Text('Prepare RDF publication'),
+                    ),
+                  ],
+                ),
+              ],
               if (!canApprove &&
                   !canReject &&
                   !canRequestRevision &&
                   !canMarkExpertRequired &&
-                  !canExpertValidate)
+                  !canExpertValidate &&
+                  !canPublishRdf &&
+                  contribution.rdfPublication == null)
                 const Text(
                   'No review actions are currently allowed for this contribution.',
                 ),
@@ -247,6 +270,57 @@ class ReviewDetailScreen extends StatelessWidget {
         builder: (context) => ProvenanceTimelineScreen.review(
           contributionId: contribution.id,
           subjectTitle: contribution.title,
+        ),
+      ),
+    );
+  }
+
+  void _openRdfPublication(
+    BuildContext context,
+    ContributionModel contribution,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => RdfPublicationScreen(contribution: contribution),
+      ),
+    );
+  }
+}
+
+class _RdfPublicationSummary extends StatelessWidget {
+  const _RdfPublicationSummary({required this.contribution});
+
+  final ContributionModel contribution;
+
+  @override
+  Widget build(BuildContext context) {
+    final publication = contribution.rdfPublication!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'RDF publication',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text('Status: ${publication.status.label}'),
+            const SizedBox(height: 4),
+            Text('Subject URI: ${publication.rdfSubjectUri}'),
+            const SizedBox(height: 4),
+            Text('Graph: ${publication.rdfGraphUri}'),
+            if (publication.errorMessage != null &&
+                publication.errorMessage!.trim().isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Message: ${publication.errorMessage}'),
+            ],
+            const SizedBox(height: 8),
+            const Text(
+              'Publication jobs and provenance are handled by the backend. The mobile app does not write RDF triples directly.',
+            ),
+          ],
         ),
       ),
     );

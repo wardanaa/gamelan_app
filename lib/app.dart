@@ -16,6 +16,7 @@ import 'features/contributions/screens/contribution_list_screen.dart';
 import 'features/contributions/widgets/status_badge.dart';
 import 'features/knowledge/data/remote_knowledge_repository.dart';
 import 'features/knowledge/screens/entity_list_screen.dart';
+import 'features/ontology/data/remote_ontology_repository.dart';
 import 'features/review/data/remote_review_repository.dart';
 import 'features/review/screens/review_queue_screen.dart';
 
@@ -64,6 +65,10 @@ class _GamelanAppState extends State<GamelanApp> {
         tokenResolver: _tokenStorage.readToken,
       ),
       knowledgeRepository: RemoteKnowledgeRepository(
+        apiClient: _apiClient,
+        tokenResolver: _tokenStorage.readToken,
+      ),
+      ontologyRepository: RemoteOntologyRepository(
         apiClient: _apiClient,
         tokenResolver: _tokenStorage.readToken,
       ),

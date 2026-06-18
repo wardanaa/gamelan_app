@@ -9,9 +9,10 @@ mocked authentication HTTP responses, and focused repository tests for local
 fixtures plus remote API parsing. Covered mobile areas include contribution,
 review, draft persistence, media metadata, provenance timelines, knowledge
 search behavior, ontology DTO/repository contracts, RDF publication
-DTO/repository contracts, and review-only AI triage display. Full offline sync,
-offline media queues, encrypted sensitive draft storage, production admin UI,
-and SUS/task evaluation execution remain unimplemented.
+DTO/repository contracts, curator/admin RDF publication queueing UI, and
+review-only AI triage display. Full offline sync, offline media queues,
+encrypted sensitive draft storage, production admin UI, and SUS/task evaluation
+execution remain unimplemented.
 
 An opt-in live Laravel-backed authentication smoke test exists at:
 
@@ -222,6 +223,8 @@ API evaluation should include:
 - protected RDF publication queueing and failed-publication safety
 - live ontology endpoint coverage for classes, properties, and entity detail
 - live RDF publication queueing coverage for approved, non-sensitive contributions
+- mobile Review detail coverage for the backend-gated `publish_rdf` action and
+  RDF mapping form validation
 - live SPARQL proxy enforcement for predefined query keys only
 - optional AI triage dispatch, review-only suggestion visibility, and suggestion-only side effects
 - public knowledge browsing and search filtering for published, non-sensitive content only

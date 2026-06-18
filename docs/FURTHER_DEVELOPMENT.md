@@ -29,6 +29,9 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
   timeline route backed by Laravel trace endpoints
 - review detail screens now render backend `triage_suggestion` payloads as a
   review-only helper card labeled `AI suggestion, not validated.`
+- curator/admin review detail screens can open a backend-authorized RDF
+  publication form when `allowed_actions` includes `publish_rdf`; successful
+  submission queues the backend publication job rather than publishing locally
 - API-only contribution drafts in production wiring
 - mobile UX validation with backend `422` and `409` error handling
 - role-aware Review tab gating from backend profile roles
@@ -37,10 +40,10 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - ontology DTOs and repository access for classes, properties, entities, and
   RDF publication lookup/queueing
 
-The current app does not include curator-facing RDF publication UI,
-semantic-search fallback UI, encrypted sensitive draft storage, full offline
-sync, offline media upload queues, richer stale-update conflict resolution UI,
-production admin screens, or broader offline-first expert-validation flows.
+The current app does not include semantic-search fallback UI, encrypted
+sensitive draft storage, full offline sync, offline media upload queues, richer
+stale-update conflict resolution UI, production admin screens, or broader
+offline-first expert-validation flows.
 
 ## Recommended Next Steps
 
@@ -80,14 +83,14 @@ production admin screens, or broader offline-first expert-validation flows.
    Laravel trace endpoints. Remaining work is backend publication and any
    future write-side audit expansion.
 
-7. Add ontology mapping and RDF publication after approval.
+7. Add ontology mapping and RDF publication after approval. Implemented in the
+   mobile client as backend-authorized curator/admin queueing UI.
    Approved contributions should be mapped to stable ontology classes and
    properties before any RDF publication. The mobile DTO and repository layers
-   for ontology mapping and RDF publication are now implemented; backend
-   contract verification and future curator/admin UI wiring remain the
-   remaining phases. The mobile app must not write directly to the triplestore,
-   and backend authorization remains the source of truth for publication
-   eligibility.
+   for ontology mapping and RDF publication are implemented, and review detail
+   now renders a publication form only when the backend returns `publish_rdf`.
+   The mobile app must not write directly to the triplestore, and backend
+   authorization remains the source of truth for publication eligibility.
 
 8. Add SPARQL-backed semantic search.
    Expose predefined semantic search endpoints through the backend. Public users

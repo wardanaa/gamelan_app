@@ -53,6 +53,9 @@ Current implementation:
 - Review detail screens render action groups from backend `allowed_actions`
   and open dedicated expert dialogs for escalation and validation when those
   actions are present.
+- Review detail screens render a curator/admin RDF publication action only
+  when backend `allowed_actions` includes `publish_rdf`; the mobile form queues
+  the backend publication job and never writes RDF triples directly.
 - Contribution and review detail screens can open a safe, read-only
   provenance timeline route that merges contribution versions and provenance
   events from backend trace endpoints.
@@ -68,8 +71,8 @@ Current implementation:
   knowledge are API-backed in production wiring.
 - Ontology DTOs and repository access exist for classes, properties, entities,
   and RDF publication lookup/queueing.
-- Curator-facing RDF publication UI, semantic-search fallback UI, full offline
-  sync, offline media queues, and production admin screens are not implemented.
+- Semantic-search fallback UI, full offline sync, offline media queues, and
+  production admin screens are not implemented.
 
 Target responsibilities:
 
@@ -257,11 +260,10 @@ Published knowledge appears in semantic search
 
 The current mobile client implements the API-facing contribution, media,
 review, expert action, provenance display, AI triage display, public
-browse/keyword search, ontology DTO, and RDF publication repository portions of
-this flow. Backend validation, authorization, ontology mapping execution, RDF
-insertion, SPARQL query execution, and publication state remain backend-owned.
-Semantic-search fallback UI and curator-facing RDF publication UI are still
-mobile-client gaps.
+browse/keyword search, ontology DTO, and backend-authorized RDF publication
+queueing portions of this flow. Backend validation, authorization, ontology
+mapping execution, RDF insertion, SPARQL query execution, and publication state
+remain backend-owned. Semantic-search fallback UI is still a mobile-client gap.
 
 ## Do Not
 

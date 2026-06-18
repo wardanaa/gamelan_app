@@ -60,8 +60,8 @@ Settings
 Current MVP screens include backend-connected contribution list/detail/form/status,
 online media upload/removal, knowledge list/detail, review
 queue/detail/decision screens, expert workflow dialogs, provenance timelines,
-and backend authentication. User management and audit logs are still
-placeholders.
+backend-authorized RDF publication queueing, and backend authentication. User
+management and audit logs are still placeholders.
 
 | Screen | Purpose |
 |---|---|
@@ -71,6 +71,7 @@ placeholders.
 | Contribution Form | Save API-backed draft or submit for backend review |
 | Review Queue | Backend-authorized review list |
 | Review Detail | Review contribution, source note, sensitivity, and decision actions |
+| RDF Publication | Curator/admin mapping form for backend-authorized RDF publication queueing |
 | Profile | Backend profile label, backend roles, privacy boundary, and ontology boundary |
 | Settings | Language, accessibility, account |
 | Login | Backend sign-in and registration with clear validation and error messaging |

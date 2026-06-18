@@ -46,6 +46,11 @@ The current app is a backend-connected Flutter MVP:
 - Review detail screens display `triage_suggestion` only when the backend
   includes it. The UI labels it `AI suggestion, not validated.` and keeps it
   subordinate to human review actions.
+- Review detail screens display an RDF publication action only when the backend
+  includes `publish_rdf` in `allowed_actions`. The curator/admin form loads
+  ontology classes and properties from the ontology repository, sends the
+  documented mapping payload to `POST /contributions/{uuid}/rdf-publications`,
+  and treats success as a queued backend job.
 - Status badges reuse a shared presentation component so `expert_required`
   and `expert_approved` are visually distinct from curator states across
   contribution and review lists.
@@ -74,10 +79,10 @@ The current app is a backend-connected Flutter MVP:
   detail navigation, provenance timeline display, expert escalation, and
   expert validation when reviewer credentials and a target review UUID are
   supplied.
-- Curator-facing RDF publication UI, semantic-search fallback UI, SPARQL proxy
-  UI, encrypted sensitive draft storage, offline media upload queues, richer
-  stale-update conflict resolution UI, and full offline sync remain target
-  architecture for the mobile client.
+- Semantic-search fallback UI, SPARQL proxy UI, encrypted sensitive draft
+  storage, offline media upload queues, richer stale-update conflict
+  resolution UI, and full offline sync remain target architecture for the
+  mobile client.
 - Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -217,13 +222,15 @@ Implemented in the current mobile client:
 - backend-driven review and expert actions through `allowed_actions`
 - safe read-only provenance timelines and review-only AI triage summaries
 - public browse and keyword search through backend APIs
-- ontology and RDF publication DTO/repository contracts
+- ontology and RDF publication DTO/repository contracts plus a curator/admin
+  Review detail form gated by backend `publish_rdf`
 - deterministic Flutter tests plus opt-in live backend integration targets
 
 Partially implemented:
 
-- ontology mapping and RDF publication are available at repository/DTO level,
-  but there is no curator-facing publication UI.
+- ontology mapping and RDF publication are available in the mobile client for
+  backend-authorized queueing, but backend publication jobs and triplestore
+  writes remain backend-owned.
 
 Not implemented:
 

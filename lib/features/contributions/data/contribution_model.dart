@@ -102,6 +102,7 @@ class ContributionModel {
   bool get canEdit => allowedActions.contains('edit');
   bool get canSubmit => allowedActions.contains('submit');
   bool get canArchive => allowedActions.contains('archive');
+  bool get canPublishRdf => allowedActions.contains('publish_rdf');
   bool get canManageMedia =>
       canEdit &&
       (status == ContributionStatus.draft ||
