@@ -30,6 +30,9 @@ The current app is a backend-connected Flutter MVP:
   uses `GET /knowledge-items`.
 - Contribution forms apply mobile UX validation, send API slug values for
   knowledge and gamelan types, and surface backend `422`/`409` responses.
+- Contribution list cards keep long titles and descriptions bounded with
+  ellipsis, show status as a single badge, and use a sensitive-content icon
+  only as a display hint. Workflow actions remain backend-driven.
 - Editable contribution detail screens support media attachment and removal
   through the Laravel media API. The upload form captures file, consent,
   visibility, cultural sensitivity, and descriptive metadata.

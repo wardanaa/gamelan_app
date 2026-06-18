@@ -63,6 +63,11 @@ queue/detail/decision screens, expert workflow dialogs, provenance timelines,
 backend-authorized RDF publication queueing, and backend authentication. User
 management and audit logs are still placeholders.
 
+Contribution list cards bound long titles and descriptions to avoid mobile
+layout overflow, expose the contribution status as text, and include a screen
+reader label for the sensitive-content icon. The icon is only a display hint;
+backend authorization and workflow policies remain authoritative.
+
 | Screen | Purpose |
 |---|---|
 | Home | Highlight knowledge, recently added items, categories |

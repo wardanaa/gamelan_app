@@ -14,24 +14,33 @@ class ContributionCard extends StatelessWidget {
     return Card(
       child: ListTile(
         onTap: onTap,
-        title: Text(contribution.title),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                contribution.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (contribution.culturalSensitivity) ...[
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.warning_amber_outlined,
+                size: 20,
+                semanticLabel: 'Sensitive content',
+              ),
+            ],
+          ],
+        ),
         subtitle: Text(
           '${contribution.knowledgeType} • ${contribution.gamelanType}\n'
           '${contribution.description}',
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
         ),
         isThreeLine: true,
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            StatusBadge(status: contribution.status, dense: true),
-            if (contribution.culturalSensitivity)
-              const Icon(
-                Icons.warning_amber_outlined,
-                semanticLabel: 'Sensitive',
-              ),
-          ],
-        ),
+        trailing: StatusBadge(status: contribution.status, dense: true),
       ),
     );
   }
