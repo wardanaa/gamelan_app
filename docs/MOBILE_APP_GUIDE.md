@@ -74,9 +74,10 @@ The current app is a backend-connected Flutter MVP:
   detail navigation, provenance timeline display, expert escalation, and
   expert validation when reviewer credentials and a target review UUID are
   supplied.
-- RDF publication, semantic-search fallback UI, SPARQL proxy usage, encrypted
-  sensitive draft storage, offline media upload queues, and full offline sync
-  remain target architecture.
+- Curator-facing RDF publication UI, semantic-search fallback UI, SPARQL proxy
+  UI, encrypted sensitive draft storage, offline media upload queues, richer
+  stale-update conflict resolution UI, and full offline sync remain target
+  architecture for the mobile client.
 - Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -206,9 +207,33 @@ lib/
 └── shared/
 ```
 
+## Mobile MVP Progress
+
+Implemented in the current mobile client:
+
+- backend auth/session restore with secure token storage
+- API-backed contribution drafts, submission, status display, and online media
+  attachment/removal
+- backend-driven review and expert actions through `allowed_actions`
+- safe read-only provenance timelines and review-only AI triage summaries
+- public browse and keyword search through backend APIs
+- ontology and RDF publication DTO/repository contracts
+- deterministic Flutter tests plus opt-in live backend integration targets
+
+Partially implemented:
+
+- ontology mapping and RDF publication are available at repository/DTO level,
+  but there is no curator-facing publication UI.
+
+Not implemented:
+
+- semantic-search fallback UI, full offline sync, offline media queues,
+  encrypted sensitive draft cache, richer `409` conflict resolution UI,
+  production admin screens, and SUS/task evaluation execution.
+
 ## Contribution Form Requirements
 
-The current local MVP contribution form supports:
+The current mobile contribution form supports:
 
 - Title
 - Description
@@ -276,16 +301,18 @@ Rules:
 
 Current MVP limits:
 
-- Only non-sensitive `draft` contributions are cached locally.
+- Production contribution drafts are API-backed; local draft persistence is
+  limited to deterministic test repositories.
 - Plain local storage must not be used for culturally sensitive drafts.
-- Submitted and reviewed local contributions remain session-only until backend
-  persistence and sync are implemented.
+- Full offline sync, offline media queues, and encrypted sensitive draft caches
+  are not implemented.
 
 ## API Error Handling
 
-Current authentication uses real HTTP requests for registration, login, logout,
-and `/me` profile loading. Other repositories do not make real HTTP requests
-yet. API-backed mobile code must handle:
+Current production repositories use real HTTP requests for authentication,
+contributions, review, media, public knowledge browsing/search, provenance,
+ontology collections, and RDF publication queueing contracts. API-backed
+mobile code must handle:
 
 - 401 unauthenticated
 - 403 unauthorized
@@ -300,12 +327,13 @@ Do not show raw backend stack traces.
 
 ## Search UI
 
-SPARQL-backed semantic search is a target capability. The current app implements
-local keyword search over seeded knowledge and approved local contributions.
+SPARQL-backed semantic search is a target capability. The current app
+implements backend keyword search over published, non-sensitive knowledge and
+uses test-only seeded knowledge in local repository fixtures.
 
-Current local search supports:
+Current mobile search supports:
 
-- keyword search over title, description, and relation labels
+- keyword search through the backend `/search` route
 - filter by gamelan type
 - filter by knowledge type
 - detail view with relations, source summary, and provenance summary

@@ -1,6 +1,10 @@
 # Further Development
 
-This document suggests practical next steps after the current local Flutter MVP.
+This document tracks practical next steps after the current Flutter mobile
+client MVP. The MVP scope in this repository is the mobile client; Laravel
+authorization, workflow persistence, RDF publication jobs, triplestore
+configuration, and deployment remain backend-owned capabilities even when the
+mobile app consumes their API contracts.
 
 ## Current Baseline
 
@@ -33,9 +37,10 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - ontology DTOs and repository access for classes, properties, entities, and
   RDF publication lookup/queueing
 
-The current app does not include RDF publication UI, semantic-search fallback
-UI, encrypted sensitive draft storage, full offline sync, offline media upload
-queues, or broader offline-first expert-validation flows.
+The current app does not include curator-facing RDF publication UI,
+semantic-search fallback UI, encrypted sensitive draft storage, full offline
+sync, offline media upload queues, richer stale-update conflict resolution UI,
+production admin screens, or broader offline-first expert-validation flows.
 
 ## Recommended Next Steps
 
@@ -67,7 +72,7 @@ queues, or broader offline-first expert-validation flows.
 5. Add role-aware review and expert validation UI.
    Implemented. The mobile data/repository contract is aligned with backend
    expert workflow endpoints, and the review detail screen now builds its
-   action groups from `allowed_actions` while keeping local role-based
+   action groups from `allowed_actions` while keeping client-side role-based
    authorization out of the widget layer.
 
 6. Add provenance and version records.
@@ -79,12 +84,16 @@ queues, or broader offline-first expert-validation flows.
    Approved contributions should be mapped to stable ontology classes and
    properties before any RDF publication. The mobile DTO and repository layers
    for ontology mapping and RDF publication are now implemented; backend
-   contract verification and future UI wiring remain the remaining phases. The
-   mobile app must not write directly to the triplestore.
+   contract verification and future curator/admin UI wiring remain the
+   remaining phases. The mobile app must not write directly to the triplestore,
+   and backend authorization remains the source of truth for publication
+   eligibility.
 
 8. Add SPARQL-backed semantic search.
    Expose predefined semantic search endpoints through the backend. Public users
-   should not run arbitrary SPARQL.
+   should not run arbitrary SPARQL. Mobile follow-up work should add explicit
+   semantic-search UI and a safe fallback to keyword search when the backend
+   reports semantic search as unavailable.
 
 9. Add AI triage as suggestions only.
    AI may suggest entity types, relations, duplicates, metadata, or summaries
@@ -103,8 +112,10 @@ queues, or broader offline-first expert-validation flows.
   validation.
 - Review screens render backend-driven standard and expert action groups.
 - Approved content has traceable provenance before it appears in public search.
-- RDF publication occurs only after human validation and ontology mapping.
-- Semantic search excludes unpublished, rejected, and restricted knowledge.
+- RDF publication occurs only after human validation, ontology mapping, and
+  backend authorization.
+- Semantic search excludes unpublished, rejected, and restricted knowledge and
+  falls back clearly when semantic search is unavailable.
 - Widget and integration tests cover the contribution and review workflow,
   provenance timeline safety, triage visibility, and shared expert status
   presentation.
@@ -114,7 +125,9 @@ queues, or broader offline-first expert-validation flows.
 Phase 5 test-hardening is implemented. The repo now keeps the auth smoke test
 separate from the live reviewer workflow test, so auth/profile verification
 stays fast while the review-specific integration path can use reviewer
-credentials and a target UUID when available.
+credentials and a target UUID when available. The deterministic Flutter test
+suite currently covers the mobile repository, widget, provenance, review,
+ontology, and RDF publication DTO/repository contracts.
 
 ## Development Priorities
 

@@ -5,10 +5,17 @@ This document defines RDF/OWL ontology modeling rules.
 ## Current Implementation
 
 No ontology files or ontology editing workflow are present in the current
-repository. There is no `ontology/` directory, RDF generation code, or
-triplestore integration yet.
+Flutter repository. There is no `ontology/` directory, RDF generation job, or
+triplestore configuration here.
 
-This guide defines the target ontology approach for future semantic work.
+The mobile client does include DTOs and repository access for backend ontology
+classes, properties, entities, ontology mappings, and RDF publication
+summaries/queueing. Those client contracts do not make the mobile app
+authoritative for ontology changes or RDF publication; backend authorization,
+mapping validation, and publication jobs remain the source of truth.
+
+This guide defines the ontology approach for backend and semantic work consumed
+by the mobile client.
 
 ## Ontology Method
 

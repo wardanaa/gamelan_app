@@ -4,38 +4,48 @@ This document defines the contribution, review, curation, and validation workflo
 
 ## Current Implementation
 
-The Flutter app currently implements a repository-backed local contribution and
-review simulation. Non-sensitive drafts may persist locally; submitted,
-reviewed, and sensitive contributions remain session-only. It uses the
-following Dart contribution statuses:
+The Flutter app currently implements a backend-connected mobile contribution
+and review client. Production wiring uses remote Laravel repositories for
+contribution drafts, submission, media attachment/removal, review queues,
+expert workflow actions, provenance timelines, public knowledge browsing, and
+keyword search. Local repositories remain available only for deterministic
+tests and offline demo fixtures.
+
+It uses the following Dart contribution statuses:
 
 ```txt
-ContributionStatus: draft, submitted, underReview, approved, rejected
+ContributionStatus: draft, submitted, needsRevision, underReview,
+curatorApproved, expertRequired, expertApproved, published, rejected, archived
 ```
 
-Implemented local behavior:
+Implemented mobile behavior:
 
-- contributors can save a local draft or submit a local contribution
-- non-sensitive drafts survive app restart on the same device
+- contributors can create API-backed drafts and submit them for backend review
 - contribution fields include title, description, knowledge type, gamelan type,
   source note, contributor note, consent, and cultural sensitivity
-- submitted and under-review contributions appear in the local Review tab
-- curator-style actions can mark under review, approve, request changes, or
-  reject with a note
-- approved local contributions appear in Search as community approved demo
-  content
-- draft, submitted, under-review, request-changes, and rejected contributions do
-  not appear in public knowledge browsing
-- contribution, review, and knowledge data access is behind local repository
-  implementations that can later be replaced with API-backed repositories
+- editable draft and needs-revision contributions can attach or remove media
+  through the Laravel media API
+- submitted and under-review contributions appear in the Review tab only for
+  backend profiles with review-capable roles or permissions
+- review detail screens render standard and expert actions from backend
+  `allowed_actions`
+- expert escalation and expert validation payloads are sent to backend review
+  endpoints
+- contribution and review detail screens can open safe read-only provenance
+  timelines
+- review detail screens can render backend `triage_suggestion` as
+  `AI suggestion, not validated.`
+- published knowledge and keyword search results load from backend APIs
+- ontology and RDF publication DTO/repository contracts exist, but no
+  curator-facing RDF publication UI is implemented yet
 
-No backend workflow persistence, backend role authorization for workflow
-actions, durable curation decision persistence, expert validation, RDF
-publication, or durable provenance storage is implemented in the local Flutter
-app itself yet. The mobile client reads backend trace data and shows it in a
-safe read-only provenance timeline route.
+Backend authorization remains the source of truth for contribution ownership,
+workflow status, review permissions, expert validation, RDF publication
+eligibility, cultural sensitivity, private notes, and public filtering. The
+mobile app does not write RDF triples or publish content directly.
 
-The workflow below is the target application workflow.
+The workflow below is the target application workflow across the mobile client
+and backend services.
 
 ## Workflow Goals
 

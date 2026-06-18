@@ -39,10 +39,11 @@ product areas:
 - API-backed published knowledge browse and keyword search
 - mobile UX validation with backend field errors and conflict handling
 
-The current app does not yet provide RDF publication UI, semantic-search
-fallback UI, full offline sync, offline media upload queues, encrypted
-sensitive draft storage, or broader offline-first expert-validation flows. Safe
-read-only provenance timelines and review-only AI triage summaries are
+The current app does not yet provide curator-facing RDF publication UI,
+semantic-search fallback UI, full offline sync, offline media upload queues,
+encrypted sensitive draft storage, richer stale-update conflict resolution UI,
+production admin screens, or broader offline-first expert-validation flows.
+Safe read-only provenance timelines and review-only AI triage summaries are
 implemented in the mobile app, but they remain backend-authorized and
 non-authoritative.
 
@@ -99,9 +100,11 @@ The full target MVP must include:
 - Basic offline draft support
 - SUS and task-based usability evaluation readiness
 
-The current local Flutter MVP implements only a safe subset of this target. It
-demonstrates contribution, review, and knowledge-browsing workflows without
-claiming backend persistence, semantic publication, or cultural authority.
+The current Flutter mobile client implements a safe backend-connected subset of
+this target. It can consume contribution, media, review, provenance, knowledge,
+ontology, and RDF publication API contracts, but backend services remain the
+source of truth for authorization, workflow persistence, ontology mapping,
+semantic publication, and cultural authority.
 
 ## Success Criteria
 

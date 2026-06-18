@@ -4,40 +4,46 @@ This document defines security, privacy, and cultural sensitivity rules.
 
 ## Current Implementation
 
-The current Flutter MVP uses repository-backed local state with limited draft
-persistence:
+The current Flutter MVP uses backend-connected production repositories and
+test-only local repositories:
 
 - `GamelanMvpStore` coordinates UI-facing state.
-- Local contribution, review, and knowledge repositories hold the current demo
-  data and workflow mutations.
-- `ContributionDraftStorage` uses `shared_preferences` to persist only
-  non-sensitive local drafts.
+- Production contribution, review, and knowledge repositories consume the
+  Laravel API with bearer tokens.
+- Local contribution, review, knowledge, and ontology repositories remain for
+  deterministic tests and offline demo fixtures.
+- `ContributionDraftStorage` uses `shared_preferences` only in the local test
+  repository path to persist non-sensitive local drafts.
 - `TokenStorage` uses `flutter_secure_storage` for access-token persistence.
 - `AuthRepository` performs backend registration, login, logout, and `/me`
-  profile requests. The app gates the local MVP shell behind a saved or newly
+  profile requests. The app gates the mobile shell behind a saved or newly
   issued access token that can load an authenticated backend profile.
 - Saved tokens are cleared when `/me` returns unauthenticated.
-- The local Review workflow is hidden unless the backend profile includes a
+- The Review workflow is hidden unless the backend profile includes a
   reviewer, curator, expert validator, or admin role, or a
   `review.contributions` permission.
 - The contribution form requires a consent checkbox before saving or submitting.
 - Contributions can be marked culturally sensitive.
-- Culturally sensitive drafts are kept in session-only repository state and are
-  not written to plain local draft storage.
-- Draft, submitted, under-review, request-changes, and rejected contributions do
-  not appear in public knowledge browsing.
-- Approved local contributions appear in Search as community approved demo
-  content only.
+- Culturally sensitive local test drafts are not written to plain local draft
+  storage.
+- Editable API-backed contributions can attach/remove media with consent,
+  visibility, and cultural-sensitivity metadata.
+- Contributor-facing screens do not render private review notes, private expert
+  notes, reviewer identities, or expert identities.
+- Review detail screens render backend-provided `allowed_actions` and
+  review-only AI triage suggestions without treating them as decisions.
+- Provenance timelines display safe backend trace data and use neutral
+  placeholders when actor identity is withheld.
+- Public browsing and keyword search consume backend APIs that must filter to
+  published, non-sensitive knowledge.
 
-The app does not yet implement backend persistence for contribution/review data,
-durable provenance storage, media access control, SPARQL restrictions, or AI
-prompt logging controls. Repository-backed local state is not backend
-persistence or RDF publication. Mobile role checks are convenience-only UX
-gates. Backend authorization must remain authoritative for all protected
-actions and data.
+This Flutter repository does not own backend persistence, media storage,
+SPARQL credentials, RDF publication jobs, or write-side provenance. Mobile role
+checks and `allowed_actions` are convenience-only UX signals. Backend
+authorization must remain authoritative for all protected actions and data.
 
-The requirements below apply as target security and privacy rules when those
-capabilities are implemented.
+The requirements below apply as security and privacy rules for both the current
+mobile client and the backend capabilities it consumes.
 
 ## Security Principles
 

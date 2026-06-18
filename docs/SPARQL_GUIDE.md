@@ -4,12 +4,17 @@ This document defines SPARQL query rules and examples.
 
 ## Current Implementation
 
-SPARQL is not implemented in the current local Flutter MVP. There is no
-triplestore configuration, SPARQL client, semantic search screen, RDF dataset,
-or ontology file in the repository yet.
+Direct SPARQL execution is not implemented in the current Flutter mobile
+client. There is no triplestore configuration, raw SPARQL client, RDF dataset,
+or ontology file in this repository.
 
-This guide defines target query behavior for future backend and ontology
-integration.
+The mobile client does consume backend knowledge search and ontology/RDF
+publication contracts, and live integration tests can verify ontology/RDF and
+protected SPARQL proxy behavior against a configured backend. A user-facing
+semantic-search fallback UI is still not implemented.
+
+This guide defines query behavior for backend and ontology integration consumed
+through REST APIs.
 
 ## SPARQL Endpoint
 

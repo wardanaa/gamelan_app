@@ -4,11 +4,14 @@ This document defines the core Balinese gamelan knowledge concepts used by the A
 
 ## Current Implementation
 
-The current Flutter app includes a local `KnowledgeItem` model and seeded
-knowledge records for Gong Kebyar and Gong Gede. The Search tab browses these
-records and any approved local contributions.
+The current Flutter app includes a `KnowledgeItem` model and a remote
+knowledge repository for backend published knowledge browsing and keyword
+search. Production wiring loads `GET /knowledge-items`, `GET
+/knowledge-items/{id}`, taxonomy labels, and `GET /search` through the Laravel
+API. Local seeded knowledge remains only for deterministic tests and offline
+demo fixtures.
 
-Current local `KnowledgeItem` fields:
+Current mobile `KnowledgeItem` fields:
 
 ```txt
 id
@@ -22,7 +25,7 @@ provenanceSummary
 isCommunityApproved
 ```
 
-Seeded local records currently include:
+Test-only seeded local records currently include:
 
 - Gong Kebyar
 - Gong Gede
@@ -31,10 +34,13 @@ Seeded local records currently include:
 - Kendang
 - Ceng-ceng
 
-The current app does not yet include ontology mappings, RDF files,
-SPARQL-backed browsing, or true semantic reasoning. Relation labels such as
-`hasInstrument`, `usedInEnsemble`, and `validatedBy` are display-oriented,
-ontology-aligned labels only.
+The current mobile client includes ontology DTOs and repository access for
+classes, properties, entities, ontology mappings, and RDF publication
+summaries/queueing. It does not include ontology files, an ontology editing
+workflow, direct SPARQL execution, triplestore configuration, or true semantic
+reasoning. Relation labels such as `hasInstrument`, `usedInEnsemble`, and
+`validatedBy` remain ontology-aligned display and API contract values unless
+the backend publishes them through the ontology/RDF workflow.
 
 The concepts below define the target knowledge model that future app, backend,
 and ontology work should follow.

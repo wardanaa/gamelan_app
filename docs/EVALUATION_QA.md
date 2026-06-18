@@ -4,12 +4,14 @@ This document defines software, ontology, and research evaluation rules.
 
 ## Current Implementation
 
-The current default test suite contains deterministic Flutter widget tests for
-the local MVP, mocked authentication HTTP responses, and focused repository
-tests for local contribution, review, draft persistence, provenance, and
-knowledge-search behavior. Backend persistence, ontology, SPARQL, offline
-sync, media, and AI triage tests are not applicable until those capabilities
-are implemented.
+The current default test suite contains deterministic Flutter widget tests,
+mocked authentication HTTP responses, and focused repository tests for local
+fixtures plus remote API parsing. Covered mobile areas include contribution,
+review, draft persistence, media metadata, provenance timelines, knowledge
+search behavior, ontology DTO/repository contracts, RDF publication
+DTO/repository contracts, and review-only AI triage display. Full offline sync,
+offline media queues, encrypted sensitive draft storage, production admin UI,
+and SUS/task evaluation execution remain unimplemented.
 
 An opt-in live Laravel-backed authentication smoke test exists at:
 

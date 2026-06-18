@@ -4,7 +4,8 @@ This document defines mobile UX and accessibility standards.
 
 ## Current Implementation
 
-The current UI is a local Material 3 MVP using a bottom-navigation shell.
+The current UI is a backend-connected Material 3 mobile MVP using a
+bottom-navigation shell.
 Implemented tabs are:
 
 - Home
@@ -13,12 +14,13 @@ Implemented tabs are:
 - Review
 - Profile
 
-The app now gates the local shell behind backend authentication. Registration,
+The app now gates the mobile shell behind backend authentication. Registration,
 login, `/me` profile loading, and logout are wired to the configured API. The
-Search and Contribute tabs provide working local workflows after sign-in. The
-Review tab shows the local review workflow only when the backend profile has a
-reviewer, curator, expert validator, or admin role. Admin screens remain
-scaffold-level placeholders.
+Search and Contribute tabs use backend repositories in production wiring. The
+Review tab shows review workflows only when the backend profile has a reviewer,
+curator, expert validator, or admin role, and individual review actions are
+driven by backend `allowed_actions`. Admin screens remain scaffold-level
+placeholders.
 
 ## UX Principles
 
@@ -55,17 +57,19 @@ Settings
 
 ## Core Screens
 
-Current MVP screens include working local contribution list/detail/form/status,
-knowledge list/detail, and review queue/detail/decision screens.
-Authentication, user management, and audit logs are still placeholders.
+Current MVP screens include backend-connected contribution list/detail/form/status,
+online media upload/removal, knowledge list/detail, review
+queue/detail/decision screens, expert workflow dialogs, provenance timelines,
+and backend authentication. User management and audit logs are still
+placeholders.
 
 | Screen | Purpose |
 |---|---|
 | Home | Highlight knowledge, recently added items, categories |
-| Search | Local keyword search over seeded and approved demo knowledge |
+| Search | Backend keyword search over published, non-sensitive knowledge |
 | Knowledge Detail | Entity details, relations, source summary, provenance summary |
-| Contribution Form | Save local draft or submit for local review |
-| Review Queue | Curator-style local review list |
+| Contribution Form | Save API-backed draft or submit for backend review |
+| Review Queue | Backend-authorized review list |
 | Review Detail | Review contribution, source note, sensitivity, and decision actions |
 | Profile | Backend profile label, backend roles, privacy boundary, and ontology boundary |
 | Settings | Language, accessibility, account |

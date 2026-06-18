@@ -73,11 +73,14 @@ GAMELAN_TEST_EMAIL
 GAMELAN_TEST_PASSWORD
 ```
 
-That live test currently exercises authentication only (`POST /auth/login`,
-`GET /me`, `POST /auth/logout`). The mobile app implements online media
-upload/removal for editable contributions, while RDF publication, provenance
-screens, semantic-search fallback UI, SPARQL proxy usage, offline media queues,
-and full offline sync remain target architecture in the mobile app.
+That live test exercises authentication (`POST /auth/login`, `GET /me`,
+`POST /auth/logout`). Separate opt-in live tests cover reviewer workflow and
+ontology/RDF contracts when suitable backend credentials and fixture UUIDs are
+provided. The mobile app implements online media upload/removal for editable
+contributions and safe provenance timeline screens. Curator-facing RDF
+publication UI, semantic-search fallback UI, SPARQL proxy UI, offline media
+queues, richer conflict resolution UI, and full offline sync remain target
+architecture in the mobile app.
 
 Chrome web execution of the live authentication test should use the Flutter
 driver entrypoint at `test_driver/integration_test.dart`:

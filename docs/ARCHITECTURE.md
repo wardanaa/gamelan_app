@@ -2,9 +2,12 @@
 
 ## Architecture Overview
 
-The current repository contains a local Flutter MVP at the project root. It
-does not yet contain a Laravel backend, database schema, ontology files, RDF
-publication jobs, media storage, or SPARQL integration.
+The current repository contains the Flutter mobile client at the project root.
+It consumes Laravel API contracts for authentication, contributions, media,
+review, provenance, knowledge browsing/search, ontology collections, and RDF
+publication queueing. It does not contain the Laravel backend service,
+database migrations, ontology files, RDF publication jobs, media storage, or
+Fuseki/SPARQL infrastructure.
 
 The target system consists of five major layers:
 
@@ -44,7 +47,7 @@ Current implementation:
 - API helper classes exist under `lib/core/api`; authentication uses real JSON
   registration, login, logout, and `/me` profile requests.
 - Access tokens are stored through `flutter_secure_storage`.
-- The local Review workflow is UX-gated by backend profile roles or the
+- The Review workflow is UX-gated by backend profile roles or the
   `review.contributions` permission. Backend policies remain the source of
   truth for protected actions.
 - Review detail screens render action groups from backend `allowed_actions`
@@ -56,19 +59,17 @@ Current implementation:
 - Review detail screens can render backend triage suggestions as a helper card,
   but only on review-capable views and only when the API includes
   `triage_suggestion`.
-- UI-facing local MVP state is coordinated by `GamelanMvpStore` and exposed
+- UI-facing mobile state is coordinated by `GamelanMvpStore` and exposed
   through `GamelanScope`.
 - Contribution, review, and knowledge data access is behind repository
-  interfaces with local demo implementations.
-- Non-sensitive local drafts are persisted through `ContributionDraftStorage`
-  and `shared_preferences`.
-- Seeded knowledge records and approved local contributions appear in Search
-  through `LocalKnowledgeRepository`.
-- Draft, submitted, under-review, curator-approved, expert-required,
-  expert-approved, and rejected contribution states are simulated locally.
-  Only non-sensitive drafts persist across app restart.
-- Local contribution, review, and knowledge repositories do not perform real
-  network requests yet.
+  interfaces. Production wiring uses remote Laravel repositories; local
+  repositories remain only for deterministic tests and offline demo fixtures.
+- Contribution drafts, submitted records, review queues, media, and published
+  knowledge are API-backed in production wiring.
+- Ontology DTOs and repository access exist for classes, properties, entities,
+  and RDF publication lookup/queueing.
+- Curator-facing RDF publication UI, semantic-search fallback UI, full offline
+  sync, offline media queues, and production admin screens are not implemented.
 
 Target responsibilities:
 
@@ -81,35 +82,39 @@ Target responsibilities:
 - Review screens for curator/expert roles
 - Notifications and status tracking
 
-The mobile app must not contain authoritative business rules. It may mirror validation for UX, but backend validation remains mandatory once the backend exists.
+The mobile app must not contain authoritative business rules. It may mirror
+validation for UX, but backend validation and authorization remain mandatory.
 
-### Current Local MVP Flow
+### Current Mobile Client Flow
 
-After backend sign-in, the current mobile MVP runs this local contribution and
-review flow:
+After backend sign-in, the current mobile client runs this API-backed
+contribution and review flow:
 
 ```txt
-Seeded Gong Kebyar/Gong Gede knowledge
-    +
-Local contribution form
+Backend profile and published knowledge
     ↓
-Draft or submitted contribution through repository-backed local state
+Remote contribution form
     ↓
-Non-sensitive drafts may persist locally
+Draft or submitted contribution through Laravel API
     ↓
-Local curator review action
+Online media attachment/removal for editable drafts
     ↓
-Approved local contribution appears in Search
+Backend review/expert workflow through allowed_actions
+    ↓
+Published backend knowledge appears in browse/search
 ```
 
-Draft, submitted, under-review, request-changes, expert-required,
-expert-approved, and rejected contributions do not appear in public knowledge
-browsing. Approved local content is labeled as community approved demo content
-and is not RDF publication.
+Draft, submitted, under-review, needs-revision, expert-required,
+expert-approved, rejected, archived, unpublished, and sensitive contributions
+must not appear in public knowledge browsing unless the backend publishes safe
+knowledge records. The mobile app does not directly publish RDF or write to the
+triplestore.
 
 ### Laravel REST API
 
-Target responsibility. The Laravel REST API is not present in this repository yet.
+Target/external responsibility. The Laravel REST API is not present in this
+Flutter repository, but the mobile app is already wired to consume the
+documented API routes.
 
 Responsible for:
 
@@ -250,10 +255,13 @@ RDF triples inserted into triplestore
 Published knowledge appears in semantic search
 ```
 
-The current local MVP demonstrates only the mobile-facing contribution, review,
-and approved-search portions of this flow. Backend validation, AI suggestions,
-expert validation, ontology mapping, RDF insertion, and SPARQL-backed semantic
-search are not implemented yet.
+The current mobile client implements the API-facing contribution, media,
+review, expert action, provenance display, AI triage display, public
+browse/keyword search, ontology DTO, and RDF publication repository portions of
+this flow. Backend validation, authorization, ontology mapping execution, RDF
+insertion, SPARQL query execution, and publication state remain backend-owned.
+Semantic-search fallback UI and curator-facing RDF publication UI are still
+mobile-client gaps.
 
 ## Do Not
 
