@@ -47,6 +47,7 @@ class ApiEndpoints {
       '/ontology/entities/$id/graph';
 
   static const String search = '/search';
+  static const String searchSemantic = '/search/semantic';
 
   static const String auditLogs = '/admin/audit-logs';
   static const String users = '/admin/users';

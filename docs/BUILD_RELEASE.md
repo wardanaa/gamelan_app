@@ -589,7 +589,7 @@ Create `CHANGELOG.md` entries following this format:
 ### Added
 - Initial release with contribution and review workflows
 - Backend authentication integration
-- Knowledge browsing and search
+- Knowledge browsing, semantic-first search, and keyword fallback
 - Media attachment support
 - Role-aware review UI
 - Backend-authorized RDF publication queueing UI
@@ -601,7 +601,7 @@ Create `CHANGELOG.md` entries following this format:
 
 ### Known Issues
 - Offline sync not yet implemented (target: v1.1.0)
-- Semantic-search fallback UI not yet implemented
+- Production admin screens not yet implemented
 ```
 
 ---

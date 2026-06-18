@@ -24,8 +24,10 @@ The current app is a backend-connected Flutter MVP:
 - Contribution drafts, submissions, review queue items, and review decisions
   are persisted by the backend in production wiring. The mobile app does not
   keep API drafts in `shared_preferences`.
-- Search uses `GET /search` with optional taxonomy filters. Published browse
-  data uses `GET /knowledge-items`.
+- Search uses semantic-first `GET /search/semantic` for non-empty queries and
+  falls back to `GET /search` with a visible notice only when the backend
+  reports semantic search as temporarily unavailable. Published browse data
+  uses `GET /knowledge-items`.
 - Contribution forms apply mobile UX validation, send API slug values for
   knowledge and gamelan types, and surface backend `422`/`409` responses.
 - Editable contribution detail screens support media attachment and removal
@@ -79,10 +81,9 @@ The current app is a backend-connected Flutter MVP:
   detail navigation, provenance timeline display, expert escalation, and
   expert validation when reviewer credentials and a target review UUID are
   supplied.
-- Semantic-search fallback UI, SPARQL proxy UI, encrypted sensitive draft
-  storage, offline media upload queues, richer stale-update conflict
-  resolution UI, and full offline sync remain target architecture for the
-  mobile client.
+- SPARQL proxy UI, encrypted sensitive draft storage, offline media upload
+  queues, richer stale-update conflict resolution UI, and full offline sync
+  remain target architecture for the mobile client.
 - Admin screens remain scaffold-level placeholders.
 
 Do not document a mobile capability as implemented unless it is backed by code
@@ -221,7 +222,7 @@ Implemented in the current mobile client:
   attachment/removal
 - backend-driven review and expert actions through `allowed_actions`
 - safe read-only provenance timelines and review-only AI triage summaries
-- public browse and keyword search through backend APIs
+- public browse, semantic-first search, and keyword fallback through backend APIs
 - ontology and RDF publication DTO/repository contracts plus a curator/admin
   Review detail form gated by backend `publish_rdf`
 - deterministic Flutter tests plus opt-in live backend integration targets
@@ -234,9 +235,9 @@ Partially implemented:
 
 Not implemented:
 
-- semantic-search fallback UI, full offline sync, offline media queues,
-  encrypted sensitive draft cache, richer `409` conflict resolution UI,
-  production admin screens, and SUS/task evaluation execution.
+- full offline sync, offline media queues, encrypted sensitive draft cache,
+  richer `409` conflict resolution UI, production admin screens, and SUS/task
+  evaluation execution.
 
 ## Contribution Form Requirements
 
@@ -335,12 +336,16 @@ Do not show raw backend stack traces.
 ## Search UI
 
 SPARQL-backed semantic search is a target capability. The current app
-implements backend keyword search over published, non-sensitive knowledge and
-uses test-only seeded knowledge in local repository fixtures.
+implements semantic-first backend search over published, non-sensitive
+knowledge, falls back visibly to keyword search when the semantic endpoint is
+temporarily unavailable, and uses test-only seeded knowledge in local
+repository fixtures.
 
 Current mobile search supports:
 
-- keyword search through the backend `/search` route
+- semantic-first search through the backend `/search/semantic` route
+- visible fallback to backend keyword search through `/search` when semantic
+  search returns the documented unavailable response
 - filter by gamelan type
 - filter by knowledge type
 - detail view with relations, source summary, and provenance summary

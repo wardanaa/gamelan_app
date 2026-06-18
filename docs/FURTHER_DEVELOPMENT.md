@@ -39,11 +39,13 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
   implementations
 - ontology DTOs and repository access for classes, properties, entities, and
   RDF publication lookup/queueing
+- semantic-first public knowledge search through `/search/semantic`, with an
+  explicit keyword-search fallback notice when the backend returns semantic
+  search unavailable
 
-The current app does not include semantic-search fallback UI, encrypted
-sensitive draft storage, full offline sync, offline media upload queues, richer
-stale-update conflict resolution UI, production admin screens, or broader
-offline-first expert-validation flows.
+The current app does not include encrypted sensitive draft storage, full offline
+sync, offline media upload queues, richer stale-update conflict resolution UI,
+production admin screens, or broader offline-first expert-validation flows.
 
 ## Recommended Next Steps
 
@@ -92,11 +94,13 @@ offline-first expert-validation flows.
    The mobile app must not write directly to the triplestore, and backend
    authorization remains the source of truth for publication eligibility.
 
-8. Add SPARQL-backed semantic search.
+8. Add SPARQL-backed semantic search. Implemented in the mobile client as
+   semantic-first search with keyword fallback UI.
    Expose predefined semantic search endpoints through the backend. Public users
-   should not run arbitrary SPARQL. Mobile follow-up work should add explicit
-   semantic-search UI and a safe fallback to keyword search when the backend
-   reports semantic search as unavailable.
+   should not run arbitrary SPARQL. The mobile Search tab calls the documented
+   semantic endpoint for non-empty queries and falls back to keyword search only
+   when the backend reports semantic search as unavailable. Backend public
+   filtering and SPARQL configuration remain authoritative.
 
 9. Add AI triage as suggestions only.
    AI may suggest entity types, relations, duplicates, metadata, or summaries

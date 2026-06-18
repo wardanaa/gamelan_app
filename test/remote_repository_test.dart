@@ -8,7 +8,7 @@ import 'package:gamelan_app/features/contributions/data/contribution_model.dart'
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
 import 'package:gamelan_app/features/contributions/data/remote_contribution_repository.dart';
-import 'package:gamelan_app/features/knowledge/data/knowledge_item.dart';
+import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
 import 'package:gamelan_app/features/knowledge/data/remote_knowledge_repository.dart';
 import 'package:gamelan_app/features/provenance/data/provenance_timeline_entry.dart';
 import 'package:gamelan_app/features/review/data/remote_review_repository.dart';
@@ -720,9 +720,10 @@ void main() {
     },
   );
 
-  test('remote knowledge repository parses search results', () async {
+  test('remote knowledge repository parses semantic search results', () async {
     final client = MockClient((request) async {
-      if (request.method == 'GET' && request.url.path.endsWith('/search')) {
+      if (request.method == 'GET' &&
+          request.url.path.endsWith('/search/semantic')) {
         expect(request.url.queryParameters['q'], 'gangsa');
         return jsonResponse({
           'success': true,
@@ -730,6 +731,7 @@ void main() {
           'data': [
             {
               'result_type': 'knowledge_item',
+              'match_type': 'semantic',
               'knowledge_item': {
                 'id': 'knowledge-uuid',
                 'slug': 'gangsa',
@@ -756,15 +758,123 @@ void main() {
     );
 
     final result = await repository.searchKnowledge(query: 'gangsa');
-    final items = switch (result) {
-      Success<List<KnowledgeItem>>(:final value) => value,
-      Failure<List<KnowledgeItem>>() => fail('Expected success'),
+    final searchResult = switch (result) {
+      Success<KnowledgeSearchResult>(:final value) => value,
+      Failure<KnowledgeSearchResult>() => fail('Expected success'),
     };
 
+    final items = searchResult.items;
     expect(items, hasLength(1));
     expect(items.single.title, 'Gangsa');
     expect(items.single.knowledgeType, 'Instrument');
+    expect(searchResult.usedSemanticSearch, isTrue);
+    expect(searchResult.fellBackToKeyword, isFalse);
+    expect(searchResult.notice, isNull);
   });
+
+  test(
+    'remote knowledge repository falls back to keyword search on semantic 503',
+    () async {
+      final requestedPaths = <String>[];
+      final client = MockClient((request) async {
+        requestedPaths.add(request.url.path);
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/search/semantic')) {
+          expect(request.url.queryParameters['q'], 'gangsa');
+          return jsonResponse({
+            'success': false,
+            'message': 'Semantic search is temporarily unavailable.',
+            'errors': <String, Object?>{},
+          }, 503);
+        }
+        if (request.method == 'GET' && request.url.path.endsWith('/search')) {
+          expect(request.url.queryParameters['q'], 'gangsa');
+          return jsonResponse({
+            'success': true,
+            'message': 'OK',
+            'data': [
+              {
+                'result_type': 'knowledge_item',
+                'match_type': 'keyword',
+                'knowledge_item': {
+                  'id': 'keyword-uuid',
+                  'slug': 'gangsa-keyword',
+                  'title': 'Gangsa keyword result',
+                  'description': 'Metallophone',
+                  'knowledge_type': 'instrument',
+                  'knowledge_type_label': 'Instrument',
+                  'gamelan_type': 'gong_kebyar',
+                  'gamelan_type_label': 'Gong Kebyar',
+                  'source_summary': 'Published summary',
+                },
+              },
+            ],
+          });
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteKnowledgeRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+      );
+
+      final result = await repository.searchKnowledge(query: 'gangsa');
+      final searchResult = switch (result) {
+        Success<KnowledgeSearchResult>(:final value) => value,
+        Failure<KnowledgeSearchResult>() => fail('Expected success'),
+      };
+
+      expect(requestedPaths, ['/api/v1/search/semantic', '/api/v1/search']);
+      expect(searchResult.items, hasLength(1));
+      expect(searchResult.items.single.title, 'Gangsa keyword result');
+      expect(searchResult.usedSemanticSearch, isFalse);
+      expect(searchResult.fellBackToKeyword, isTrue);
+      expect(
+        searchResult.notice,
+        'Semantic search is temporarily unavailable. Showing keyword results instead.',
+      );
+    },
+  );
+
+  test(
+    'remote knowledge repository does not fall back on semantic 403',
+    () async {
+      var keywordRequested = false;
+      final client = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/search/semantic')) {
+          return jsonResponse({
+            'success': false,
+            'message': 'You do not have permission to perform this action.',
+            'errors': <String, Object?>{},
+          }, 403);
+        }
+        if (request.method == 'GET' && request.url.path.endsWith('/search')) {
+          keywordRequested = true;
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteKnowledgeRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+      );
+
+      final result = await repository.searchKnowledge(query: 'gangsa');
+      final failure = switch (result) {
+        Success<KnowledgeSearchResult>() => fail('Expected failure'),
+        Failure<KnowledgeSearchResult>(:final message) => message,
+      };
+
+      expect(keywordRequested, isFalse);
+      expect(failure, 'You do not have permission to perform this action.');
+    },
+  );
 }
 
 http.Response jsonResponse(Map<String, Object?> body, [int statusCode = 200]) {

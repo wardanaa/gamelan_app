@@ -75,6 +75,9 @@ class GamelanMvpStore extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSearching = false;
   List<KnowledgeItem> _searchResults = const [];
+  String? _searchNotice;
+  bool _lastSearchUsedSemantic = false;
+  bool _lastSearchFellBackToKeyword = false;
 
   List<ContributionModel> get contributions =>
       List.unmodifiable(_contributions);
@@ -84,6 +87,12 @@ class GamelanMvpStore extends ChangeNotifier {
   List<KnowledgeItem> get knowledgeItems => List.unmodifiable(_knowledgeItems);
 
   List<KnowledgeItem> get searchResults => List.unmodifiable(_searchResults);
+
+  String? get searchNotice => _searchNotice;
+
+  bool get lastSearchUsedSemantic => _lastSearchUsedSemantic;
+
+  bool get lastSearchFellBackToKeyword => _lastSearchFellBackToKeyword;
 
   Map<ContributionStatus, int> get contributionStatusCounts =>
       Map.unmodifiable(_contributionStatusCounts);
@@ -117,6 +126,9 @@ class GamelanMvpStore extends ChangeNotifier {
     String? knowledgeType,
   }) async {
     _isSearching = true;
+    _searchNotice = null;
+    _lastSearchUsedSemantic = false;
+    _lastSearchFellBackToKeyword = false;
     notifyListeners();
 
     final gamelanSlug = gamelanType == null
@@ -136,11 +148,17 @@ class GamelanMvpStore extends ChangeNotifier {
 
     _isSearching = false;
     switch (result) {
-      case Success<List<KnowledgeItem>>(:final value):
-        _searchResults = value;
+      case Success<KnowledgeSearchResult>(:final value):
+        _searchResults = value.items;
+        _searchNotice = value.notice;
+        _lastSearchUsedSemantic = value.usedSemanticSearch;
+        _lastSearchFellBackToKeyword = value.fellBackToKeyword;
         _lastError = null;
-      case Failure<List<KnowledgeItem>>(:final message):
+      case Failure<KnowledgeSearchResult>(:final message):
         _searchResults = const [];
+        _searchNotice = null;
+        _lastSearchUsedSemantic = false;
+        _lastSearchFellBackToKeyword = false;
         _lastError = message;
     }
     notifyListeners();

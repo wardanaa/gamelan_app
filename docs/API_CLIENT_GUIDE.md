@@ -225,6 +225,12 @@ GET /api/v1/search/suggestions?q=gang
 
 Keyword search uses relational public knowledge fields. Semantic search uses the backend SPARQL query endpoint and returns `503` when semantic search is not configured or temporarily unavailable, allowing clients to fall back to keyword search explicitly. Suggestions require at least two characters and return only public-safe labels.
 
+The Flutter mobile client uses semantic search by default for non-empty Search
+tab queries and shows a visible keyword fallback notice only for that documented
+`503` semantic-unavailable response. Other authorization, validation, and server
+errors are surfaced through normal API error handling instead of silently
+falling back.
+
 Curator and admin clients may use the protected predefined SPARQL proxy:
 
 ```txt

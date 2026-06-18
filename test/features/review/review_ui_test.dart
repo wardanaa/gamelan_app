@@ -880,14 +880,14 @@ class FakeKnowledgeRepository implements KnowledgeRepository {
   }
 
   @override
-  Future<Result<List<KnowledgeItem>>> searchKnowledge({
+  Future<Result<KnowledgeSearchResult>> searchKnowledge({
     required String query,
     String? gamelanType,
     String? knowledgeType,
     String? gamelanTypeSlug,
     String? knowledgeTypeSlug,
   }) async {
-    return const Success(<KnowledgeItem>[]);
+    return Success(KnowledgeSearchResult.keyword(const <KnowledgeItem>[]));
   }
 
   @override

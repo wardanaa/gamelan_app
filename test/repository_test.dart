@@ -3,6 +3,7 @@ import 'package:gamelan_app/features/contributions/data/contribution_model.dart'
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
 import 'package:gamelan_app/features/contributions/data/rdf_publication_model.dart';
+import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
 import 'package:gamelan_app/features/knowledge/data/local_knowledge_repository.dart';
 import 'package:gamelan_app/features/ontology/data/ontology_mapping.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
@@ -414,8 +415,8 @@ void main() {
         query: 'Kempli',
       );
       expect(switch (emptySearch) {
-        Success<List<dynamic>>(:final value) => value,
-        Failure<List<dynamic>>() => fail('Expected success'),
+        Success<KnowledgeSearchResult>(:final value) => value.items,
+        Failure<KnowledgeSearchResult>() => fail('Expected success'),
       }, isEmpty);
 
       await reviewRepository.approveContribution(
@@ -426,8 +427,8 @@ void main() {
         query: 'Kempli',
       );
       final results = switch (resultsResult) {
-        Success(:final value) => value,
-        Failure() => fail('Expected success'),
+        Success<KnowledgeSearchResult>(:final value) => value.items,
+        Failure<KnowledgeSearchResult>() => fail('Expected success'),
       };
 
       expect(results, hasLength(1));

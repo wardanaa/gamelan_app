@@ -34,8 +34,8 @@ test-only local repositories:
   review-only AI triage suggestions without treating them as decisions.
 - Provenance timelines display safe backend trace data and use neutral
   placeholders when actor identity is withheld.
-- Public browsing and keyword search consume backend APIs that must filter to
-  published, non-sensitive knowledge.
+- Public browsing, semantic search, and keyword fallback consume backend APIs
+  that must filter to published, non-sensitive knowledge.
 
 This Flutter repository does not own backend persistence, media storage,
 SPARQL credentials, RDF publication jobs, or write-side provenance. Mobile role

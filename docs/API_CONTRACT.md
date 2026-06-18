@@ -78,9 +78,11 @@ That live test exercises authentication (`POST /auth/login`, `GET /me`,
 ontology/RDF contracts when suitable backend credentials and fixture UUIDs are
 provided. The mobile app implements online media upload/removal for editable
 contributions and safe provenance timeline screens. Curator-facing RDF
-publication UI, semantic-search fallback UI, SPARQL proxy UI, offline media
-queues, richer conflict resolution UI, and full offline sync remain target
-architecture in the mobile app.
+publication UI and semantic-search fallback UI are implemented in the mobile
+app. SPARQL proxy UI, offline media queues, richer conflict resolution UI, and
+full offline sync remain target architecture in the mobile app. The Flutter
+client consumes the documented semantic-search unavailable response by falling
+back visibly to keyword search.
 
 Chrome web execution of the live authentication test should use the Flutter
 driver entrypoint at `test_driver/integration_test.dart`:

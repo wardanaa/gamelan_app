@@ -129,7 +129,7 @@ class LocalKnowledgeRepository implements KnowledgeRepository {
   }
 
   @override
-  Future<Result<List<KnowledgeItem>>> searchKnowledge({
+  Future<Result<KnowledgeSearchResult>> searchKnowledge({
     required String query,
     String? gamelanType,
     String? knowledgeType,
@@ -139,24 +139,27 @@ class LocalKnowledgeRepository implements KnowledgeRepository {
     final itemsResult = await fetchKnowledgeItems();
     return switch (itemsResult) {
       Success<List<KnowledgeItem>>(:final value) => Success(
-        value
-            .where((item) {
-              final normalizedQuery = query.trim().toLowerCase();
-              final matchesQuery =
-                  normalizedQuery.isEmpty ||
-                  item.title.toLowerCase().contains(normalizedQuery) ||
-                  item.description.toLowerCase().contains(normalizedQuery) ||
-                  item.relations.any(
-                    (relation) =>
-                        relation.toLowerCase().contains(normalizedQuery),
-                  );
-              final matchesGamelan =
-                  gamelanType == null || item.gamelanType == gamelanType;
-              final matchesType =
-                  knowledgeType == null || item.knowledgeType == knowledgeType;
-              return matchesQuery && matchesGamelan && matchesType;
-            })
-            .toList(growable: false),
+        KnowledgeSearchResult.keyword(
+          value
+              .where((item) {
+                final normalizedQuery = query.trim().toLowerCase();
+                final matchesQuery =
+                    normalizedQuery.isEmpty ||
+                    item.title.toLowerCase().contains(normalizedQuery) ||
+                    item.description.toLowerCase().contains(normalizedQuery) ||
+                    item.relations.any(
+                      (relation) =>
+                          relation.toLowerCase().contains(normalizedQuery),
+                    );
+                final matchesGamelan =
+                    gamelanType == null || item.gamelanType == gamelanType;
+                final matchesType =
+                    knowledgeType == null ||
+                    item.knowledgeType == knowledgeType;
+                return matchesQuery && matchesGamelan && matchesType;
+              })
+              .toList(growable: false),
+        ),
       ),
       Failure<List<KnowledgeItem>>(:final message, :final exception) => Failure(
         message,

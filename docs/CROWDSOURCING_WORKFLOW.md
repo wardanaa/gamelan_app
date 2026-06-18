@@ -7,9 +7,9 @@ This document defines the contribution, review, curation, and validation workflo
 The Flutter app currently implements a backend-connected mobile contribution
 and review client. Production wiring uses remote Laravel repositories for
 contribution drafts, submission, media attachment/removal, review queues,
-expert workflow actions, provenance timelines, public knowledge browsing, and
-keyword search. Local repositories remain available only for deterministic
-tests and offline demo fixtures.
+expert workflow actions, provenance timelines, public knowledge browsing,
+semantic-first search, and keyword fallback. Local repositories remain available
+only for deterministic tests and offline demo fixtures.
 
 It uses the following Dart contribution statuses:
 
@@ -37,7 +37,8 @@ Implemented mobile behavior:
   `AI suggestion, not validated.`
 - review detail screens can queue RDF publication through the backend when
   `allowed_actions` includes `publish_rdf`
-- published knowledge and keyword search results load from backend APIs
+- published knowledge, semantic search results, and keyword fallback results
+  load from backend APIs
 - ontology and RDF publication DTO/repository contracts support the
   curator/admin publication form
 

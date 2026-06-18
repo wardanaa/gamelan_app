@@ -36,17 +36,20 @@ product areas:
 - API-backed contribution listing, draft creation, submission, and status display
 - API-backed media attachment and removal for editable contribution drafts
 - API-backed review queue and curator/reviewer decision actions
-- API-backed published knowledge browse and keyword search
+- API-backed published knowledge browse, keyword search, and semantic-first
+  search fallback
+- API-backed semantic-first search with a visible keyword fallback when the
+  backend semantic endpoint is temporarily unavailable
 - mobile UX validation with backend field errors and conflict handling
 
 The current app provides a curator/admin RDF publication queueing form from
 Review detail when the backend returns `publish_rdf` in `allowed_actions`.
-It does not yet provide semantic-search fallback UI, full offline sync, offline
-media upload queues, encrypted sensitive draft storage, richer stale-update
-conflict resolution UI, production admin screens, or broader offline-first
-expert-validation flows. Safe read-only provenance timelines, review-only AI
-triage summaries, and RDF publication queueing remain backend-authorized and
-non-authoritative.
+It does not yet provide full offline sync, offline media upload queues,
+encrypted sensitive draft storage, richer stale-update conflict resolution UI,
+production admin screens, or broader offline-first expert-validation flows.
+Safe read-only provenance timelines, review-only AI triage summaries, semantic
+search fallback behavior, and RDF publication queueing remain backend-authorized
+and non-authoritative.
 
 ## Goals
 

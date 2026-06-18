@@ -56,7 +56,7 @@ class RemoteKnowledgeRepository implements KnowledgeRepository {
   }
 
   @override
-  Future<Result<List<KnowledgeItem>>> searchKnowledge({
+  Future<Result<KnowledgeSearchResult>> searchKnowledge({
     required String query,
     String? gamelanType,
     String? knowledgeType,
@@ -65,7 +65,14 @@ class RemoteKnowledgeRepository implements KnowledgeRepository {
   }) async {
     final normalizedQuery = query.trim();
     if (normalizedQuery.isEmpty) {
-      return fetchKnowledgeItems();
+      final itemsResult = await fetchKnowledgeItems();
+      return switch (itemsResult) {
+        Success<List<KnowledgeItem>>(:final value) => Success(
+          KnowledgeSearchResult.keyword(value),
+        ),
+        Failure<List<KnowledgeItem>>(:final message, :final exception) =>
+          Failure(message, exception: exception),
+      };
     }
 
     final gamelanSlug =
@@ -91,12 +98,35 @@ class RemoteKnowledgeRepository implements KnowledgeRepository {
     }
 
     return _run((token) async {
-      final response = await _apiClient.getJson(
+      try {
+        final response = await _apiClient.getJson(
+          ApiEndpoints.searchSemantic,
+          token: token,
+          queryParameters: queryParameters,
+        );
+        return Success(
+          KnowledgeSearchResult.semantic(_searchResultsFromApi(response.data)),
+        );
+      } on ApiException catch (exception) {
+        if (exception.statusCode != 503 ||
+            exception.message !=
+                'Semantic search is temporarily unavailable.') {
+          rethrow;
+        }
+      }
+
+      final keywordResponse = await _apiClient.getJson(
         ApiEndpoints.search,
         token: token,
         queryParameters: queryParameters,
       );
-      return Success(_searchResultsFromApi(response.data));
+      return Success(
+        KnowledgeSearchResult.semanticFallback(
+          _searchResultsFromApi(keywordResponse.data),
+          notice:
+              'Semantic search is temporarily unavailable. Showing keyword results instead.',
+        ),
+      );
     });
   }
 

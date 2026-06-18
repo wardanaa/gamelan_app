@@ -117,6 +117,13 @@ class _EntityListScreenState extends State<EntityListScreen> {
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ],
+              if (store.searchNotice != null) ...[
+                const SizedBox(height: 16),
+                Semantics(
+                  liveRegion: true,
+                  child: _SearchNotice(message: store.searchNotice!),
+                ),
+              ],
               const SizedBox(height: 16),
               Text(
                 '${results.length} knowledge items',
@@ -141,6 +148,43 @@ class _EntityListScreenState extends State<EntityListScreen> {
       query: _searchController.text,
       gamelanType: _selectedGamelanType,
       knowledgeType: _selectedKnowledgeType,
+    );
+  }
+}
+
+class _SearchNotice extends StatelessWidget {
+  const _SearchNotice({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              color: colorScheme.onSecondaryContainer,
+              semanticLabel: 'Search notice',
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: colorScheme.onSecondaryContainer),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/core/api/api_client.dart';
+import 'package:gamelan_app/core/mapping/taxonomy_mapper.dart';
 import 'package:gamelan_app/core/state/gamelan_mvp_store.dart';
 import 'package:gamelan_app/core/storage/token_storage.dart';
 import 'package:gamelan_app/core/utils/result.dart';
@@ -11,6 +12,8 @@ import 'package:gamelan_app/features/auth/data/auth_repository.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
+import 'package:gamelan_app/features/knowledge/data/knowledge_item.dart';
+import 'package:gamelan_app/features/knowledge/data/knowledge_repository.dart';
 import 'package:gamelan_app/features/knowledge/data/local_knowledge_repository.dart';
 import 'package:gamelan_app/features/review/data/review_repository.dart';
 import 'package:http/http.dart' as http;
@@ -350,6 +353,34 @@ void main() {
     expect(find.text('Gangsa'), findsOneWidget);
   });
 
+  testWidgets('search tab shows semantic fallback notice with keyword results', (
+    WidgetTester tester,
+  ) async {
+    final contributions = LocalContributionRepository();
+    final store = GamelanMvpStore(
+      contributionRepository: contributions,
+      reviewRepository: LocalReviewRepository(contributions: contributions),
+      knowledgeRepository: _FallbackKnowledgeRepository(),
+    );
+
+    await pumpMvpApp(tester, store: store);
+
+    await tester.tap(find.text('Search'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'gangsa');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Semantic search is temporarily unavailable. Showing keyword results instead.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Gangsa keyword result'), findsOneWidget);
+    expect(find.text('1 knowledge items'), findsOneWidget);
+  });
+
   testWidgets('validates contribution form and submits to review queue', (
     WidgetTester tester,
   ) async {
@@ -666,6 +697,56 @@ class MemoryTokenStorageBackend implements TokenStorageBackend {
   @override
   Future<void> delete({required String key}) async {
     _values.remove(key);
+  }
+}
+
+class _FallbackKnowledgeRepository implements KnowledgeRepository {
+  static const _item = KnowledgeItem(
+    id: 'gangsa-keyword',
+    title: 'Gangsa keyword result',
+    description: 'Fallback keyword result from a published knowledge item.',
+    knowledgeType: 'Instrument',
+    gamelanType: 'Gong Kebyar',
+    relations: ['usedInEnsemble: Gong Kebyar'],
+    sourceSummary: 'Published safe summary.',
+    provenanceSummary: 'Published backend knowledge.',
+  );
+
+  @override
+  Future<Result<List<KnowledgeItem>>> fetchKnowledgeItems() async {
+    return const Success(<KnowledgeItem>[]);
+  }
+
+  @override
+  Future<Result<KnowledgeItem?>> findKnowledgeItem(String id) async {
+    return Success(id == _item.id ? _item : null);
+  }
+
+  @override
+  Future<Result<KnowledgeSearchResult>> searchKnowledge({
+    required String query,
+    String? gamelanType,
+    String? knowledgeType,
+    String? gamelanTypeSlug,
+    String? knowledgeTypeSlug,
+  }) async {
+    return Success(
+      KnowledgeSearchResult.semanticFallback(
+        const [_item],
+        notice:
+            'Semantic search is temporarily unavailable. Showing keyword results instead.',
+      ),
+    );
+  }
+
+  @override
+  Future<Result<List<TaxonomyOption>>> fetchKnowledgeTypes() async {
+    return const Success(TaxonomyMapper.defaultKnowledgeTypes);
+  }
+
+  @override
+  Future<Result<List<TaxonomyOption>>> fetchGamelanTypes() async {
+    return const Success(TaxonomyMapper.defaultGamelanTypes);
   }
 }
 

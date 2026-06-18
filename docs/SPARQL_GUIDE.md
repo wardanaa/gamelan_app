@@ -10,8 +10,9 @@ or ontology file in this repository.
 
 The mobile client does consume backend knowledge search and ontology/RDF
 publication contracts, and live integration tests can verify ontology/RDF and
-protected SPARQL proxy behavior against a configured backend. A user-facing
-semantic-search fallback UI is still not implemented.
+protected SPARQL proxy behavior against a configured backend. User-facing
+semantic search is implemented through the REST semantic endpoint with a
+visible keyword fallback when that endpoint is temporarily unavailable.
 
 This guide defines query behavior for backend and ontology integration consumed
 through REST APIs.
