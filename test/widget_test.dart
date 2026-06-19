@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/core/api/api_client.dart';
+import 'package:gamelan_app/core/api/repository_errors.dart';
 import 'package:gamelan_app/core/mapping/taxonomy_mapper.dart';
 import 'package:gamelan_app/core/state/gamelan_mvp_store.dart';
 import 'package:gamelan_app/core/storage/token_storage.dart';
@@ -551,6 +552,163 @@ void main() {
     expect(find.text('Choose a file to upload.'), findsOneWidget);
   });
 
+  testWidgets('needs-revision contribution can be edited and resubmitted', (
+    WidgetTester tester,
+  ) async {
+    final contributions = LocalContributionRepository();
+    final reviewRepository = LocalReviewRepository(
+      contributions: contributions,
+    );
+    final contributionResult = await contributions.createContribution(
+      contributionInput(title: 'Needs revision media note'),
+    );
+    final contribution = switch (contributionResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+    await reviewRepository.requestChanges(
+      contribution.id,
+      'Clarify the source before resubmission.',
+    );
+    final store = GamelanMvpStore(
+      contributionRepository: contributions,
+      reviewRepository: reviewRepository,
+      knowledgeRepository: LocalKnowledgeRepository(
+        contributions: contributions,
+      ),
+    );
+
+    await pumpMvpApp(tester, store: store);
+    await tester.tap(find.text('Contribute'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Needs revision media note'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Needs revision'), findsOneWidget);
+    expect(find.text('Review guidance'), findsOneWidget);
+    expect(
+      find.text('Changes requested: Clarify the source before resubmission.'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(TextButton, 'Add media'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(FilledButton, 'Submit for review'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+    );
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Edit contribution'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit contribution'), findsOneWidget);
+    expect(find.text('Needs revision media note'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(EditableText).at(0),
+      'Revised needs revision note',
+    );
+    await tester.ensureVisible(
+      find.widgetWithText(OutlinedButton, 'Save changes'),
+    );
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Save changes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Revised needs revision note'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+    );
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Edit contribution'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(EditableText).at(0),
+      'Resubmitted needs revision note',
+    );
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Save and submit for review'),
+    );
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Save and submit for review'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Resubmitted needs revision note'), findsOneWidget);
+    expect(find.text('Submitted'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Add media'), findsNothing);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+      findsNothing,
+    );
+    expect(
+      find.widgetWithText(FilledButton, 'Submit for review'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('stale contribution edit shows conflict message', (
+    WidgetTester tester,
+  ) async {
+    final contributions = _ConflictContributionRepository();
+    final contributionResult = await contributions.createContribution(
+      contributionInput(title: 'Conflicting revision note'),
+    );
+    final contribution = switch (contributionResult) {
+      Success<ContributionModel>(:final value) => value,
+      Failure<ContributionModel>() => fail('Expected success'),
+    };
+    await contributions.updateContributionStatus(
+      contribution.id,
+      ContributionStatus.needsRevision,
+      reviewNote: 'Clarify the source.',
+    );
+    final store = GamelanMvpStore(
+      contributionRepository: contributions,
+      reviewRepository: LocalReviewRepository(contributions: contributions),
+      knowledgeRepository: LocalKnowledgeRepository(
+        contributions: contributions,
+      ),
+    );
+
+    await pumpMvpApp(tester, store: store);
+    await tester.tap(find.text('Contribute'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Conflicting revision note'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+    );
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Edit contribution'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(EditableText).at(0),
+      'Locally revised stale note',
+    );
+    await tester.ensureVisible(
+      find.widgetWithText(OutlinedButton, 'Save changes'),
+    );
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Save changes'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'This contribution has changed since you last loaded it. Please refresh and try again.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Edit contribution'), findsOneWidget);
+  });
+
   testWidgets('submitted contribution hides media management actions', (
     WidgetTester tester,
   ) async {
@@ -569,6 +727,10 @@ void main() {
 
     expect(find.text('Media attachments'), findsOneWidget);
     expect(find.widgetWithText(TextButton, 'Add media'), findsNothing);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Edit contribution'),
+      findsNothing,
+    );
   });
 
   testWidgets('review detail shows read-only media metadata', (
@@ -697,6 +859,23 @@ class MemoryTokenStorageBackend implements TokenStorageBackend {
   @override
   Future<void> delete({required String key}) async {
     _values.remove(key);
+  }
+}
+
+class _ConflictContributionRepository extends LocalContributionRepository {
+  static const _message =
+      'This contribution has changed since you last loaded it. Please refresh and try again.';
+
+  @override
+  Future<Result<ContributionModel>> updateContribution(
+    String id,
+    ContributionInput input, {
+    DateTime? lastKnownUpdatedAt,
+  }) async {
+    return const Failure(
+      _message,
+      exception: RepositoryConflictException(message: _message),
+    );
   }
 }
 

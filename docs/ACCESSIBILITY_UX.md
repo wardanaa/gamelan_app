@@ -58,6 +58,7 @@ Settings
 ## Core Screens
 
 Current MVP screens include backend-connected contribution list/detail/form/status,
+contributor edit/resubmit flows for backend-authorized needs-revision items,
 online media upload/removal, knowledge list/detail, review
 queue/detail/decision screens, expert workflow dialogs, provenance timelines,
 backend-authorized RDF publication queueing, and backend authentication. User
@@ -95,6 +96,8 @@ The current MVP contribution form is a single scrolling form. It includes:
 - contributor consent checkbox
 - save draft
 - submit for review
+- edit backend-authorized drafts and needs-revision contributions
+- save and submit revisions when resubmission is allowed
 
 As the form grows, it should be broken into steps:
 

@@ -22,6 +22,8 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 - secure device storage for the access token
 - Laravel API-backed contributions, contribution media upload/removal, review
   queue, and knowledge browse/search
+- contributor editing and resubmission for backend-authorized draft and
+  needs-revision contributions
 - review detail screens now render standard and expert action groups from
   backend `allowed_actions`, with dedicated dialogs for expert escalation and
   validation
@@ -64,9 +66,10 @@ production admin screens, or broader offline-first expert-validation flows.
 3. Implement Laravel API integration. Implemented for authentication,
    contributions, review queue actions, and public knowledge browse/search.
    Production wiring uses remote repositories with API-only drafts. Mobile
-   validation improves UX, but backend validation remains mandatory. Next mobile
-   follow-up: broader live integration coverage and conflict-resolution UI for
-   concurrent edits.
+   validation improves UX, and contributor edit/resubmit actions are rendered
+   only from backend `allowed_actions`; backend validation remains mandatory.
+   Next mobile follow-up: broader live integration coverage and richer
+   conflict-resolution UI for concurrent edits.
 
 4. Add media metadata and upload flow. Implemented for online editable drafts.
    Contributors can attach media with consent, visibility, sensitivity, and
@@ -113,6 +116,8 @@ production admin screens, or broader offline-first expert-validation flows.
 
 - Non-sensitive drafts survive app restart without exposing sensitive data.
 - Authenticated users can submit contributions through the Laravel API.
+- Contributors can edit and resubmit backend-authorized needs-revision
+  contributions without bypassing review.
 - Curators can approve, reject, or request revisions with persisted review
   notes.
 - Sensitive contributions require explicit review and can trigger expert

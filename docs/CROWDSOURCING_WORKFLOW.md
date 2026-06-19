@@ -21,6 +21,8 @@ curatorApproved, expertRequired, expertApproved, published, rejected, archived
 Implemented mobile behavior:
 
 - contributors can create API-backed drafts and submit them for backend review
+- contributors can edit and resubmit draft or needs-revision contributions
+  when the backend returns `edit` and `submit` in `allowed_actions`
 - contribution fields include title, description, knowledge type, gamelan type,
   source note, contributor note, consent, and cultural sensitivity
 - editable draft and needs-revision contributions can attach or remove media
@@ -112,7 +114,7 @@ Media visibility does not publish a file. `public` visibility means the asset ma
 |---|---:|---:|---:|---:|---:|
 | Create draft | Yes | Yes | Yes | Yes | Yes |
 | Submit contribution | Yes | Yes | Yes | Yes | Yes |
-| Edit own draft | Yes | Yes | Yes | Yes | Yes |
+| Edit own draft or needs-revision item | Yes | Yes | Yes | Yes | Yes |
 | Review submitted item | No | Yes | Yes | Limited | Yes |
 | Request revision | No | Yes | Yes | Yes | Yes |
 | Approve for curation | No | No | Yes | No | Yes |
@@ -150,6 +152,9 @@ Expert validation is required for:
 
 - Peer reviewers may record approve and reject recommendations for non-sensitive submitted or under-review contributions, but those decisions do not final-approve or final-reject content.
 - Peer reviewers may request revision, moving a contribution to `needs_revision`.
+- Contributors may revise and resubmit their own `needs_revision`
+  contributions only when backend authorization returns the corresponding
+  `allowed_actions`.
 - Curators and admins may approve, reject, request revision, or mark expert validation required.
 - Curator approval of culturally sensitive content moves the contribution to `expert_required`.
 - Experts and admins may validate only `expert_required` contributions.

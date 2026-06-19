@@ -131,6 +131,141 @@ void main() {
     },
   );
 
+  test(
+    'remote contribution repository updates needs-revision contributions',
+    () async {
+      var updateCalled = false;
+      final client = MockClient((request) async {
+        if (request.method == 'PUT' &&
+            request.url.path.endsWith('/contributions/contribution-uuid')) {
+          updateCalled = true;
+          expect(headerValue(request, 'authorization'), 'Bearer test-token');
+          final body = jsonDecode(request.body) as Map<String, Object?>;
+          expect(body['title'], 'Revised gangsa note');
+          expect(body['knowledge_type'], 'instrument');
+          expect(body['gamelan_type'], 'gong_kebyar');
+          expect(
+            body['last_known_updated_at'],
+            contains('2026-05-22T10:00:00'),
+          );
+          return jsonResponse({
+            'success': true,
+            'message': 'Updated',
+            'data': {
+              'contribution': {
+                'id': 'contribution-uuid',
+                'title': body['title'],
+                'description': body['description'],
+                'status': 'needs_revision',
+                'status_label': 'Needs revision',
+                'status_description':
+                    'The curator requested changes before this contribution can continue.',
+                'knowledge_type': 'instrument',
+                'knowledge_type_label': 'Instrument',
+                'gamelan_type': 'gong_kebyar',
+                'gamelan_type_label': 'Gong Kebyar',
+                'source_note': body['source_note'],
+                'contributor_note': body['contributor_note'],
+                'cultural_sensitivity': false,
+                'consent_status': 'granted',
+                'created_at': '2026-05-22T09:00:00.000000Z',
+                'updated_at': '2026-05-22T10:05:00.000000Z',
+                'allowed_actions': ['view', 'edit', 'submit', 'archive'],
+                'latest_review_note': 'Clarify the source before resubmission.',
+              },
+            },
+          });
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteContributionRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+        tokenResolver: () async => 'test-token',
+      );
+
+      final result = await repository.updateContribution(
+        'contribution-uuid',
+        const ContributionInput(
+          title: 'Revised gangsa note',
+          description: 'Updated practice note.',
+          knowledgeType: 'Instrument',
+          gamelanType: 'Gong Kebyar',
+          sourceNote: 'Updated interview source.',
+          contributorNote: 'Revision response for curator review.',
+          culturalSensitivity: false,
+          consentGiven: true,
+          submitForReview: false,
+          contributionIntent: 'correction',
+        ),
+        lastKnownUpdatedAt: DateTime.utc(2026, 5, 22, 10),
+      );
+
+      final contribution = switch (result) {
+        Success<ContributionModel>(:final value) => value,
+        Failure<ContributionModel>(:final message) => fail(message),
+      };
+      expect(updateCalled, isTrue);
+      expect(contribution.status, ContributionStatus.needsRevision);
+      expect(contribution.canEdit, isTrue);
+      expect(contribution.canSubmit, isTrue);
+      expect(contribution.canManageMedia, isTrue);
+      expect(
+        contribution.reviewNote,
+        'Clarify the source before resubmission.',
+      );
+    },
+  );
+
+  test('remote contribution repository surfaces stale update conflicts', () async {
+    final client = MockClient((request) async {
+      if (request.method == 'PUT' &&
+          request.url.path.endsWith('/contributions/contribution-uuid')) {
+        return jsonResponse({
+          'success': false,
+          'message':
+              'This contribution has changed since you last loaded it. Please refresh and try again.',
+          'errors': {},
+        }, 409);
+      }
+      return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+    });
+
+    final repository = RemoteContributionRepository(
+      apiClient: ApiClient(
+        baseUrl: 'http://localhost/api/v1',
+        httpClient: client,
+      ),
+      tokenResolver: () async => 'test-token',
+    );
+
+    final result = await repository.updateContribution(
+      'contribution-uuid',
+      const ContributionInput(
+        title: 'Stale update',
+        description: 'Updated practice note.',
+        knowledgeType: 'Instrument',
+        gamelanType: 'Gong Kebyar',
+        sourceNote: 'Updated interview source.',
+        contributorNote: 'Revision response for curator review.',
+        culturalSensitivity: false,
+        consentGiven: true,
+        submitForReview: false,
+      ),
+      lastKnownUpdatedAt: DateTime.utc(2026, 5, 22, 10),
+    );
+
+    expect(result, isA<Failure<ContributionModel>>());
+    final failure = result as Failure<ContributionModel>;
+    expect(
+      failure.message,
+      'This contribution has changed since you last loaded it. Please refresh and try again.',
+    );
+  });
+
   test('remote contribution repository uploads and removes media', () async {
     var uploadCalled = false;
     var deleteCalled = false;

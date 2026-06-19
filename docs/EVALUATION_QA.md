@@ -7,10 +7,11 @@ This document defines software, ontology, and research evaluation rules.
 The current default test suite contains deterministic Flutter widget tests,
 mocked authentication HTTP responses, and focused repository tests for local
 fixtures plus remote API parsing. Covered mobile areas include contribution,
-review, draft persistence, media metadata, provenance timelines, knowledge
-search behavior, ontology DTO/repository contracts, RDF publication
-DTO/repository contracts, curator/admin RDF publication queueing UI, and
-review-only AI triage display. Full offline sync, offline media queues,
+review, draft persistence, needs-revision edit/resubmit flows, media metadata,
+provenance timelines, knowledge search behavior, ontology DTO/repository
+contracts, RDF publication DTO/repository contracts, curator/admin RDF
+publication queueing UI, and review-only AI triage display. Full offline sync,
+offline media queues,
 encrypted sensitive draft storage, production admin UI, and SUS/task evaluation
 execution remain unimplemented.
 
@@ -138,6 +139,7 @@ Test scenarios:
 - semantic search
 - create draft
 - submit contribution
+- edit and resubmit needs-revision contribution
 - upload media
 - curator review
 - request revision

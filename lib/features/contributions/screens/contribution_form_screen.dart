@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../../core/api/repository_errors.dart';
 import '../../../core/mapping/taxonomy_mapper.dart';
+import '../../../core/state/gamelan_mvp_store.dart';
 import '../../../core/state/gamelan_scope.dart';
 import '../../../core/utils/result.dart';
 import '../../contributions/data/contribution_model.dart';
 
 class ContributionFormScreen extends StatefulWidget {
-  const ContributionFormScreen({super.key});
+  const ContributionFormScreen({this.contribution, super.key});
+
+  final ContributionModel? contribution;
 
   @override
   State<ContributionFormScreen> createState() => _ContributionFormScreenState();
@@ -28,13 +31,42 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
   bool _isSaving = false;
   Map<String, List<String>> _fieldErrors = const {};
 
+  bool get _isEditing => widget.contribution != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final contribution = widget.contribution;
+    if (contribution == null) {
+      return;
+    }
+
+    _titleController.text = contribution.title;
+    _descriptionController.text = contribution.description;
+    _sourceNoteController.text = contribution.sourceNote;
+    _contributorNoteController.text = contribution.contributorNote;
+    _knowledgeType = contribution.knowledgeType;
+    _gamelanType = contribution.gamelanType;
+    _contributionIntent =
+        contribution.contributionIntent ??
+        TaxonomyMapper.contributionIntents.first.slug;
+    _culturalSensitivity = contribution.culturalSensitivity;
+    _consentGiven = contribution.consentGiven;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final store = GamelanScope.of(context);
-    _knowledgeType ??= store.knowledgeTypeLabels.firstOrNull;
-    _gamelanType ??= store.gamelanTypeLabels.firstOrNull;
-    _contributionIntent ??= store.contributionIntentOptions.first.slug;
+    _knowledgeType = _optionOrFallback(
+      store.knowledgeTypeLabels,
+      _knowledgeType,
+    );
+    _gamelanType = _optionOrFallback(store.gamelanTypeLabels, _gamelanType);
+    _contributionIntent = _intentOrFallback(
+      store.contributionIntentOptions,
+      _contributionIntent,
+    );
   }
 
   @override
@@ -49,17 +81,22 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
   @override
   Widget build(BuildContext context) {
     final store = GamelanScope.of(context);
+    final canSubmit = !_isEditing || (widget.contribution?.canSubmit ?? false);
 
     return Scaffold(
-      appBar: const _ContributionFormAppBar(title: 'New contribution'),
+      appBar: _ContributionFormAppBar(
+        title: _isEditing ? 'Edit contribution' : 'New contribution',
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
           key: const Key('contribution_form_scroll'),
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-              'Submit community knowledge for curator review. The backend validates every submission before review or publication.',
+            Text(
+              _isEditing
+                  ? 'Revise this contribution for curator review. The backend validates every update and controls whether resubmission is allowed.'
+                  : 'Submit community knowledge for curator review. The backend validates every submission before review or publication.',
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -188,30 +225,50 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
               },
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: _isSaving
-                  ? null
-                  : () => _saveContribution(submitForReview: true),
-              icon: _isSaving
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send_outlined),
-              label: const Text('Submit for review'),
-            ),
-            const SizedBox(height: 8),
+            if (canSubmit) ...[
+              FilledButton.icon(
+                onPressed: _isSaving
+                    ? null
+                    : () => _saveContribution(submitForReview: true),
+                icon: _isSaving
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.send_outlined),
+                label: Text(
+                  _isEditing
+                      ? 'Save and submit for review'
+                      : 'Submit for review',
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             OutlinedButton.icon(
               onPressed: _isSaving
                   ? null
                   : () => _saveContribution(submitForReview: false),
               icon: const Icon(Icons.save_outlined),
-              label: const Text('Save draft'),
+              label: Text(_isEditing ? 'Save changes' : 'Save draft'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String? _optionOrFallback(List<String> options, String? selected) {
+    if (selected != null && options.contains(selected)) {
+      return selected;
+    }
+    return options.firstOrNull;
+  }
+
+  String? _intentOrFallback(List<TaxonomyOption> options, String? selected) {
+    if (selected != null && options.any((option) => option.slug == selected)) {
+      return selected;
+    }
+    return options.firstOrNull?.slug;
   }
 
   String? _fieldError(String key) {
@@ -284,18 +341,35 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
     });
 
     final store = GamelanScope.of(context);
-    final result = await store.createContribution(
-      title: _titleController.text,
-      description: _descriptionController.text,
-      knowledgeType: _knowledgeType ?? store.knowledgeTypeLabels.first,
-      gamelanType: _gamelanType ?? store.gamelanTypeLabels.first,
-      sourceNote: _sourceNoteController.text,
-      contributorNote: _contributorNoteController.text,
-      culturalSensitivity: _culturalSensitivity,
-      consentGiven: _consentGiven,
+    final result = await _saveToRepository(
+      store,
       submitForReview: submitForReview,
-      contributionIntent: _contributionIntent,
     );
+
+    if (submitForReview) {
+      switch (result) {
+        case Success<ContributionModel>(:final value):
+          final submitResult = await store.submitContribution(value.id);
+          if (!mounted) {
+            return;
+          }
+          switch (submitResult) {
+            case Success<ContributionModel>():
+              setState(() {
+                _isSaving = false;
+              });
+              Navigator.of(context).pop();
+            case Failure<ContributionModel>(:final message, :final exception):
+              _showFailure(message, exception);
+          }
+        case Failure<ContributionModel>(:final message, :final exception):
+          if (!mounted) {
+            return;
+          }
+          _showFailure(message, exception);
+      }
+      return;
+    }
 
     if (!mounted) {
       return;
@@ -309,14 +383,55 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
       case Success<ContributionModel>():
         Navigator.of(context).pop();
       case Failure<ContributionModel>(:final message, :final exception):
-        final validation = validationExceptionFrom(exception);
-        setState(() {
-          _fieldErrors = validation?.fieldErrors ?? const {};
-        });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(validation?.message ?? message)));
+        _showFailure(message, exception);
     }
+  }
+
+  Future<Result<ContributionModel>> _saveToRepository(
+    GamelanMvpStore store, {
+    required bool submitForReview,
+  }) {
+    final contribution = widget.contribution;
+    if (contribution == null) {
+      return store.createContribution(
+        title: _titleController.text,
+        description: _descriptionController.text,
+        knowledgeType: _knowledgeType ?? store.knowledgeTypeLabels.first,
+        gamelanType: _gamelanType ?? store.gamelanTypeLabels.first,
+        sourceNote: _sourceNoteController.text,
+        contributorNote: _contributorNoteController.text,
+        culturalSensitivity: _culturalSensitivity,
+        consentGiven: _consentGiven,
+        submitForReview: false,
+        contributionIntent: _contributionIntent,
+      );
+    }
+
+    return store.updateContribution(
+      id: contribution.id,
+      title: _titleController.text,
+      description: _descriptionController.text,
+      knowledgeType: _knowledgeType ?? store.knowledgeTypeLabels.first,
+      gamelanType: _gamelanType ?? store.gamelanTypeLabels.first,
+      sourceNote: _sourceNoteController.text,
+      contributorNote: _contributorNoteController.text,
+      culturalSensitivity: _culturalSensitivity,
+      consentGiven: _consentGiven,
+      submitForReview: submitForReview,
+      contributionIntent: _contributionIntent,
+      lastKnownUpdatedAt: contribution.updatedAt,
+    );
+  }
+
+  void _showFailure(String message, Object? exception) {
+    final validation = validationExceptionFrom(exception);
+    setState(() {
+      _isSaving = false;
+      _fieldErrors = validation?.fieldErrors ?? const {};
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(validation?.message ?? message)));
   }
 }
 

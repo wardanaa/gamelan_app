@@ -406,6 +406,15 @@ class LocalContributionRepository implements ContributionRepository {
     _contributions[index] = _contributions[index].copyWith(
       status: status,
       reviewNote: reviewNote,
+      allowedActions: switch (status) {
+        ContributionStatus.draft || ContributionStatus.needsRevision => const [
+          'view',
+          'edit',
+          'submit',
+          'archive',
+        ],
+        _ => const ['view'],
+      },
     );
     await _persistDrafts();
     return const Success(null);

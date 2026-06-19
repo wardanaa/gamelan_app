@@ -64,7 +64,7 @@ Contribution forms in external clients should collect enough information for bac
 
 The API must validate submitted data and return field-level errors for invalid input.
 
-Implemented MVP contribution endpoints use UUIDs in URLs and responses. Authenticated users can list, view, update, submit, and archive only their own contributions. Drafts may omit `description`, `source_note`, and `contribution_intent`, but submission requires those fields to be complete.
+Implemented MVP contribution endpoints use UUIDs in URLs and responses. Authenticated users can list, view, update, submit, and archive only their own contributions. Drafts may omit `description`, `source_note`, and `contribution_intent`, but submission requires those fields to be complete. The Flutter mobile client exposes edit and resubmit actions for draft and needs-revision contributions only when the backend returns the matching `allowed_actions`.
 
 For draft updates, offline-capable clients may send the last server timestamp they loaded:
 
@@ -113,7 +113,7 @@ archived
 
 Clients may map these statuses to localized display labels, but must preserve the original API value for workflow decisions.
 
-Contribution responses include `status_label`, `status_description`, and `allowed_actions`. Clients should render actions from `allowed_actions`; for the MVP, editable own `draft` and `needs_revision` contributions return `view`, `edit`, `submit`, and `archive`, while submitted, archived, and later workflow statuses return `view`.
+Contribution responses include `status_label`, `status_description`, and `allowed_actions`. Clients should render actions from `allowed_actions`; for the MVP, editable own `draft` and `needs_revision` contributions return `view`, `edit`, `submit`, and `archive`, while submitted, archived, and later workflow statuses return `view`. The Flutter mobile contribution form sends an update first and then calls submit only after a successful save when a contributor chooses to resubmit.
 
 Review and expert clients may receive role-aware actions such as `view_review`, `recommend_approve`, `recommend_reject`, `approve`, `reject`, `request_revision`, `mark_expert_required`, and `expert_validate`. These actions are hints from backend authorization and workflow status; clients must still submit decisions to the backend for enforcement.
 

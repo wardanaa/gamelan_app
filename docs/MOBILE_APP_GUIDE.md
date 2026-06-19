@@ -30,12 +30,16 @@ The current app is a backend-connected Flutter MVP:
   uses `GET /knowledge-items`.
 - Contribution forms apply mobile UX validation, send API slug values for
   knowledge and gamelan types, and surface backend `422`/`409` responses.
+  The same form now supports editing backend-authorized draft and
+  needs-revision contributions, sending `last_known_updated_at` when available
+  before optional resubmission.
 - Contribution list cards keep long titles and descriptions bounded with
   ellipsis, show status as a single badge, and use a sensitive-content icon
   only as a display hint. Workflow actions remain backend-driven.
-- Editable contribution detail screens support media attachment and removal
-  through the Laravel media API. The upload form captures file, consent,
-  visibility, cultural sensitivity, and descriptive metadata.
+- Editable contribution detail screens show edit, resubmit, and media actions
+  only from backend `allowed_actions`. They support media attachment and
+  removal through the Laravel media API. The upload form captures file,
+  consent, visibility, cultural sensitivity, and descriptive metadata.
 - Review screens call backend review endpoints and render action groups from
   API `allowed_actions` when present. Standard approve/reject/request-change
   actions open the existing review decision screen, while expert workflow
@@ -223,6 +227,8 @@ Implemented in the current mobile client:
 - backend auth/session restore with secure token storage
 - API-backed contribution drafts, submission, status display, and online media
   attachment/removal
+- contributor editing and resubmission for backend-authorized draft and
+  needs-revision contributions
 - backend-driven review and expert actions through `allowed_actions`
 - safe read-only provenance timelines and review-only AI triage summaries
 - public browse, semantic-first search, and keyword fallback through backend APIs
@@ -256,6 +262,8 @@ The current mobile contribution form supports:
 - Cultural sensitivity flag
 - Save as draft
 - Submit for review
+- Edit backend-authorized drafts or needs-revision contributions
+- Save and submit revised contributions when the backend allows `submit`
 
 Target future additions include related entity selection and richer
 backend-backed validation.

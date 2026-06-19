@@ -7,6 +7,7 @@ import '../data/media_asset_model.dart';
 import '../widgets/media_asset_list.dart';
 import '../widgets/status_badge.dart';
 import '../../provenance/screens/provenance_timeline_screen.dart';
+import 'contribution_form_screen.dart';
 import 'media_upload_screen.dart';
 
 class ContributionDetailScreen extends StatelessWidget {
@@ -62,6 +63,10 @@ class ContributionDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.timeline_outlined),
                 label: const Text('View provenance timeline'),
               ),
+              if (_hasWorkflowNotice(contribution)) ...[
+                const SizedBox(height: 8),
+                _WorkflowNotice(contribution: contribution),
+              ],
               const SizedBox(height: 16),
               _DetailSection(
                 title: 'Description',
@@ -89,6 +94,14 @@ class ContributionDetailScreen extends StatelessWidget {
                 onRemove: (asset) =>
                     _confirmRemove(context, contribution.id, asset),
               ),
+              if (contribution.canEdit) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _openEdit(context, contribution),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Edit contribution'),
+                ),
+              ],
               if (contribution.canSubmit) ...[
                 const SizedBox(height: 8),
                 FilledButton.icon(
@@ -102,6 +115,21 @@ class ContributionDetailScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  bool _hasWorkflowNotice(ContributionModel contribution) {
+    return contribution.statusDescription?.trim().isNotEmpty == true ||
+        (contribution.status == ContributionStatus.needsRevision &&
+            contribution.reviewNote?.trim().isNotEmpty == true);
+  }
+
+  void _openEdit(BuildContext context, ContributionModel contribution) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) =>
+            ContributionFormScreen(contribution: contribution),
+      ),
     );
   }
 
@@ -183,6 +211,43 @@ class ContributionDetailScreen extends StatelessWidget {
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+}
+
+class _WorkflowNotice extends StatelessWidget {
+  const _WorkflowNotice({required this.contribution});
+
+  final ContributionModel contribution;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusDescription = contribution.statusDescription?.trim();
+    final reviewNote = contribution.status == ContributionStatus.needsRevision
+        ? contribution.reviewNote?.trim()
+        : null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Review guidance',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (statusDescription != null && statusDescription.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(statusDescription),
+            ],
+            if (reviewNote != null && reviewNote.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(reviewNote),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

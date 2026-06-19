@@ -208,6 +208,53 @@ class GamelanMvpStore extends ChangeNotifier {
     }
   }
 
+  Future<Result<ContributionModel>> updateContribution({
+    required String id,
+    required String title,
+    required String description,
+    required String knowledgeType,
+    required String gamelanType,
+    required String sourceNote,
+    required String contributorNote,
+    required bool culturalSensitivity,
+    required bool consentGiven,
+    required bool submitForReview,
+    String? contributionIntent,
+    DateTime? lastKnownUpdatedAt,
+  }) async {
+    final result = await _contributionRepository.updateContribution(
+      id,
+      ContributionInput(
+        title: title,
+        description: description,
+        knowledgeType: knowledgeType,
+        gamelanType: gamelanType,
+        sourceNote: sourceNote,
+        contributorNote: contributorNote,
+        culturalSensitivity: culturalSensitivity,
+        consentGiven: consentGiven,
+        submitForReview: submitForReview,
+        contributionIntent: contributionIntent,
+        knowledgeTypeSlug: _taxonomyMapper.knowledgeSlugFromLabel(
+          knowledgeType,
+        ),
+        gamelanTypeSlug: _taxonomyMapper.gamelanSlugFromLabel(gamelanType),
+      ),
+      lastKnownUpdatedAt: lastKnownUpdatedAt,
+    );
+
+    switch (result) {
+      case Success<ContributionModel>(:final value):
+        _lastError = null;
+        await _refreshState();
+        return Success(value);
+      case Failure<ContributionModel>(:final message, :final exception):
+        _lastError = message;
+        notifyListeners();
+        return Failure(message, exception: exception);
+    }
+  }
+
   Future<Result<ContributionModel>> submitContribution(String id) async {
     final result = await _contributionRepository.submitContribution(id);
     switch (result) {
