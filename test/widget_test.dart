@@ -608,6 +608,11 @@ void main() {
 
     expect(find.text('Edit contribution'), findsOneWidget);
     expect(find.text('Needs revision media note'), findsOneWidget);
+    expect(find.text('Review guidance'), findsOneWidget);
+    expect(
+      find.text('Changes requested: Clarify the source before resubmission.'),
+      findsOneWidget,
+    );
 
     await tester.enterText(
       find.byType(EditableText).at(0),

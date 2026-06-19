@@ -98,6 +98,10 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
                   ? 'Revise this contribution for curator review. The backend validates every update and controls whether resubmission is allowed.'
                   : 'Submit community knowledge for curator review. The backend validates every submission before review or publication.',
             ),
+            if (_shouldShowRevisionGuidance) ...[
+              const SizedBox(height: 12),
+              _RevisionGuidanceCard(contribution: widget.contribution!),
+            ],
             const SizedBox(height: 16),
             TextFormField(
               controller: _titleController,
@@ -262,6 +266,17 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
       return selected;
     }
     return options.firstOrNull;
+  }
+
+  bool get _shouldShowRevisionGuidance {
+    final contribution = widget.contribution;
+    if (contribution == null ||
+        contribution.status != ContributionStatus.needsRevision ||
+        (!contribution.canEdit && !contribution.canSubmit)) {
+      return false;
+    }
+    return contribution.statusDescription?.trim().isNotEmpty == true ||
+        contribution.reviewNote?.trim().isNotEmpty == true;
   }
 
   String? _intentOrFallback(List<TaxonomyOption> options, String? selected) {
@@ -432,6 +447,41 @@ class _ContributionFormScreenState extends State<ContributionFormScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(validation?.message ?? message)));
+  }
+}
+
+class _RevisionGuidanceCard extends StatelessWidget {
+  const _RevisionGuidanceCard({required this.contribution});
+
+  final ContributionModel contribution;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusDescription = contribution.statusDescription?.trim();
+    final reviewNote = contribution.reviewNote?.trim();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Review guidance',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            if (statusDescription != null && statusDescription.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(statusDescription),
+            ],
+            if (reviewNote != null && reviewNote.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(reviewNote),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

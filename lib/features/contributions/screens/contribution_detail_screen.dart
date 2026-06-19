@@ -119,9 +119,12 @@ class ContributionDetailScreen extends StatelessWidget {
   }
 
   bool _hasWorkflowNotice(ContributionModel contribution) {
+    if (contribution.status != ContributionStatus.needsRevision ||
+        (!contribution.canEdit && !contribution.canSubmit)) {
+      return false;
+    }
     return contribution.statusDescription?.trim().isNotEmpty == true ||
-        (contribution.status == ContributionStatus.needsRevision &&
-            contribution.reviewNote?.trim().isNotEmpty == true);
+        contribution.reviewNote?.trim().isNotEmpty == true;
   }
 
   void _openEdit(BuildContext context, ContributionModel contribution) {

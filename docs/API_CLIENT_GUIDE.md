@@ -122,7 +122,12 @@ The Flutter mobile client now renders those actions as two UI groups:
 - standard review actions for approve, reject, and request revision
 - expert workflow actions for `mark_expert_required` and `expert_validate`
 
-Contributor-facing screens must never surface `private_note` fields or reviewer/expert identities. The public note and private note are separate fields in the expert validation dialog, and the private note is write-only from the contributor’s point of view.
+Contributor-facing screens may surface public contribution review guidance such
+as `review_note` or `latest_review_note` for the owner's needs-revision item
+when the backend returns it. They must never surface `private_note` fields,
+private expert notes, or reviewer/expert identities. The public note and
+private note are separate fields in the expert validation dialog, and the
+private note is write-only from the contributor’s point of view.
 
 When review responses include `triage_suggestion`, the mobile review detail
 screen shows it as a review-only helper card labeled `AI suggestion, not

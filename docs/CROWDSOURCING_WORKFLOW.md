@@ -165,7 +165,7 @@ Expert validation is required for:
 - The Flutter mobile review detail screen also shows backend `triage_suggestion`
   data as a review-only helper card, and contribution/review detail screens can
   open the safe provenance timeline route for version and provenance history.
-- Contributor-facing contribution detail screens do not render reviewer notes or private expert notes. The expert validation dialog is the only mobile UI surface that accepts a private note.
+- Contributor-facing contribution detail and edit screens may show safe public revision guidance on backend-authorized needs-revision items, but they must not render private review notes, private expert notes, reviewer identities, or expert identities. The expert validation dialog is the only mobile UI surface that accepts a private note.
 
 ## Implemented RDF Publication Behavior
 

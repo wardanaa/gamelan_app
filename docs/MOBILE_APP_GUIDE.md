@@ -63,9 +63,11 @@ The current app is a backend-connected Flutter MVP:
 - Status badges reuse a shared presentation component so `expert_required`
   and `expert_approved` are visually distinct from curator states across
   contribution and review lists.
-- Contributor-facing contribution detail screens do not render reviewer notes
-  or private expert notes. Private note entry is limited to the expert
-  validation dialog.
+- Contributor-facing contribution detail and edit screens may render safe
+  public revision guidance returned as contribution metadata for
+  backend-authorized needs-revision items. They do not render private review
+  notes, private expert notes, reviewer identities, or expert identities.
+  Private note entry is limited to the expert validation dialog.
 - Review and knowledge detail screens render safe read-only media metadata when
   the API includes `media_assets`.
 - `AuthRepository` performs real JSON registration, login, logout, and `/me`
