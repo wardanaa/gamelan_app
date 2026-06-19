@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../../features/admin/data/admin_repository.dart';
+import '../../features/admin/data/admin_user_summary.dart';
+import '../../features/admin/data/audit_log_entry.dart';
 import '../../features/contributions/data/contribution_model.dart';
 import '../../features/contributions/data/contribution_repository.dart';
 import '../../features/contributions/data/media_asset_model.dart';
@@ -28,6 +31,7 @@ class GamelanMvpStore extends ChangeNotifier {
       knowledgeRepository: LocalKnowledgeRepository(
         contributions: contributions,
       ),
+      adminRepository: LocalAdminRepository(),
       ontologyRepository: LocalOntologyRepository(),
       taxonomyMapper: taxonomyMapper ?? TaxonomyMapper(),
     );
@@ -37,12 +41,14 @@ class GamelanMvpStore extends ChangeNotifier {
     required ContributionRepository contributionRepository,
     required ReviewRepository reviewRepository,
     required KnowledgeRepository knowledgeRepository,
+    AdminRepository? adminRepository,
     OntologyRepository? ontologyRepository,
     TaxonomyMapper? taxonomyMapper,
   }) : this._(
          contributionRepository: contributionRepository,
          reviewRepository: reviewRepository,
          knowledgeRepository: knowledgeRepository,
+         adminRepository: adminRepository ?? LocalAdminRepository(),
          ontologyRepository: ontologyRepository ?? LocalOntologyRepository(),
          taxonomyMapper: taxonomyMapper ?? TaxonomyMapper(),
        );
@@ -51,17 +57,20 @@ class GamelanMvpStore extends ChangeNotifier {
     required ContributionRepository contributionRepository,
     required ReviewRepository reviewRepository,
     required KnowledgeRepository knowledgeRepository,
+    required AdminRepository adminRepository,
     required OntologyRepository ontologyRepository,
     required TaxonomyMapper taxonomyMapper,
   }) : _contributionRepository = contributionRepository,
        _reviewRepository = reviewRepository,
        _knowledgeRepository = knowledgeRepository,
+       _adminRepository = adminRepository,
        _ontologyRepository = ontologyRepository,
        _taxonomyMapper = taxonomyMapper;
 
   final ContributionRepository _contributionRepository;
   final ReviewRepository _reviewRepository;
   final KnowledgeRepository _knowledgeRepository;
+  final AdminRepository _adminRepository;
   final OntologyRepository _ontologyRepository;
   TaxonomyMapper _taxonomyMapper;
 
@@ -388,6 +397,14 @@ class GamelanMvpStore extends ChangeNotifier {
 
   Future<Result<List<OntologyClass>>> getOntologyClasses() {
     return _ontologyRepository.getClasses();
+  }
+
+  Future<Result<List<AdminUserSummary>>> fetchAdminUsers() {
+    return _adminRepository.fetchUsers();
+  }
+
+  Future<Result<List<AuditLogEntry>>> fetchAuditLogs() {
+    return _adminRepository.fetchAuditLogs();
   }
 
   Future<Result<List<OntologyProperty>>> getOntologyProperties() {

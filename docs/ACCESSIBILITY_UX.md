@@ -19,8 +19,9 @@ login, `/me` profile loading, and logout are wired to the configured API. The
 Search and Contribute tabs use backend repositories in production wiring. The
 Review tab shows review workflows only when the backend profile has a reviewer,
 curator, expert validator, or admin role, and individual review actions are
-driven by backend `allowed_actions`. Admin screens remain scaffold-level
-placeholders.
+driven by backend `allowed_actions`. Backend-admin profiles also see a Profile
+entry for read-only user-management and audit-log screens backed by admin API
+responses.
 
 ## UX Principles
 
@@ -62,7 +63,8 @@ contributor edit/resubmit flows for backend-authorized needs-revision items,
 online media upload/removal, knowledge list/detail, review
 queue/detail/decision screens, expert workflow dialogs, provenance timelines,
 backend-authorized RDF publication queueing, and backend authentication. User
-management and audit logs are still placeholders.
+management and audit logs are read-only mobile views; backend authorization and
+filtering remain authoritative for the records they display.
 
 Contribution list cards bound long titles and descriptions to avoid mobile
 layout overflow, expose the contribution status as text, and include a screen
@@ -78,7 +80,8 @@ backend authorization and workflow policies remain authoritative.
 | Review Queue | Backend-authorized review list |
 | Review Detail | Review contribution, source note, sensitivity, and decision actions |
 | RDF Publication | Curator/admin mapping form for backend-authorized RDF publication queueing |
-| Profile | Backend profile label, backend roles, privacy boundary, and ontology boundary |
+| Admin Tools | Read-only backend-admin user and audit-log views |
+| Profile | Backend profile label, backend roles, admin entry point, privacy boundary, and ontology boundary |
 | Settings | Language, accessibility, account |
 | Login | Backend sign-in and registration with clear validation and error messaging |
 

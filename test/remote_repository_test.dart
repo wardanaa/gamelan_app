@@ -4,6 +4,9 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamelan_app/core/api/api_client.dart';
 import 'package:gamelan_app/core/utils/result.dart';
+import 'package:gamelan_app/features/admin/data/admin_user_summary.dart';
+import 'package:gamelan_app/features/admin/data/audit_log_entry.dart';
+import 'package:gamelan_app/features/admin/data/remote_admin_repository.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
 import 'package:gamelan_app/features/contributions/data/media_asset_model.dart';
@@ -1008,6 +1011,172 @@ void main() {
 
       expect(keywordRequested, isFalse);
       expect(failure, 'You do not have permission to perform this action.');
+    },
+  );
+
+  test('remote admin repository parses user list and bearer token', () async {
+    var requestedUsers = false;
+    final client = MockClient((request) async {
+      if (request.method == 'GET' &&
+          request.url.path.endsWith('/admin/users')) {
+        requestedUsers = true;
+        expect(headerValue(request, 'authorization'), 'Bearer admin-token');
+        return jsonResponse({
+          'success': true,
+          'message': 'Users retrieved.',
+          'data': {
+            'users': [
+              {
+                'id': 1,
+                'name': 'Made Admin',
+                'email': 'admin@example.com',
+                'roles': ['admin'],
+                'permissions': ['admin.users.view'],
+                'status': 'active',
+                'status_label': 'Active',
+                'created_at': '2026-05-22T10:00:00.000000Z',
+                'last_login_at': '2026-05-23T10:00:00.000000Z',
+              },
+            ],
+          },
+        });
+      }
+      return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+    });
+
+    final repository = RemoteAdminRepository(
+      apiClient: ApiClient(
+        baseUrl: 'http://localhost/api/v1',
+        httpClient: client,
+      ),
+      tokenResolver: () async => 'admin-token',
+    );
+
+    final result = await repository.fetchUsers();
+    final users = switch (result) {
+      Success<List<AdminUserSummary>>(:final value) => value,
+      Failure<List<AdminUserSummary>>(:final message) => fail(message),
+    };
+
+    expect(requestedUsers, isTrue);
+    expect(users, hasLength(1));
+    expect(users.single.id, '1');
+    expect(users.single.displayName, 'Made Admin');
+    expect(users.single.roles, ['admin']);
+    expect(users.single.permissionCountLabel, '1 permission');
+  });
+
+  test('remote admin repository parses nested audit log list', () async {
+    final client = MockClient((request) async {
+      if (request.method == 'GET' &&
+          request.url.path.endsWith('/admin/audit-logs')) {
+        expect(headerValue(request, 'authorization'), 'Bearer admin-token');
+        return jsonResponse({
+          'success': true,
+          'message': 'Audit logs retrieved.',
+          'data': {
+            'data': [
+              {
+                'uuid': 'audit-uuid',
+                'event_type': 'user_role_viewed',
+                'summary': 'Admin user role list viewed.',
+                'actor': {'name': 'Made Admin'},
+                'target': {'type': 'User', 'id': 5},
+                'occurred_at': '2026-05-23T11:30:00.000000Z',
+              },
+              {
+                'id': 'audit-withheld',
+                'action': 'restricted_event',
+                'message': 'Restricted audit summary.',
+              },
+            ],
+          },
+        });
+      }
+      return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+    });
+
+    final repository = RemoteAdminRepository(
+      apiClient: ApiClient(
+        baseUrl: 'http://localhost/api/v1',
+        httpClient: client,
+      ),
+      tokenResolver: () async => 'admin-token',
+    );
+
+    final result = await repository.fetchAuditLogs();
+    final logs = switch (result) {
+      Success<List<AuditLogEntry>>(:final value) => value,
+      Failure<List<AuditLogEntry>>(:final message) => fail(message),
+    };
+
+    expect(logs, hasLength(2));
+    expect(logs.first.id, 'audit-uuid');
+    expect(logs.first.safeActorLabel, 'Made Admin');
+    expect(logs.first.targetLabel, 'User 5');
+    expect(logs.last.safeActorLabel, 'Actor withheld by backend');
+  });
+
+  test('remote admin repository reports malformed user payloads', () async {
+    final client = MockClient((request) async {
+      if (request.method == 'GET' &&
+          request.url.path.endsWith('/admin/users')) {
+        return jsonResponse({
+          'success': true,
+          'message': 'Users retrieved.',
+          'data': {'unexpected': <String, Object?>{}},
+        });
+      }
+      return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+    });
+
+    final repository = RemoteAdminRepository(
+      apiClient: ApiClient(
+        baseUrl: 'http://localhost/api/v1',
+        httpClient: client,
+      ),
+      tokenResolver: () async => 'admin-token',
+    );
+
+    final result = await repository.fetchUsers();
+    final message = switch (result) {
+      Success<List<AdminUserSummary>>() => fail('Expected failure'),
+      Failure<List<AdminUserSummary>>(:final message) => message,
+    };
+
+    expect(message, 'The server returned an invalid admin user list.');
+  });
+
+  test(
+    'remote admin repository preserves forbidden backend messages',
+    () async {
+      final client = MockClient((request) async {
+        if (request.method == 'GET' &&
+            request.url.path.endsWith('/admin/audit-logs')) {
+          return jsonResponse({
+            'success': false,
+            'message': 'Only admins can view audit logs.',
+            'errors': <String, Object?>{},
+          }, 403);
+        }
+        return jsonResponse({'success': false, 'message': 'Not found'}, 404);
+      });
+
+      final repository = RemoteAdminRepository(
+        apiClient: ApiClient(
+          baseUrl: 'http://localhost/api/v1',
+          httpClient: client,
+        ),
+        tokenResolver: () async => 'admin-token',
+      );
+
+      final result = await repository.fetchAuditLogs();
+      final message = switch (result) {
+        Success<List<AuditLogEntry>>() => fail('Expected failure'),
+        Failure<List<AuditLogEntry>>(:final message) => message,
+      };
+
+      expect(message, 'Only admins can view audit logs.');
     },
   );
 }

@@ -36,6 +36,8 @@ class AuthSession {
         permissions.contains('review.contributions');
   }
 
+  bool get canAccessAdminTools => roles.contains('admin');
+
   String get roleLabel {
     if (roles.isEmpty) {
       return 'No backend roles returned';

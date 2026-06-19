@@ -47,7 +47,9 @@ The current app is a backend-connected Flutter MVP. It demonstrates:
 
 The current app does not include encrypted sensitive draft storage, full offline
 sync, offline media upload queues, richer stale-update conflict resolution UI,
-production admin screens, or broader offline-first expert-validation flows.
+admin mutation workflows, or broader offline-first expert-validation flows.
+Read-only admin user-management and audit-log screens are implemented in the
+mobile client and remain backend-authorized.
 
 ## Recommended Next Steps
 
@@ -112,6 +114,12 @@ production admin screens, or broader offline-first expert-validation flows.
    mobile app already renders backend triage suggestions as review-only helper
    cards and keeps them out of contributor-facing screens.
 
+10. Add admin mutation workflows only after backend contracts exist.
+    Read-only user-management and audit-log views are implemented for backend
+    admin profiles. Role changes, account state changes, destructive actions,
+    and exports remain future work until documented backend endpoints and
+    authorization policies are available.
+
 ## Suggested Acceptance Criteria
 
 - Non-sensitive drafts survive app restart without exposing sensitive data.
@@ -131,6 +139,8 @@ production admin screens, or broader offline-first expert-validation flows.
 - Widget and integration tests cover the contribution and review workflow,
   provenance timeline safety, triage visibility, and shared expert status
   presentation.
+- Admin profiles can open read-only user-management and audit-log screens
+  without the mobile client becoming the authorization boundary.
 
 ## Testing Status
 
@@ -139,7 +149,7 @@ separate from the live reviewer workflow test, so auth/profile verification
 stays fast while the review-specific integration path can use reviewer
 credentials and a target UUID when available. The deterministic Flutter test
 suite currently covers the mobile repository, widget, provenance, review,
-ontology, and RDF publication DTO/repository contracts.
+ontology, RDF publication, and admin read-only DTO/repository contracts.
 
 ## Development Priorities
 

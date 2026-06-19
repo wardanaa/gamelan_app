@@ -44,12 +44,14 @@ product areas:
 
 The current app provides a curator/admin RDF publication queueing form from
 Review detail when the backend returns `publish_rdf` in `allowed_actions`.
-It does not yet provide full offline sync, offline media upload queues,
-encrypted sensitive draft storage, richer stale-update conflict resolution UI,
-production admin screens, or broader offline-first expert-validation flows.
+It also provides read-only admin user-management and audit-log screens from the
+Profile tab for backend profiles with the `admin` role. It does not yet provide
+full offline sync, offline media upload queues, encrypted sensitive draft
+storage, richer stale-update conflict resolution UI, admin mutation actions, or
+broader offline-first expert-validation flows.
 Safe read-only provenance timelines, review-only AI triage summaries, semantic
-search fallback behavior, and RDF publication queueing remain backend-authorized
-and non-authoritative.
+search fallback behavior, RDF publication queueing, and admin read-only views
+remain backend-authorized and non-authoritative.
 
 ## Goals
 

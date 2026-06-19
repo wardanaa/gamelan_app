@@ -10,10 +10,10 @@ fixtures plus remote API parsing. Covered mobile areas include contribution,
 review, draft persistence, needs-revision edit/resubmit flows, media metadata,
 provenance timelines, knowledge search behavior, ontology DTO/repository
 contracts, RDF publication DTO/repository contracts, curator/admin RDF
-publication queueing UI, and review-only AI triage display. Full offline sync,
-offline media queues,
-encrypted sensitive draft storage, production admin UI, and SUS/task evaluation
-execution remain unimplemented.
+publication queueing UI, read-only admin user/audit UI, and review-only AI
+triage display. Full offline sync, offline media queues, encrypted sensitive
+draft storage, admin mutation workflows, and SUS/task evaluation execution
+remain unimplemented.
 
 An opt-in live Laravel-backed authentication smoke test exists at:
 

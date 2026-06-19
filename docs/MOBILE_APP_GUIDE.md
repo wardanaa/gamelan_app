@@ -16,11 +16,12 @@ The current app is a backend-connected Flutter MVP:
 - `GamelanMvpStore` and `GamelanScope` provide UI-facing state over repository
   interfaces.
 - Production wiring uses `RemoteContributionRepository`,
-  `RemoteReviewRepository`, and `RemoteKnowledgeRepository` against the Laravel
-  API configured by `API_BASE_URL`.
+  `RemoteReviewRepository`, `RemoteKnowledgeRepository`, and
+  `RemoteAdminRepository` against the Laravel API configured by
+  `API_BASE_URL`.
 - `LocalContributionRepository`, `LocalReviewRepository`, and
-  `LocalKnowledgeRepository` remain for deterministic offline widget and unit
-  tests through `GamelanMvpStore.local()`.
+  `LocalKnowledgeRepository`, and `LocalAdminRepository` remain for
+  deterministic offline widget and unit tests through `GamelanMvpStore.local()`.
 - Contribution drafts, submissions, review queue items, and review decisions
   are persisted by the backend in production wiring. The mobile app does not
   keep API drafts in `shared_preferences`.
@@ -79,6 +80,11 @@ The current app is a backend-connected Flutter MVP:
   expert validator, or admin users. This is only UX gating; backend policies
   remain authoritative. Within the review surface itself, individual buttons
   are still driven by backend `allowed_actions`.
+- Admin tools are available from the Profile tab only when the backend profile
+  includes the `admin` role. The mobile admin screens are read-only views over
+  `/admin/users` and `/admin/audit-logs`; backend authorization and filtering
+  remain authoritative, and no role changes or destructive admin actions are
+  implemented in the mobile client.
 - `test/remote_repository_test.dart` covers mocked API parsing and error
   handling. Widget tests inject local repositories for offline flows.
 - An opt-in live Laravel-backed integration test at
@@ -91,9 +97,8 @@ The current app is a backend-connected Flutter MVP:
   expert validation when reviewer credentials and a target review UUID are
   supplied.
 - SPARQL proxy UI, encrypted sensitive draft storage, offline media upload
-  queues, richer stale-update conflict resolution UI, and full offline sync
-  remain target architecture for the mobile client.
-- Admin screens remain scaffold-level placeholders.
+  queues, richer stale-update conflict resolution UI, full offline sync, and
+  admin mutation workflows remain target architecture for the mobile client.
 
 Do not document a mobile capability as implemented unless it is backed by code
 in `lib/`.

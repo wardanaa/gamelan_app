@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,9 +7,15 @@ import 'package:gamelan_app/core/api/api_client.dart';
 import 'package:gamelan_app/core/api/repository_errors.dart';
 import 'package:gamelan_app/core/mapping/taxonomy_mapper.dart';
 import 'package:gamelan_app/core/state/gamelan_mvp_store.dart';
+import 'package:gamelan_app/core/state/gamelan_scope.dart';
 import 'package:gamelan_app/core/storage/token_storage.dart';
 import 'package:gamelan_app/core/utils/result.dart';
 import 'package:gamelan_app/app.dart';
+import 'package:gamelan_app/features/admin/data/admin_repository.dart';
+import 'package:gamelan_app/features/admin/data/admin_user_summary.dart';
+import 'package:gamelan_app/features/admin/data/audit_log_entry.dart';
+import 'package:gamelan_app/features/admin/screens/audit_log_screen.dart';
+import 'package:gamelan_app/features/admin/screens/user_management_screen.dart';
 import 'package:gamelan_app/features/auth/data/auth_repository.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_model.dart';
 import 'package:gamelan_app/features/contributions/data/contribution_repository.dart';
@@ -77,6 +84,33 @@ void main() {
     );
     await tester.tap(find.text('Contributor consent confirmed'));
     await tester.pumpAndSettle();
+  }
+
+  GamelanMvpStore adminTestStore({AdminRepository? adminRepository}) {
+    final contributions = LocalContributionRepository();
+    return GamelanMvpStore(
+      contributionRepository: contributions,
+      reviewRepository: LocalReviewRepository(contributions: contributions),
+      knowledgeRepository: LocalKnowledgeRepository(
+        contributions: contributions,
+      ),
+      adminRepository: adminRepository ?? LocalAdminRepository(),
+    );
+  }
+
+  Future<void> pumpAdminWidget(
+    WidgetTester tester,
+    Widget screen, {
+    AdminRepository? adminRepository,
+  }) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(
+      GamelanScope(
+        store: adminTestStore(adminRepository: adminRepository),
+        child: MaterialApp(home: screen),
+      ),
+    );
   }
 
   test('token storage saves, reads, and clears through its backend', () async {
@@ -331,6 +365,185 @@ void main() {
 
     expect(find.text('Review queue'), findsOneWidget);
     expect(find.text('Review access is protected'), findsNothing);
+  });
+
+  testWidgets('admin profile can open admin tools from profile', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(
+      tester,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/me')) {
+          return profileResponse(roles: ['admin']);
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admin tools'), findsOneWidget);
+
+    await tester.tap(find.text('Admin tools'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Backend admin'), findsOneWidget);
+    expect(find.text('User management'), findsOneWidget);
+    expect(find.text('Audit logs'), findsOneWidget);
+  });
+
+  testWidgets('non-admin profile does not show admin tools', (
+    WidgetTester tester,
+  ) async {
+    await pumpMvpApp(
+      tester,
+      httpClient: MockClient((request) async {
+        if (request.url.path.endsWith('/me')) {
+          return profileResponse(roles: ['curator']);
+        }
+        return jsonResponse({'success': false, 'message': 'Not found.'}, 404);
+      }),
+    );
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admin tools'), findsNothing);
+  });
+
+  testWidgets('user management screen shows loading and populated users', (
+    WidgetTester tester,
+  ) async {
+    final repository = _CompletingAdminRepository(
+      users: [
+        const AdminUserSummary(
+          id: 'admin-1',
+          displayName: 'Made Admin',
+          email: 'admin@example.com',
+          roles: ['admin'],
+          permissions: ['admin.users.view'],
+          statusLabel: 'Active',
+        ),
+      ],
+    );
+
+    await pumpAdminWidget(
+      tester,
+      const UserManagementScreen(),
+      adminRepository: repository,
+    );
+    await tester.pump();
+
+    expect(find.text('Loading users'), findsOneWidget);
+
+    repository.completeUsers();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Made Admin'), findsOneWidget);
+    expect(find.text('admin@example.com'), findsOneWidget);
+    expect(find.text('Roles: admin'), findsOneWidget);
+    expect(find.text('1 permission'), findsOneWidget);
+  });
+
+  testWidgets('user management screen handles empty and search states', (
+    WidgetTester tester,
+  ) async {
+    await pumpAdminWidget(
+      tester,
+      const UserManagementScreen(),
+      adminRepository: LocalAdminRepository(users: const []),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No users returned'), findsOneWidget);
+
+    await pumpAdminWidget(
+      tester,
+      const UserManagementScreen(),
+      adminRepository: LocalAdminRepository(
+        users: const [
+          AdminUserSummary(
+            id: 'admin-1',
+            displayName: 'Made Admin',
+            email: 'admin@example.com',
+            roles: ['admin'],
+            statusLabel: 'Active',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'missing');
+    await tester.pumpAndSettle();
+
+    expect(find.text('No matching users'), findsOneWidget);
+  });
+
+  testWidgets('user management screen handles backend denial', (
+    WidgetTester tester,
+  ) async {
+    await pumpAdminWidget(
+      tester,
+      const UserManagementScreen(),
+      adminRepository: const _FailingAdminRepository(
+        userMessage: 'Only admins can view users.',
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admin users unavailable'), findsOneWidget);
+    expect(find.text('Only admins can view users.'), findsOneWidget);
+  });
+
+  testWidgets('audit log screen shows actor-withheld audit entries', (
+    WidgetTester tester,
+  ) async {
+    await pumpAdminWidget(
+      tester,
+      const AuditLogScreen(),
+      adminRepository: LocalAdminRepository(
+        auditLogs: const [
+          AuditLogEntry(
+            id: 'audit-1',
+            eventType: 'admin_viewed_users',
+            summary: 'Admin user list viewed.',
+            targetType: 'User',
+            targetId: '1',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Admin user list viewed.'), findsOneWidget);
+    expect(find.text('Actor: Actor withheld by backend'), findsOneWidget);
+    expect(find.text('Target: User 1'), findsOneWidget);
+  });
+
+  testWidgets('audit log screen handles empty and error states', (
+    WidgetTester tester,
+  ) async {
+    await pumpAdminWidget(
+      tester,
+      const AuditLogScreen(),
+      adminRepository: LocalAdminRepository(auditLogs: const []),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No audit logs returned'), findsOneWidget);
+
+    await pumpAdminWidget(
+      tester,
+      const AuditLogScreen(),
+      adminRepository: const _FailingAdminRepository(
+        auditMessage: 'Only admins can view audit logs.',
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Audit logs unavailable'), findsOneWidget);
+    expect(find.text('Only admins can view audit logs.'), findsOneWidget);
   });
 
   testWidgets('renders the MVP app shell and seeded knowledge', (
@@ -931,6 +1144,49 @@ class _FallbackKnowledgeRepository implements KnowledgeRepository {
   @override
   Future<Result<List<TaxonomyOption>>> fetchGamelanTypes() async {
     return const Success(TaxonomyMapper.defaultGamelanTypes);
+  }
+}
+
+class _CompletingAdminRepository implements AdminRepository {
+  _CompletingAdminRepository({this.users = const []});
+
+  final List<AdminUserSummary> users;
+  final _usersCompleter = Completer<Result<List<AdminUserSummary>>>();
+
+  @override
+  Future<Result<List<AuditLogEntry>>> fetchAuditLogs() async {
+    return const Success(<AuditLogEntry>[]);
+  }
+
+  @override
+  Future<Result<List<AdminUserSummary>>> fetchUsers() {
+    return _usersCompleter.future;
+  }
+
+  void completeUsers() {
+    if (!_usersCompleter.isCompleted) {
+      _usersCompleter.complete(Success(users));
+    }
+  }
+}
+
+class _FailingAdminRepository implements AdminRepository {
+  const _FailingAdminRepository({
+    this.userMessage = 'Admin users unavailable.',
+    this.auditMessage = 'Audit logs unavailable.',
+  });
+
+  final String userMessage;
+  final String auditMessage;
+
+  @override
+  Future<Result<List<AuditLogEntry>>> fetchAuditLogs() async {
+    return Failure(auditMessage);
+  }
+
+  @override
+  Future<Result<List<AdminUserSummary>>> fetchUsers() async {
+    return Failure(userMessage);
   }
 }
 

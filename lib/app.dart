@@ -10,6 +10,8 @@ import 'core/utils/result.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/auth_session.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/admin/data/remote_admin_repository.dart';
+import 'features/admin/screens/admin_tools_screen.dart';
 import 'features/contributions/data/contribution_model.dart';
 import 'features/contributions/data/remote_contribution_repository.dart';
 import 'features/contributions/screens/contribution_list_screen.dart';
@@ -65,6 +67,10 @@ class _GamelanAppState extends State<GamelanApp> {
         tokenResolver: _tokenStorage.readToken,
       ),
       knowledgeRepository: RemoteKnowledgeRepository(
+        apiClient: _apiClient,
+        tokenResolver: _tokenStorage.readToken,
+      ),
+      adminRepository: RemoteAdminRepository(
         apiClient: _apiClient,
         tokenResolver: _tokenStorage.readToken,
       ),
@@ -382,6 +388,24 @@ class _ProfileTabState extends State<_ProfileTab> {
               'Published knowledge comes from the backend API and is not direct RDF publication from this device.',
             ),
           ),
+          if (widget.authSession.canAccessAdminTools) ...[
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_outlined),
+              title: const Text('Admin tools'),
+              subtitle: const Text(
+                'Read-only user management and audit logs from backend-admin endpoints.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AdminToolsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: _isSigningOut ? null : _signOut,
